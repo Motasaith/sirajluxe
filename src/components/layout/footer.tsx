@@ -1,0 +1,160 @@
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  Github,
+  Twitter,
+  Instagram,
+  Linkedin,
+  ArrowUpRight,
+  Mail,
+} from "lucide-react";
+
+const footerLinks = {
+  Shop: [
+    { label: "All Products", href: "/shop" },
+    { label: "New Arrivals", href: "/shop?filter=new" },
+    { label: "Best Sellers", href: "/shop?filter=bestsellers" },
+    { label: "Sale", href: "/shop?filter=sale" },
+  ],
+  Company: [
+    { label: "About Us", href: "/about" },
+    { label: "Careers", href: "/careers" },
+    { label: "Press", href: "/press" },
+    { label: "Blog", href: "/blog" },
+  ],
+  Support: [
+    { label: "Help Center", href: "/help" },
+    { label: "Shipping", href: "/shipping" },
+    { label: "Returns", href: "/returns" },
+    { label: "Contact", href: "/contact" },
+  ],
+  Legal: [
+    { label: "Privacy", href: "/privacy" },
+    { label: "Terms", href: "/terms" },
+    { label: "Cookies", href: "/cookies" },
+  ],
+};
+
+const socialLinks = [
+  { icon: Twitter, href: "#", label: "Twitter" },
+  { icon: Instagram, href: "#", label: "Instagram" },
+  { icon: Github, href: "#", label: "GitHub" },
+  { icon: Linkedin, href: "#", label: "LinkedIn" },
+];
+
+export function Footer() {
+  return (
+    <footer className="relative bg-background border-t border-[var(--border)]">
+      {/* Gradient orbs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="gradient-orb gradient-orb-2 opacity-5" />
+      </div>
+
+      <div className="relative ultra-wide-padding">
+        {/* Newsletter Section */}
+        <div className="py-20 border-b border-[var(--border)]">
+          <div className="max-w-2xl">
+            <motion.p
+              className="text-sm font-medium tracking-widest uppercase text-neon-violet mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              Stay in the loop
+            </motion.p>
+            <motion.h3
+              className="text-3xl md:text-4xl font-display font-bold text-heading mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+            >
+              Get early access to drops, exclusive offers, and the latest news.
+            </motion.h3>
+            <motion.div
+              className="flex gap-3"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="relative flex-1 max-w-md">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-fg" />
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-full bg-[var(--overlay)] border border-[var(--border-strong)] text-heading placeholder:text-subtle-fg focus:outline-none focus:border-neon-violet/50 focus:ring-2 focus:ring-neon-violet/20 transition-all duration-300"
+                />
+              </div>
+              <button className="magnetic-btn px-6">
+                <span className="flex items-center gap-2">
+                  Subscribe
+                  <ArrowUpRight className="w-4 h-4" />
+                </span>
+              </button>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Links Grid */}
+        <div className="py-16 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-16">
+          {Object.entries(footerLinks).map(([category, links], i) => (
+            <motion.div
+              key={category}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <h4 className="text-sm font-semibold text-heading tracking-wider uppercase mb-6">
+                {category}
+              </h4>
+              <ul className="space-y-3">
+                {links.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="text-sm text-muted-fg hover:text-heading transition-colors duration-300 inline-flex items-center gap-1 group"
+                    >
+                      {link.label}
+                      <ArrowUpRight className="w-3 h-3 opacity-0 -translate-y-1 translate-x-1 group-hover:opacity-100 group-hover:translate-y-0 group-hover:translate-x-0 transition-all duration-300" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="py-8 border-t border-[var(--border)] flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center">
+              <span className="text-white font-bold text-sm">B</span>
+            </div>
+            <span className="text-sm text-subtle-fg">
+              © 2026 BinaCodes. All rights reserved.
+            </span>
+          </div>
+
+          <div className="flex items-center gap-4">
+            {socialLinks.map((social) => (
+              <motion.a
+                key={social.label}
+                href={social.href}
+                className="p-2.5 rounded-full text-subtle-fg hover:text-heading hover:bg-[var(--hover)] transition-all duration-300"
+                whileHover={{ scale: 1.1, y: -2 }}
+                whileTap={{ scale: 0.95 }}
+                aria-label={social.label}
+              >
+                <social.icon className="w-4 h-4" />
+              </motion.a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
