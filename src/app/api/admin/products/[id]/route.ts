@@ -1,0 +1,47 @@
+import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/lib/mongodb";
+import { Product } from "@/lib/models";
+
+// GET /api/admin/products/[id]
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await connectDB();
+    const product = await Product.findById(params.id).lean();
+    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    return NextResponse.json({ ...product, id: product._id.toString() });
+  } catch (error) {
+    console.error("GET /api/admin/products/[id] error:", error);
+    return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
+  }
+}
+
+// PUT /api/admin/products/[id]
+export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await connectDB();
+    const body = await req.json();
+    const product = await Product.findByIdAndUpdate(params.id, body, {
+      new: true,
+      runValidators: true,
+    }).lean();
+    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    return NextResponse.json({ ...product, id: product._id.toString() });
+  } catch (error: unknown) {
+    console.error("PUT /api/admin/products/[id] error:", error);
+    const message = error instanceof Error ? error.message : "Failed to update product";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+// DELETE /api/admin/products/[id]
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    await connectDB();
+    const product = await Product.findByIdAndDelete(params.id);
+    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("DELETE /api/admin/products/[id] error:", error);
+    return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
+  }
+}

@@ -211,7 +211,7 @@ export function ProductsSection() {
   useEffect(() => {
     async function fetchFeatured() {
       try {
-        const res = await fetch("/api/products?where[featured][equals]=true&limit=8&depth=0");
+        const res = await fetch("/api/products?featured=true&limit=8");
         const data = await res.json();
         setProducts(data.docs || []);
       } catch (e) {

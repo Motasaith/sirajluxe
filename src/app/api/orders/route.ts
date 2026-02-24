@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPayload } from "payload";
-import configPromise from "@payload-config";
 import { auth } from "@clerk/nextjs/server";
+import { connectDB } from "@/lib/mongodb";
+import { Order } from "@/lib/models";
 
 // GET /api/orders — list orders for current user
 export async function GET(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = await getPayload({ config: configPromise });
+    await connectDB();
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
@@ -19,24 +19,23 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = { clerkUserId: { equals: userId } };
-    if (status) where.status = { equals: status };
+    const filter: any = { clerkUserId: userId };
+    if (status) filter.status = status;
 
-    const result = await payload.find({
-      collection: "orders",
-      where,
-      sort: "-createdAt",
-      page,
-      limit,
-    });
+    const total = await Order.countDocuments(filter);
+    const docs = await Order.find(filter)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
 
     return NextResponse.json({
-      orders: result.docs,
+      orders: docs,
       pagination: {
-        page: result.page,
-        limit: result.limit,
-        total: result.totalDocs,
-        pages: result.totalPages,
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit),
       },
     });
   } catch (error) {
@@ -56,19 +55,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const payload = await getPayload({ config: configPromise });
+    await connectDB();
     const body = await req.json();
 
     // Generate order number
     const orderNumber = `BC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-    const order = await payload.create({
-      collection: "orders",
-      data: {
-        ...body,
-        orderNumber,
-        clerkUserId: userId,
-      },
+    const order = await Order.create({
+      ...body,
+      orderNumber,
+      clerkUserId: userId,
     });
 
     return NextResponse.json(order, { status: 201 });

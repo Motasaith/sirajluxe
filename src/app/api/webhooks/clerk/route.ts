@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPayload } from "payload";
-import configPromise from "@payload-config";
 import { Webhook } from "svix";
+import { connectDB } from "@/lib/mongodb";
+import { Customer } from "@/lib/models";
 
 // Clerk sends webhook events here when users are created/updated/deleted
 export async function POST(req: NextRequest) {
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     event = JSON.parse(body) as WebhookEvent;
   }
 
-  const payload = await getPayload({ config: configPromise });
+  await connectDB();
 
   switch (event.type) {
     case "user.created":
@@ -43,52 +43,23 @@ export async function POST(req: NextRequest) {
       const primaryEmail =
         email_addresses?.[0]?.email_address || "";
 
-      // Check if customer already exists
-      const existing = await payload.find({
-        collection: "customers",
-        where: { clerkId: { equals: id } },
-        limit: 1,
-      });
-
-      if (existing.docs.length > 0) {
-        await payload.update({
-          collection: "customers",
-          id: existing.docs[0].id,
-          data: {
-            email: primaryEmail,
-            firstName: first_name || "",
-            lastName: last_name || "",
-            avatarUrl: image_url || "",
-          },
-        });
-      } else {
-        await payload.create({
-          collection: "customers",
-          data: {
-            clerkId: id,
-            email: primaryEmail,
-            firstName: first_name || "",
-            lastName: last_name || "",
-            avatarUrl: image_url || "",
-          },
-        });
-      }
+      await Customer.findOneAndUpdate(
+        { clerkId: id },
+        {
+          clerkId: id,
+          email: primaryEmail,
+          firstName: first_name || "",
+          lastName: last_name || "",
+          avatarUrl: image_url || "",
+        },
+        { upsert: true, new: true }
+      );
       break;
     }
 
     case "user.deleted": {
       const { id } = event.data;
-      const existing = await payload.find({
-        collection: "customers",
-        where: { clerkId: { equals: id } },
-        limit: 1,
-      });
-      if (existing.docs.length > 0) {
-        await payload.delete({
-          collection: "customers",
-          id: existing.docs[0].id,
-        });
-      }
+      await Customer.findOneAndDelete({ clerkId: id });
       break;
     }
   }
