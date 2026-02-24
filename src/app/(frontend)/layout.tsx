@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./globals.css";
+import "../globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
 import { CartProvider } from "@/components/providers/cart-provider";
+import { PostHogProvider } from "@/components/providers/posthog-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function RootLayout({
+export default function FrontendLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -53,7 +54,9 @@ export default function RootLayout({
             enableSystem={false}
           >
             <CartProvider>
-              <SmoothScrollProvider>{children}</SmoothScrollProvider>
+              <PostHogProvider>
+                <SmoothScrollProvider>{children}</SmoothScrollProvider>
+              </PostHogProvider>
             </CartProvider>
           </ThemeProvider>
         </body>

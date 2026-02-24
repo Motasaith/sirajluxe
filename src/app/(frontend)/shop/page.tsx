@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
-import { products } from "@/lib/data";
+import { CartDrawer } from "@/components/ui/cart-drawer";
+import { useCart } from "@/components/providers/cart-provider";
+import Link from "next/link";
 import {
   ShoppingBag,
   Heart,
@@ -13,19 +15,63 @@ import {
   SlidersHorizontal,
   Grid3X3,
   LayoutList,
+  Loader2,
 } from "lucide-react";
 import gsap from "gsap";
 
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  category: string;
+  tags?: { tag: string }[];
+  rating: number;
+  reviews: number;
+  inStock: boolean;
+  image: string;
+  colors?: { color: string }[];
+}
+
 const filterCategories = ["All", "Footwear", "Watches", "Audio", "Apparel", "Tech", "Accessories", "Bags"];
+
 export default function ShopPage() {
   const [activeFilter, setActiveFilter] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { addItem } = useCart();
 
-  const filteredProducts =
-    activeFilter === "All"
-      ? products
-      : products.filter((p) => p.category === activeFilter);
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    try {
+      let url = `/api/products?limit=50&depth=0`;
+      if (activeFilter !== "All") url += `&where[category][equals]=${encodeURIComponent(activeFilter)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      setProducts(data.docs || []);
+    } catch (e) {
+      console.error("Failed to fetch products:", e);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeFilter]);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
+  const handleAddToCart = (product: Product) => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || "",
+    });
+  };
 
   const handleMagnetic = (e: React.MouseEvent<HTMLButtonElement>) => {
     const btn = e.currentTarget;
@@ -42,6 +88,7 @@ export default function ShopPage() {
   return (
     <PageTransitionProvider>
       <Header />
+      <CartDrawer />
       <main className="min-h-screen pt-32 pb-20">
         <div className="ultra-wide-padding">
           {/* Page Header */}
@@ -119,12 +166,21 @@ export default function ShopPage() {
                 </button>
               </div>
               <span className="text-sm text-subtle-fg">
-                {filteredProducts.length} products
+                {products.length} products
               </span>
             </div>
           </motion.div>
 
           {/* Products Grid */}
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 text-neon-violet animate-spin" />
+            </div>
+          ) : products.length === 0 ? (
+            <div className="glass-card p-12 text-center">
+              <p className="text-muted-fg">No products found. Try a different category or seed the database.</p>
+            </div>
+          ) : (
           <AnimatePresence mode="wait">
             <motion.div
               key={activeFilter + viewMode}
@@ -138,7 +194,7 @@ export default function ShopPage() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
             >
-              {filteredProducts.map((product, i) => (
+              {products.map((product, i) => (
                 <motion.div
                   key={product.id}
                   className={`group ${viewMode === "list" ? "glass-card overflow-hidden flex" : ""}`}
@@ -148,37 +204,41 @@ export default function ShopPage() {
                 >
                   {viewMode === "grid" ? (
                     <div className="glass-card overflow-hidden">
-                      <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="w-32 h-32 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-2xl" />
-                          <span className="absolute text-6xl font-display font-bold text-heading/5">
-                            {product.name.charAt(0)}
-                          </span>
-                        </div>
-                        <div className="absolute top-4 left-4 flex gap-2">
-                          {product.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md bg-[var(--overlay-strong)] text-body border border-[var(--border-strong)]"
-                            >
-                              {tag}
+                      <Link href={`/shop/${product.slug}`}>
+                        <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden cursor-pointer">
+                          <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-2xl" />
+                            <span className="absolute text-6xl font-display font-bold text-heading/5">
+                              {product.name.charAt(0)}
                             </span>
-                          ))}
+                          </div>
+                          <div className="absolute top-4 left-4 flex gap-2">
+                            {product.tags?.map((t) => (
+                              <span
+                                key={t.tag}
+                                className="px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md bg-[var(--overlay-strong)] text-body border border-[var(--border-strong)]"
+                              >
+                                {t.tag}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                            <button className="w-10 h-10 rounded-full glass flex items-center justify-center text-body hover:text-heading">
+                              <Heart className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                          <button className="w-10 h-10 rounded-full glass flex items-center justify-center text-body hover:text-heading">
-                            <Heart className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
+                      </Link>
                       <div className="p-5">
                         <p className="text-xs font-medium tracking-wider uppercase text-subtle-fg mb-2">
                           {product.category}
                         </p>
-                        <h3 className="text-lg font-semibold text-heading mb-2 line-clamp-1">
-                          {product.name}
-                        </h3>
+                        <Link href={`/shop/${product.slug}`}>
+                          <h3 className="text-lg font-semibold text-heading mb-2 line-clamp-1 hover:text-neon-glow transition-colors cursor-pointer">
+                            {product.name}
+                          </h3>
+                        </Link>
                         <p className="text-sm text-muted-fg mb-4 line-clamp-2">
                           {product.description}
                         </p>
@@ -211,6 +271,7 @@ export default function ShopPage() {
                             )}
                           </div>
                           <button
+                            onClick={() => handleAddToCart(product)}
                             onMouseMove={handleMagnetic}
                             onMouseLeave={handleMagneticLeave}
                             className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300 hover:scale-110"
@@ -223,18 +284,22 @@ export default function ShopPage() {
                   ) : (
                     /* List View */
                     <div className="flex items-center gap-6 p-4">
-                      <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-surface to-background flex items-center justify-center flex-shrink-0">
-                        <span className="text-3xl font-display font-bold text-heading/5">
-                          {product.name.charAt(0)}
-                        </span>
-                      </div>
+                      <Link href={`/shop/${product.slug}`}>
+                        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-surface to-background flex items-center justify-center flex-shrink-0 cursor-pointer">
+                          <span className="text-3xl font-display font-bold text-heading/5">
+                            {product.name.charAt(0)}
+                          </span>
+                        </div>
+                      </Link>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-subtle-fg uppercase tracking-wider mb-1">
                           {product.category}
                         </p>
-                        <h3 className="text-lg font-semibold text-heading mb-1 truncate">
-                          {product.name}
-                        </h3>
+                        <Link href={`/shop/${product.slug}`}>
+                          <h3 className="text-lg font-semibold text-heading mb-1 truncate hover:text-neon-glow transition-colors cursor-pointer">
+                            {product.name}
+                          </h3>
+                        </Link>
                         <p className="text-sm text-muted-fg line-clamp-1">
                           {product.description}
                         </p>
@@ -250,7 +315,10 @@ export default function ShopPage() {
                             </span>
                           )}
                         </div>
-                        <button className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300">
+                        <button
+                          onClick={() => handleAddToCart(product)}
+                          className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300"
+                        >
                           <ShoppingBag className="w-4 h-4" />
                         </button>
                       </div>
@@ -260,6 +328,7 @@ export default function ShopPage() {
               ))}
             </motion.div>
           </AnimatePresence>
+          )}
         </div>
       </main>
       <Footer />

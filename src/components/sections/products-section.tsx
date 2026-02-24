@@ -1,24 +1,52 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ShoppingBag, Heart, Star, ArrowRight } from "lucide-react";
-import { products } from "@/lib/data";
+import { useCart } from "@/components/providers/cart-provider";
+import Link from "next/link";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
+}
+
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  category: string;
+  tags?: { tag: string }[];
+  rating: number;
+  reviews: number;
+  inStock: boolean;
+  featured: boolean;
+  image: string;
+  colors?: { color: string }[];
 }
 
 function ProductCard({
   product,
   index,
 }: {
-  product: (typeof products)[0];
+  product: Product;
   index: number;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const { addItem } = useCart();
+
+  const handleAddToCart = () => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image || "",
+    });
+  };
 
   // Magnetic effect on Add to Cart button
   const handleMagnetic = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -55,44 +83,45 @@ function ProductCard({
     >
       <div className="glass-card overflow-hidden">
         {/* Image Container */}
-        <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden">
-          {/* Placeholder gradient since we don't have real images */}
-          <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-2xl" />
-            <span className="absolute text-6xl font-display font-bold text-heading/5">
-              {product.name.charAt(0)}
-            </span>
-          </div>
-
-          {/* Tags */}
-          <div className="absolute top-4 left-4 flex gap-2">
-            {product.tags.map((tag) => (
-              <span
-                key={tag}
-                className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md ${
-                  tag === "Sale" || tag === "Hot"
-                    ? "bg-red-500/20 text-red-300 border border-red-500/20"
-                    : tag === "New" || tag === "Limited"
-                    ? "bg-neon-violet/20 text-neon-glow border border-neon-violet/20"
-                    : "bg-[var(--overlay-strong)] text-body border border-[var(--border-strong)]"
-                }`}
-              >
-                {tag}
+        <Link href={`/shop/${product.slug}`}>
+          <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden cursor-pointer">
+            <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-2xl" />
+              <span className="absolute text-6xl font-display font-bold text-heading/5">
+                {product.name.charAt(0)}
               </span>
-            ))}
-          </div>
+            </div>
 
-          {/* Quick Actions */}
-          <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
-            <button className="w-10 h-10 rounded-full glass flex items-center justify-center text-body hover:text-heading hover:bg-neon-violet/20 transition-all duration-300">
-              <Heart className="w-4 h-4" />
-            </button>
-          </div>
+            {/* Tags */}
+            <div className="absolute top-4 left-4 flex gap-2">
+              {product.tags?.map((t) => (
+                <span
+                  key={t.tag}
+                  className={`px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider backdrop-blur-md ${
+                    t.tag === "Sale" || t.tag === "Hot"
+                      ? "bg-red-500/20 text-red-300 border border-red-500/20"
+                      : t.tag === "New" || t.tag === "Limited"
+                      ? "bg-neon-violet/20 text-neon-glow border border-neon-violet/20"
+                      : "bg-[var(--overlay-strong)] text-body border border-[var(--border-strong)]"
+                  }`}
+                >
+                  {t.tag}
+                </span>
+              ))}
+            </div>
 
-          {/* Hover overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-        </div>
+            {/* Quick Actions */}
+            <div className="absolute top-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
+              <button className="w-10 h-10 rounded-full glass flex items-center justify-center text-body hover:text-heading hover:bg-neon-violet/20 transition-all duration-300">
+                <Heart className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Hover overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          </div>
+        </Link>
 
         {/* Content */}
         <div className="p-5">
@@ -102,9 +131,11 @@ function ProductCard({
           </p>
 
           {/* Name */}
-          <h3 className="text-lg font-semibold text-heading group-hover:text-neon-glow transition-colors duration-300 mb-2 line-clamp-1">
-            {product.name}
-          </h3>
+          <Link href={`/shop/${product.slug}`}>
+            <h3 className="text-lg font-semibold text-heading group-hover:text-neon-glow transition-colors duration-300 mb-2 line-clamp-1 cursor-pointer">
+              {product.name}
+            </h3>
+          </Link>
 
           {/* Description */}
           <p className="text-sm text-muted-fg mb-4 line-clamp-2 leading-relaxed">
@@ -131,14 +162,14 @@ function ProductCard({
           </div>
 
           {/* Colors */}
-          {product.colors && (
+          {product.colors && product.colors.length > 0 && (
             <div className="flex items-center gap-2 mb-4">
-              {product.colors.map((color) => (
+              {product.colors.map((c) => (
                 <button
-                  key={color}
+                  key={c.color}
                   className="w-5 h-5 rounded-full border-2 border-[var(--border-strong)] hover:border-[var(--accent)] transition-colors duration-200"
-                  style={{ backgroundColor: color }}
-                  aria-label={`Select color ${color}`}
+                  style={{ backgroundColor: c.color }}
+                  aria-label={`Select color ${c.color}`}
                 />
               ))}
             </div>
@@ -158,6 +189,7 @@ function ProductCard({
             </div>
 
             <button
+              onClick={handleAddToCart}
               onMouseMove={handleMagnetic}
               onMouseLeave={handleMagneticLeave}
               className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300 hover:scale-110"
@@ -174,6 +206,20 @@ function ProductCard({
 
 export function ProductsSection() {
   const sectionRef = useRef<HTMLElement>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    async function fetchFeatured() {
+      try {
+        const res = await fetch("/api/products?where[featured][equals]=true&limit=8&depth=0");
+        const data = await res.json();
+        setProducts(data.docs || []);
+      } catch (e) {
+        console.error("Failed to fetch featured products:", e);
+      }
+    }
+    fetchFeatured();
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -214,21 +260,36 @@ export function ProductsSection() {
             </h2>
           </div>
 
-          <motion.button
-            className="group flex items-center gap-2 px-6 py-3 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300 self-start md:self-auto"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <span className="text-sm font-medium">View All Products</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-          </motion.button>
+          <Link href="/shop">
+            <motion.button
+              className="group flex items-center gap-2 px-6 py-3 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300 self-start md:self-auto"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <span className="text-sm font-medium">View All Products</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            </motion.button>
+          </Link>
         </div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.slice(0, 8).map((product, i) => (
-            <ProductCard key={product.id} product={product} index={i} />
-          ))}
+          {products.length > 0
+            ? products.map((product, i) => (
+                <ProductCard key={product.id} product={product} index={i} />
+              ))
+            : /* Skeleton placeholders while loading */
+              [...Array(4)].map((_, i) => (
+                <div key={i} className="glass-card overflow-hidden animate-pulse">
+                  <div className="aspect-square bg-surface" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-3 w-16 bg-surface rounded" />
+                    <div className="h-5 w-full bg-surface rounded" />
+                    <div className="h-3 w-3/4 bg-surface rounded" />
+                    <div className="h-8 w-20 bg-surface rounded" />
+                  </div>
+                </div>
+              ))}
         </div>
       </div>
     </section>

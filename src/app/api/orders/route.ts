@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import { Order } from "@/lib/models";
+import { getPayload } from "payload";
+import configPromise from "@payload-config";
 import { auth } from "@clerk/nextjs/server";
 
-// GET /api/orders — list orders for current user (or all for admins)
+// GET /api/orders — list orders for current user
 export async function GET(req: NextRequest) {
   try {
     const { userId } = await auth();
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const payload = await getPayload({ config: configPromise });
 
     const { searchParams } = new URL(req.url);
     const status = searchParams.get("status");
@@ -19,21 +19,25 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const filter: any = { clerkUserId: userId };
-    if (status) filter.status = status;
+    const where: any = { clerkUserId: { equals: userId } };
+    if (status) where.status = { equals: status };
 
-    const [orders, total] = await Promise.all([
-      Order.find(filter)
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .lean(),
-      Order.countDocuments(filter),
-    ]);
+    const result = await payload.find({
+      collection: "orders",
+      where,
+      sort: "-createdAt",
+      page,
+      limit,
+    });
 
     return NextResponse.json({
-      orders,
-      pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+      orders: result.docs,
+      pagination: {
+        page: result.page,
+        limit: result.limit,
+        total: result.totalDocs,
+        pages: result.totalPages,
+      },
     });
   } catch (error) {
     console.error("GET /api/orders error:", error);
@@ -52,16 +56,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
+    const payload = await getPayload({ config: configPromise });
     const body = await req.json();
 
     // Generate order number
     const orderNumber = `BC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-    const order = await Order.create({
-      ...body,
-      orderNumber,
-      clerkUserId: userId,
+    const order = await payload.create({
+      collection: "orders",
+      data: {
+        ...body,
+        orderNumber,
+        clerkUserId: userId,
+      },
     });
 
     return NextResponse.json(order, { status: 201 });
