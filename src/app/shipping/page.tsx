@@ -2,8 +2,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata = {
-  title: "Shipping Information | BinaCodes",
-  description: "BinaCodes shipping policy — UK delivery, shipping rates, and free shipping promotion.",
+  title: "Shipping Information | Siraj Luxe",
+  description: "Siraj Luxe shipping policy — UK delivery, shipping rates, and free shipping promotion.",
 };
 
 export default function ShippingPage() {
@@ -60,7 +60,7 @@ export default function ShippingPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">Issues with Delivery?</h2>
-              <p>If your order hasn&apos;t arrived within the estimated timeframe, please contact us at <a href="mailto:support@binacodes.com" className="text-neon-violet hover:underline">support@binacodes.com</a>.</p>
+              <p>If your order hasn&apos;t arrived within the estimated timeframe, please contact us at <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
             </section>
           </div>
         </div>

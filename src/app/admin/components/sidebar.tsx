@@ -34,7 +34,7 @@ export function AdminSidebar() {
             <Settings className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white tracking-wide">BinaCodes</h1>
+            <h1 className="text-sm font-bold text-white tracking-wide">Siraj Luxe</h1>
             <p className="text-[10px] text-gray-500 uppercase tracking-widest">Admin Panel</p>
           </div>
         </Link>

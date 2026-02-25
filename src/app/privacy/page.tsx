@@ -2,8 +2,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata = {
-  title: "Privacy Policy | BinaCodes",
-  description: "BinaCodes privacy policy — how we collect, use, and protect your personal data.",
+  title: "Privacy Policy | Siraj Luxe",
+  description: "Siraj Luxe privacy policy — how we collect, use, and protect your personal data.",
 };
 
 export default function PrivacyPage() {
@@ -18,7 +18,7 @@ export default function PrivacyPage() {
           <div className="prose prose-invert prose-sm max-w-none space-y-6 text-body">
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">1. Information We Collect</h2>
-              <p>When you use BinaCodes, we collect information you provide directly:</p>
+              <p>When you use Siraj Luxe, we collect information you provide directly:</p>
               <ul className="list-disc pl-6 space-y-1">
                 <li>Name and email address when you create an account</li>
                 <li>Shipping address when you place an order</li>
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
                 <li>Object to processing</li>
                 <li>Data portability</li>
               </ul>
-              <p className="mt-3">To exercise any of these rights, contact us at support@binacodes.com.</p>
+              <p className="mt-3">To exercise any of these rights, contact us at support@sirajluxe.com.</p>
             </section>
 
             <section>
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">6. Contact</h2>
-              <p>For any privacy-related queries, email us at <a href="mailto:support@binacodes.com" className="text-neon-violet hover:underline">support@binacodes.com</a>.</p>
+              <p>For any privacy-related queries, email us at <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
             </section>
           </div>
         </div>

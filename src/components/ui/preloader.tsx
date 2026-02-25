@@ -125,7 +125,7 @@ export function Preloader({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.6, ease: "easeOut" }}
           >
-            BinaCodes
+            Siraj Luxe
           </motion.h2>
 
           {/* Animated word sequence */}

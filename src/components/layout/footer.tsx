@@ -92,7 +92,7 @@ export function Footer() {
         </div>
 
         {/* Links Grid */}
-        <div className="py-16 grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-16">
+        <div className="py-16 grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-16">
           {Object.entries(footerLinks).map(([category, links], i) => (
             <motion.div
               key={category}
@@ -122,29 +122,46 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="py-8 border-t border-[var(--border)] flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center">
-              <span className="text-white font-bold text-sm">B</span>
+        <div className="py-8 border-t border-[var(--border)] flex flex-col items-center gap-6">
+          <div className="w-full flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center">
+                <span className="text-white font-bold text-sm">S</span>
+              </div>
+              <span className="text-sm text-subtle-fg">
+                © 2026 Siraj Luxe. All rights reserved.
+              </span>
             </div>
-            <span className="text-sm text-subtle-fg">
-              © 2026 BinaCodes. All rights reserved.
-            </span>
+
+            <div className="flex items-center gap-4">
+              {socialLinks.map((social) => (
+                <motion.a
+                  key={social.label}
+                  href={social.href}
+                  className="p-2.5 rounded-full text-subtle-fg hover:text-heading hover:bg-[var(--hover)] transition-all duration-300"
+                  whileHover={{ scale: 1.1, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  aria-label={social.label}
+                >
+                  <social.icon className="w-4 h-4" />
+                </motion.a>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {socialLinks.map((social) => (
-              <motion.a
-                key={social.label}
-                href={social.href}
-                className="p-2.5 rounded-full text-subtle-fg hover:text-heading hover:bg-[var(--hover)] transition-all duration-300"
-                whileHover={{ scale: 1.1, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label={social.label}
-              >
-                <social.icon className="w-4 h-4" />
-              </motion.a>
-            ))}
+          <div className="text-xs text-subtle-fg/60 text-center">
+            Powered by{" "}
+            <span className="text-subtle-fg">BinaCodes</span>
+            {" "}&middot;{" "}
+            Developed by{" "}
+            <a
+              href="https://github.com/Motasaith"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-subtle-fg hover:text-neon-violet transition-colors duration-300"
+            >
+              Abdul Rauf Azhar
+            </a>
           </div>
         </div>
       </div>

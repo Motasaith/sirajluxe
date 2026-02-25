@@ -2,8 +2,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata = {
-  title: "Returns & Refunds | BinaCodes",
-  description: "BinaCodes returns and refunds policy — 30-day hassle-free returns.",
+  title: "Returns & Refunds | Siraj Luxe",
+  description: "Siraj Luxe returns and refunds policy — 30-day hassle-free returns.",
 };
 
 export default function ReturnsPage() {
@@ -34,7 +34,7 @@ export default function ReturnsPage() {
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">How to Return</h2>
               <ol className="list-decimal pl-6 space-y-1">
-                <li>Email us at <a href="mailto:support@binacodes.com" className="text-neon-violet hover:underline">support@binacodes.com</a> with your order number</li>
+                <li>Email us at <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a> with your order number</li>
                 <li>We&apos;ll send you a return shipping label</li>
                 <li>Pack the item and send it back to us</li>
                 <li>Once received and inspected, your refund will be processed within 5–10 business days</li>

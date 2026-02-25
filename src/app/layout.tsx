@@ -16,32 +16,33 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "BinaCodes | Premium E-Commerce — UK",
-    template: "%s | BinaCodes",
+    default: "Siraj Luxe — Beacon of Premium Goods",
+    template: "%s | Siraj Luxe",
   },
   description:
-    "Shop premium curated products at BinaCodes. UK-based store with fast delivery, free shipping on your first order over £10, and hassle-free returns.",
+    "Shop premium curated products at Siraj Luxe. UK-based store with fast delivery, free shipping on your first order over £10, and hassle-free returns.",
   keywords: [
     "ecommerce",
     "UK online shop",
     "premium products",
     "free shipping UK",
-    "BinaCodes",
+    "Siraj Luxe",
+    "luxury UK store",
   ],
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://binacodes.com"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://sirajluxe.com"
   ),
   openGraph: {
-    title: "BinaCodes | Premium E-Commerce — UK",
+    title: "Siraj Luxe — Beacon of Premium Goods",
     description:
       "Shop premium curated products. Free shipping on your first order over £10.",
     type: "website",
     locale: "en_GB",
-    siteName: "BinaCodes",
+    siteName: "Siraj Luxe",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BinaCodes | Premium E-Commerce — UK",
+    title: "Siraj Luxe — Beacon of Premium Goods",
     description:
       "Shop premium curated products. Free shipping on your first order over £10.",
   },

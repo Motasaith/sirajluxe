@@ -3,8 +3,8 @@ import { Footer } from "@/components/layout/footer";
 import { Mail, MessageSquare } from "lucide-react";
 
 export const metadata = {
-  title: "Contact Us | BinaCodes",
-  description: "Get in touch with BinaCodes — we're here to help with orders, returns, and general enquiries.",
+  title: "Contact Us | Siraj Luxe",
+  description: "Get in touch with Siraj Luxe — we're here to help with orders, returns, and general enquiries.",
 };
 
 export default function ContactPage() {
@@ -21,8 +21,8 @@ export default function ContactPage() {
               <Mail className="w-8 h-8 text-neon-violet mx-auto mb-4" />
               <h2 className="text-lg font-semibold text-heading mb-2">Email</h2>
               <p className="text-body mb-4">For orders, returns, and general enquiries</p>
-              <a href="mailto:support@binacodes.com" className="text-neon-violet hover:underline font-medium">
-                support@binacodes.com
+              <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline font-medium">
+                support@sirajluxe.com
               </a>
             </div>
 

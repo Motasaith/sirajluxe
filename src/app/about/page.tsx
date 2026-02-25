@@ -116,7 +116,7 @@ export default function AboutPage() {
                 online.
               </h1>
               <p className="text-xl text-body leading-relaxed max-w-2xl">
-                Founded in 2024, BinaCodes was born from a simple belief:
+                Founded in 2025, Siraj Luxe was born from a simple belief:
                 online shopping should be as exciting as discovering a product
                 in person. We combine cutting-edge 3D technology with
                 world-class design to create experiences that delight.

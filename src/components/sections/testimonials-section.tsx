@@ -30,7 +30,7 @@ const testimonials = [
     avatar: "SC",
   },
   {
-    text: "BinaCodes doesn't sell products — they sell experiences. Every detail is meticulously crafted.",
+    text: "Siraj Luxe doesn't sell products — they sell experiences. Every detail is meticulously crafted.",
     author: "Marcus Webb",
     role: "Tech Journalist",
     avatar: "MW",

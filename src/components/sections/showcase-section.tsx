@@ -119,7 +119,7 @@ export function ShowcaseSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              Why BinaCodes
+              Why Siraj Luxe
             </motion.p>
             <motion.h2
               className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-heading leading-[1.1] mb-8"

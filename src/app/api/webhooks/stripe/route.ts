@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         image: "",
       }));
 
-      const orderNumber = `BC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      const orderNumber = `SL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const shippingDetails = (session as any).shipping_details;

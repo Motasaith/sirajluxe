@@ -2,8 +2,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata = {
-  title: "Terms of Service | BinaCodes",
-  description: "BinaCodes terms of service — conditions for using our e-commerce store.",
+  title: "Terms of Service | Siraj Luxe",
+  description: "Siraj Luxe terms of service — conditions for using our e-commerce store.",
 };
 
 export default function TermsPage() {
@@ -18,7 +18,7 @@ export default function TermsPage() {
           <div className="prose prose-invert prose-sm max-w-none space-y-6 text-body">
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">1. General</h2>
-              <p>By using BinaCodes (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;), you agree to these terms of service. If you do not agree, please do not use our website or services.</p>
+              <p>By using Siraj Luxe (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;), you agree to these terms of service. If you do not agree, please do not use our website or services.</p>
             </section>
 
             <section>
@@ -48,12 +48,12 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">6. Intellectual Property</h2>
-              <p>All content on this website — including text, images, logos, and design — is owned by BinaCodes and protected by copyright law.</p>
+              <p>All content on this website — including text, images, logos, and design — is owned by Siraj Luxe and protected by copyright law.</p>
             </section>
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">7. Limitation of Liability</h2>
-              <p>BinaCodes is not liable for any indirect, incidental, or consequential damages arising from the use of our website or products, to the fullest extent permitted by law.</p>
+              <p>Siraj Luxe is not liable for any indirect, incidental, or consequential damages arising from the use of our website or products, to the fullest extent permitted by law.</p>
             </section>
 
             <section>
@@ -63,7 +63,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">9. Contact</h2>
-              <p>If you have any questions about these terms, email us at <a href="mailto:support@binacodes.com" className="text-neon-violet hover:underline">support@binacodes.com</a>.</p>
+              <p>If you have any questions about these terms, email us at <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
             </section>
           </div>
         </div>

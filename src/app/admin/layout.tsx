@@ -3,7 +3,7 @@ import { isAdmin } from "@/lib/admin-auth";
 import { AdminSidebar } from "./components/sidebar";
 
 export const metadata = {
-  title: "Admin | BinaCodes",
+  title: "Admin | Siraj Luxe",
 };
 
 export default async function AdminLayout({

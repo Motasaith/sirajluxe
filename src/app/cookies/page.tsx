@@ -2,8 +2,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 export const metadata = {
-  title: "Cookie Policy | BinaCodes",
-  description: "BinaCodes cookie policy — how and why we use cookies.",
+  title: "Cookie Policy | Siraj Luxe",
+  description: "Siraj Luxe cookie policy — how and why we use cookies.",
 };
 
 export default function CookiesPage() {
@@ -37,7 +37,7 @@ export default function CookiesPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">Contact</h2>
-              <p>Questions? Email <a href="mailto:support@binacodes.com" className="text-neon-violet hover:underline">support@binacodes.com</a>.</p>
+              <p>Questions? Email <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
             </section>
           </div>
         </div>

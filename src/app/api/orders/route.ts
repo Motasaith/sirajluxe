@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
 
     // Generate order number
-    const orderNumber = `BC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    const orderNumber = `SL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
     const order = await Order.create({
       ...body,

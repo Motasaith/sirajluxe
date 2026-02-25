@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { Product } from "@/lib/models/product";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://binacodes.com";
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sirajluxe.com";
 
   await connectDB();
   const products = await Product.find({ status: "active" }).select("slug updatedAt").lean();

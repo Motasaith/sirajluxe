@@ -90,10 +90,10 @@ export function Header() {
               transition={{ duration: 0.3 }}
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center shadow-neon">
-                <span className="text-white font-bold text-lg">B</span>
+                <span className="text-white font-bold text-lg">S</span>
               </div>
               <span className="text-xl font-semibold tracking-tight text-heading hidden sm:block">
-                BINA<span className="neon-text">CODES</span>
+                SIRAJ<span className="neon-text"> LUXE</span>
               </span>
             </motion.div>
           </Link>
