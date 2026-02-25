@@ -12,3 +12,6 @@ export type { ICustomer } from "./customer";
 
 export { Media } from "./media";
 export type { IMedia } from "./media";
+
+export { BlogPost } from "./blog-post";
+export type { IBlogPost } from "./blog-post";

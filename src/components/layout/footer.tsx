@@ -19,9 +19,20 @@ const footerLinks = {
     { label: "Sale", href: "/shop?filter=sale" },
   ],
   Support: [
+    { label: "Help Centre", href: "/help" },
+    { label: "FAQ", href: "/faq" },
+    { label: "Size Guide", href: "/size-guide" },
     { label: "Shipping", href: "/shipping" },
     { label: "Returns", href: "/returns" },
+    { label: "Warranty", href: "/warranty" },
     { label: "Contact", href: "/contact" },
+  ],
+  Company: [
+    { label: "About", href: "/about" },
+    { label: "Blog", href: "/blog" },
+    { label: "Press", href: "/press" },
+    { label: "Careers", href: "/careers" },
+    { label: "Accessibility", href: "/accessibility" },
   ],
   Legal: [
     { label: "Privacy", href: "/privacy" },
