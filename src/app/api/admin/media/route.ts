@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { put, del } from "@vercel/blob";
+import { put, del, getDownloadUrl } from "@vercel/blob";
 import connectDB from "@/lib/mongodb";
 import { Media } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
@@ -29,15 +29,30 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload to Vercel Blob
-    const blob = await put(file.name, file, {
-      access: "public",
-    });
+    // Try public access first; if the store is private, fall back to private access
+    let blob;
+    try {
+      blob = await put(file.name, file, { access: "public" });
+    } catch {
+      // Store is configured as private — upload privately and get a download URL
+      blob = await put(file.name, file, { access: "private" });
+    }
+
+    // For private blobs, generate a long-lived download URL
+    let publicUrl = blob.url;
+    if (blob.url && !blob.url.includes(".public.blob.")) {
+      try {
+        publicUrl = await getDownloadUrl(blob.url);
+      } catch {
+        // Fall back to raw URL
+      }
+    }
 
     // Save reference in MongoDB
     await connectDB();
     const media = await Media.create({
       filename: file.name,
-      url: blob.url,
+      url: publicUrl,
       type: file.type.startsWith("image/") ? "image" : "file",
       size: file.size,
       alt: file.name.replace(/\.[^/.]+$/, ""),
