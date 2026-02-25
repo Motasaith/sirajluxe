@@ -15,6 +15,7 @@ import {
 import { useTheme } from "next-themes";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useCart } from "@/components/providers/cart-provider";
+import { useWishlist } from "@/components/providers/wishlist-provider";
 import gsap from "gsap";
 
 const navLinks = [
@@ -29,6 +30,7 @@ export function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { itemCount, toggleCart } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
@@ -132,14 +134,18 @@ export function Header() {
             </button>
 
             {/* Wishlist */}
-            <button
-              onMouseMove={handleMagnetic}
-              onMouseLeave={handleMagneticLeave}
+            <Link
+              href="/wishlist"
               className="relative p-2.5 rounded-full text-body hover:text-heading hover:bg-[var(--hover)] transition-all duration-300 hidden sm:flex"
               aria-label="Wishlist"
             >
               <Heart className="w-5 h-5" />
-            </button>
+              {wishlistCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center min-w-[18px] h-[18px]">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
 
             {/* Theme Toggle */}
             {mounted && (
@@ -269,9 +275,14 @@ export function Header() {
                     )}
                   </button>
                 )}
-                <button className="p-3 rounded-full glass text-body hover:text-heading">
+                <Link href="/wishlist" className="relative p-3 rounded-full glass text-body hover:text-heading">
                   <Heart className="w-5 h-5" />
-                </button>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center min-w-[18px] h-[18px]">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </Link>
                 <SignedIn>
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>

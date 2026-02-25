@@ -12,6 +12,7 @@ import {
   ArrowLeft,
   Settings,
   FileText,
+  MessageSquare,
 } from "lucide-react";
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Customers", href: "/admin/customers", icon: Users },
+  { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
   { label: "Blog", href: "/admin/blog", icon: FileText },
   { label: "Media", href: "/admin/media", icon: ImageIcon },
 ];

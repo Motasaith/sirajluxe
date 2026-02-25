@@ -15,3 +15,9 @@ export type { IMedia } from "./media";
 
 export { BlogPost } from "./blog-post";
 export type { IBlogPost } from "./blog-post";
+
+export { Review } from "./review";
+export type { IReview } from "./review";
+
+export { Wishlist } from "./wishlist";
+export type { IWishlist, IWishlistItem } from "./wishlist";

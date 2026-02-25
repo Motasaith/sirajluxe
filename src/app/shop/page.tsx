@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 import { CartDrawer } from "@/components/ui/cart-drawer";
 import { useCart } from "@/components/providers/cart-provider";
+import { useWishlist } from "@/components/providers/wishlist-provider";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -17,6 +18,11 @@ import {
   Grid3X3,
   LayoutList,
   Loader2,
+  Search,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from "lucide-react";
 import gsap from "gsap";
 
@@ -36,7 +42,16 @@ interface Product {
   colors?: { color: string }[];
 }
 
-const filterCategories = ["All", "Footwear", "Watches", "Audio", "Apparel", "Tech", "Accessories", "Bags"];
+const SORT_OPTIONS = [
+  { value: "newest", label: "Newest" },
+  { value: "price-asc", label: "Price: Low to High" },
+  { value: "price-desc", label: "Price: High to Low" },
+  { value: "rating", label: "Top Rated" },
+  { value: "name-asc", label: "Name: A to Z" },
+  { value: "name-desc", label: "Name: Z to A" },
+];
+
+const PER_PAGE = 12;
 
 export default function ShopPage() {
   const [activeFilter, setActiveFilter] = useState("All");
@@ -44,22 +59,86 @@ export default function ShopPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]);
   const { addItem } = useCart();
+  const { isInWishlist, toggleWishlist } = useWishlist();
+
+  // Search, sort, filter, pagination
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeFilter, debouncedSearch, sortBy, minPrice, maxPrice]);
+
+  // Close sort dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) {
+        setShowSortDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Fetch categories
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/categories");
+        const data = await res.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const names = (data.categories || data.docs || []).map(
+          (c: { name: string }) => c.name
+        );
+        setCategories(names);
+      } catch {
+        /* fallback to empty */
+      }
+    }
+    fetchCategories();
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      let url = `/api/products?limit=50`;
-      if (activeFilter !== "All") url += `&category=${encodeURIComponent(activeFilter)}`;
-      const res = await fetch(url);
+      const params = new URLSearchParams();
+      params.set("limit", String(PER_PAGE));
+      params.set("page", String(currentPage));
+      params.set("sort", sortBy);
+      if (activeFilter !== "All")
+        params.set("category", activeFilter);
+      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (minPrice) params.set("minPrice", minPrice);
+      if (maxPrice) params.set("maxPrice", maxPrice);
+
+      const res = await fetch(`/api/products?${params.toString()}`);
       const data = await res.json();
       setProducts(data.docs || []);
+      setTotalPages(data.totalPages || 1);
+      setTotalProducts(data.total || 0);
     } catch (e) {
       console.error("Failed to fetch products:", e);
     } finally {
       setLoading(false);
     }
-  }, [activeFilter]);
+  }, [activeFilter, debouncedSearch, sortBy, minPrice, maxPrice, currentPage]);
 
   useEffect(() => {
     fetchProducts();
@@ -86,6 +165,25 @@ export default function ShopPage() {
     gsap.to(e.currentTarget, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
   };
 
+  const allCategories = ["All", ...categories];
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setDebouncedSearch("");
+    setActiveFilter("All");
+    setSortBy("newest");
+    setMinPrice("");
+    setMaxPrice("");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters =
+    activeFilter !== "All" ||
+    debouncedSearch ||
+    minPrice ||
+    maxPrice ||
+    sortBy !== "newest";
+
   return (
     <PageTransitionProvider>
       <Header />
@@ -111,16 +209,43 @@ export default function ShopPage() {
             </p>
           </motion.div>
 
+          {/* Search Bar */}
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.05 }}
+          >
+            <div className="relative max-w-xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-fg" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search products..."
+                className="w-full pl-12 pr-10 py-3 rounded-2xl bg-[var(--overlay)] border border-[var(--border)] text-heading placeholder:text-muted-fg text-sm focus:outline-none focus:border-neon-violet transition-colors"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-fg hover:text-heading"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </motion.div>
+
           {/* Filters Bar */}
           <motion.div
-            className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-12"
+            className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           >
             {/* Category Filters */}
             <div className="flex flex-wrap gap-2">
-              {filterCategories.map((category) => (
+              {allCategories.map((category) => (
                 <button
                   key={category}
                   onClick={() => setActiveFilter(category)}
@@ -135,15 +260,61 @@ export default function ShopPage() {
               ))}
             </div>
 
-            {/* View Controls */}
+            {/* Sort + View Controls */}
             <div className="flex items-center gap-3">
+              {/* Sort Dropdown */}
+              <div ref={sortRef} className="relative">
+                <button
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full glass text-body hover:text-heading text-sm transition-all duration-300"
+                >
+                  {SORT_OPTIONS.find((s) => s.value === sortBy)?.label}
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 transition-transform ${showSortDropdown ? "rotate-180" : ""}`}
+                  />
+                </button>
+                <AnimatePresence>
+                  {showSortDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -5, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -5, scale: 0.95 }}
+                      className="absolute right-0 top-12 glass-card p-2 rounded-xl z-50 min-w-[200px]"
+                    >
+                      {SORT_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => {
+                            setSortBy(opt.value);
+                            setShowSortDropdown(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm rounded-lg transition-colors ${
+                            sortBy === opt.value
+                              ? "text-neon-violet bg-neon-violet/10"
+                              : "text-body hover:text-heading hover:bg-[var(--overlay)]"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Filter Toggle */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center gap-2 px-4 py-2 rounded-full glass text-body hover:text-heading text-sm transition-all duration-300"
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm transition-all duration-300 ${
+                  showFilters
+                    ? "bg-neon-violet text-white"
+                    : "glass text-body hover:text-heading"
+                }`}
               >
                 <SlidersHorizontal className="w-4 h-4" />
                 Filters
               </button>
+
               <div className="flex items-center glass rounded-full p-1">
                 <button
                   onClick={() => setViewMode("grid")}
@@ -167,10 +338,66 @@ export default function ShopPage() {
                 </button>
               </div>
               <span className="text-sm text-subtle-fg">
-                {products.length} products
+                {totalProducts} product{totalProducts !== 1 ? "s" : ""}
               </span>
             </div>
           </motion.div>
+
+          {/* Price Filter Panel */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden mb-8"
+              >
+                <div className="glass-card p-6">
+                  <h3 className="text-sm font-semibold text-heading mb-4">
+                    Price Range
+                  </h3>
+                  <div className="flex items-center gap-4 max-w-md">
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-fg mb-1 block">
+                        Min (£)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        placeholder="0"
+                        className="w-full px-3 py-2 rounded-xl bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet"
+                      />
+                    </div>
+                    <span className="text-muted-fg mt-5">—</span>
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-fg mb-1 block">
+                        Max (£)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        placeholder="Any"
+                        className="w-full px-3 py-2 rounded-xl bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet"
+                      />
+                    </div>
+                  </div>
+
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearFilters}
+                      className="mt-4 text-xs text-neon-violet hover:underline"
+                    >
+                      Clear all filters
+                    </button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Products Grid */}
           {loading ? (
@@ -179,12 +406,27 @@ export default function ShopPage() {
             </div>
           ) : products.length === 0 ? (
             <div className="glass-card p-12 text-center">
-              <p className="text-muted-fg">No products found. Try a different category or seed the database.</p>
+              <p className="text-heading font-semibold mb-2">
+                No products found
+              </p>
+              <p className="text-sm text-muted-fg mb-6">
+                {debouncedSearch
+                  ? `No results for "${debouncedSearch}". Try different keywords.`
+                  : "Try adjusting your filters."}
+              </p>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="px-6 py-2.5 rounded-xl bg-neon-violet text-white text-sm font-medium hover:shadow-neon transition-all"
+                >
+                  Clear Filters
+                </button>
+              )}
             </div>
           ) : (
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeFilter + viewMode}
+              key={activeFilter + viewMode + sortBy + currentPage}
               className={
                 viewMode === "grid"
                   ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
@@ -237,8 +479,21 @@ export default function ShopPage() {
                             ))}
                           </div>
                           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                            <button className="w-10 h-10 rounded-full glass flex items-center justify-center text-body hover:text-heading">
-                              <Heart className="w-4 h-4" />
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleWishlist(product.id);
+                              }}
+                              className="w-10 h-10 rounded-full glass flex items-center justify-center transition-all hover:scale-110"
+                            >
+                              <Heart
+                                className={`w-4 h-4 transition-colors ${
+                                  isInWishlist(product.id)
+                                    ? "fill-red-500 text-red-500"
+                                    : "text-body hover:text-heading"
+                                }`}
+                              />
                             </button>
                           </div>
                         </div>
@@ -329,7 +584,19 @@ export default function ShopPage() {
                           {product.description?.replace(/<[^>]*>/g, '')}
                         </p>
                       </div>
-                      <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => toggleWishlist(product.id)}
+                          className="p-2 rounded-full hover:bg-[var(--overlay)] transition-colors"
+                        >
+                          <Heart
+                            className={`w-4 h-4 transition-colors ${
+                              isInWishlist(product.id)
+                                ? "fill-red-500 text-red-500"
+                                : "text-muted-fg hover:text-heading"
+                            }`}
+                          />
+                        </button>
                         <div className="text-right">
                           <span className="text-xl font-bold text-heading">
                             £{product.price}
@@ -353,6 +620,59 @@ export default function ShopPage() {
               ))}
             </motion.div>
           </AnimatePresence>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && !loading && (
+            <div className="flex items-center justify-center gap-2 mt-12">
+              <button
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="w-10 h-10 rounded-xl glass flex items-center justify-center text-body hover:text-heading disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(
+                  (p) =>
+                    p === 1 ||
+                    p === totalPages ||
+                    Math.abs(p - currentPage) <= 1
+                )
+                .reduce<(number | "...")[]>((acc, p, i, arr) => {
+                  if (i > 0 && p - (arr[i - 1] as number) > 1) acc.push("...");
+                  acc.push(p);
+                  return acc;
+                }, [])
+                .map((p, i) =>
+                  p === "..." ? (
+                    <span key={`dots-${i}`} className="px-2 text-muted-fg">
+                      …
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p as number)}
+                      className={`w-10 h-10 rounded-xl text-sm font-medium transition-all ${
+                        currentPage === p
+                          ? "bg-neon-violet text-white shadow-neon"
+                          : "glass text-body hover:text-heading"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  )
+                )}
+              <button
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="w-10 h-10 rounded-xl glass flex items-center justify-center text-body hover:text-heading disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </div>
       </main>
