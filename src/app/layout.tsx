@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
 import { CartProvider } from "@/components/providers/cart-provider";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
+import { CrispProvider } from "@/components/providers/crisp-provider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -81,6 +82,7 @@ export default function RootLayout({
             <CartProvider>
               <PostHogProvider>
                 <SmoothScrollProvider>{children}</SmoothScrollProvider>
+                <CrispProvider />
               </PostHogProvider>
             </CartProvider>
           </ThemeProvider>

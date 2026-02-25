@@ -7,6 +7,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ShoppingBag, Heart, Star, ArrowRight } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
 import Link from "next/link";
+import Image from "next/image";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -85,13 +86,25 @@ function ProductCard({
         {/* Image Container */}
         <Link href={`/shop/${product.slug}`}>
           <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-2xl" />
-              <span className="absolute text-6xl font-display font-bold text-heading/5">
-                {product.name.charAt(0)}
-              </span>
-            </div>
+            {product.image ? (
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                sizes="(max-width: 768px) 50vw, 25vw"
+              />
+            ) : (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-32 h-32 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-2xl" />
+                  <span className="absolute text-6xl font-display font-bold text-heading/5">
+                    {product.name.charAt(0)}
+                  </span>
+                </div>
+              </>
+            )}
 
             {/* Tags */}
             <div className="absolute top-4 left-4 flex gap-2">
@@ -139,10 +152,11 @@ function ProductCard({
 
           {/* Description */}
           <p className="text-sm text-muted-fg mb-4 line-clamp-2 leading-relaxed">
-            {product.description}
+            {product.description?.replace(/<[^>]*>/g, '')}
           </p>
 
-          {/* Rating */}
+          {/* Rating - only show if product has ratings */}
+          {product.rating > 0 && (
           <div className="flex items-center gap-2 mb-4">
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
@@ -160,6 +174,7 @@ function ProductCard({
               ({product.reviews.toLocaleString()})
             </span>
           </div>
+          )}
 
           {/* Colors */}
           {product.colors && product.colors.length > 0 && (

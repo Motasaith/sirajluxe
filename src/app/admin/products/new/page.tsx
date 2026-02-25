@@ -1,15 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, X, ImageIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { TiptapEditor } from "../../components/tiptap-editor";
 
 export default function NewProductPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [categories, setCategories] = useState<string[]>([]);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "",
     slug: "",
@@ -18,8 +23,6 @@ export default function NewProductPage() {
     originalPrice: 0,
     category: "",
     tags: "",
-    rating: 0,
-    reviews: 0,
     inStock: true,
     featured: false,
     image: "",
@@ -29,6 +32,62 @@ export default function NewProductPage() {
     sku: "",
     inventory: 0,
   });
+
+  // Fetch existing categories for suggestions
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((data) => {
+        const cats = [...new Set(data.docs?.map((p: { category: string }) => p.category).filter(Boolean))] as string[];
+        setCategories(cats);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Handle image upload via Vercel Blob
+  const uploadImage = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Only image files are allowed");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image must be under 10MB");
+      return;
+    }
+    setUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/admin/media", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+      setForm((prev) => ({ ...prev, image: data.url }));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }, []);
+
+  // Drag and drop handlers
+  const handleDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
+    else if (e.type === "dragleave") setDragActive(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files?.[0]) uploadImage(e.dataTransfer.files[0]);
+  }, [uploadImage]);
+
+  const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.[0]) uploadImage(e.target.files[0]);
+  }, [uploadImage]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,7 +172,13 @@ export default function NewProductPage() {
 
               <div>
                 <label className={labelClass}>Category *</label>
-                <input type="text" required value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass} placeholder="e.g. Footwear, Watches, Audio" />
+                <input type="text" required list="category-suggestions" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass} placeholder="e.g. Footwear, Watches, Audio" />
+                <datalist id="category-suggestions">
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat} />
+                  ))}
+                </datalist>
+                <p className="text-[11px] text-gray-600 mt-1">Type to search existing or enter new</p>
               </div>
 
               <div>
@@ -122,8 +187,57 @@ export default function NewProductPage() {
               </div>
 
               <div>
-                <label className={labelClass}>Image URL</label>
-                <input type="text" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className={inputClass} placeholder="https://..." />
+                <label className={labelClass}>Product Image</label>
+                {form.image ? (
+                  <div className="relative rounded-lg overflow-hidden border border-white/[0.06] bg-[#0d0d12]">
+                    <div className="relative aspect-video">
+                      <Image src={form.image} alt="Product" fill className="object-contain" sizes="600px" />
+                    </div>
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      <button type="button" onClick={() => setForm({ ...form, image: "" })} className="p-1.5 rounded-lg bg-red-500/80 text-white hover:bg-red-500 transition-colors">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="p-2 border-t border-white/[0.06]">
+                      <p className="text-xs text-gray-500 truncate">{form.image}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
+                      dragActive ? "border-violet-500 bg-violet-500/10" : "border-white/[0.08] bg-[#0d0d12] hover:border-white/[0.15]"
+                    }`}
+                  >
+                    {uploading ? (
+                      <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-xl bg-white/[0.04] flex items-center justify-center">
+                        <ImageIcon className="w-6 h-6 text-gray-500" />
+                      </div>
+                    )}
+                    <div className="text-center">
+                      <p className="text-sm text-gray-300">
+                        {uploading ? "Uploading..." : "Drop image here or click to upload"}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">PNG, JPG, WebP up to 10MB</p>
+                    </div>
+                    <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileInput} className="hidden" />
+                  </div>
+                )}
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    value={form.image}
+                    onChange={(e) => setForm({ ...form, image: e.target.value })}
+                    className={inputClass}
+                    placeholder="Or paste image URL..."
+                  />
+                </div>
               </div>
 
               <div>
@@ -183,16 +297,6 @@ export default function NewProductPage() {
               <div>
                 <label className={labelClass}>Sizes (comma separated)</label>
                 <input type="text" value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} className={inputClass} placeholder="S, M, L, XL" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>Rating</label>
-                  <input type="number" min={0} max={5} step="0.1" value={form.rating} onChange={(e) => setForm({ ...form, rating: parseFloat(e.target.value) || 0 })} className={inputClass} />
-                </div>
-                <div>
-                  <label className={labelClass}>Reviews</label>
-                  <input type="number" min={0} value={form.reviews} onChange={(e) => setForm({ ...form, reviews: parseInt(e.target.value) || 0 })} className={inputClass} />
-                </div>
               </div>
             </div>
 

@@ -22,6 +22,7 @@ import {
   Check,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Product {
   id: string;
@@ -126,6 +127,30 @@ export default function ProductDetailPage() {
               </Link>
             </div>
           ) : (
+            <>
+            {/* JSON-LD Structured Data for SEO */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{
+                __html: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "Product",
+                  name: product.name,
+                  description: product.description?.replace(/<[^>]*>/g, ''),
+                  image: product.image || undefined,
+                  sku: product.id,
+                  offers: {
+                    "@type": "Offer",
+                    price: product.price,
+                    priceCurrency: "GBP",
+                    availability: product.inStock
+                      ? "https://schema.org/InStock"
+                      : "https://schema.org/OutOfStock",
+                    url: `${typeof window !== 'undefined' ? window.location.origin : ''}/shop/${product.slug}`,
+                  },
+                }),
+              }}
+            />
             <div className="grid lg:grid-cols-2 gap-12">
               {/* Left: Product Image */}
               <motion.div
@@ -134,13 +159,26 @@ export default function ProductDetailPage() {
                 transition={{ duration: 0.6 }}
               >
                 <div className="glass-card overflow-hidden aspect-square relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-48 h-48 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-3xl" />
-                    <span className="absolute text-[10rem] font-display font-bold text-heading/5">
-                      {product.name.charAt(0)}
-                    </span>
-                  </div>
+                  {product.image ? (
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 1024px) 100vw, 50vw"
+                      priority
+                    />
+                  ) : (
+                    <>
+                      <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/5 to-transparent" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-48 h-48 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-3xl" />
+                        <span className="absolute text-[10rem] font-display font-bold text-heading/5">
+                          {product.name.charAt(0)}
+                        </span>
+                      </div>
+                    </>
+                  )}
                   {/* Tags */}
                   <div className="absolute top-6 left-6 flex gap-2">
                     {product.tags?.map((t) => (
@@ -179,7 +217,8 @@ export default function ProductDetailPage() {
                   {product.name}
                 </h1>
 
-                {/* Rating */}
+                {/* Rating - only show if product has ratings */}
+                {product.rating > 0 && (
                 <div className="flex items-center gap-3 mb-6">
                   <div className="flex items-center gap-0.5">
                     {[...Array(5)].map((_, i) => (
@@ -197,6 +236,7 @@ export default function ProductDetailPage() {
                     {product.rating} ({product.reviews.toLocaleString()} reviews)
                   </span>
                 </div>
+                )}
 
                 {/* Price */}
                 <div className="flex items-center gap-3 mb-6">
@@ -216,9 +256,10 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Description */}
-                <p className="text-body leading-relaxed mb-8">
-                  {product.description}
-                </p>
+                <div
+                  className="text-body leading-relaxed mb-8 prose prose-invert prose-sm max-w-none prose-p:text-body prose-strong:text-heading prose-li:text-body prose-a:text-neon-violet"
+                  dangerouslySetInnerHTML={{ __html: product.description }}
+                />
 
                 {/* Colors */}
                 {product.colors && product.colors.length > 0 && (
@@ -311,6 +352,7 @@ export default function ProductDetailPage() {
                 </div>
               </motion.div>
             </div>
+            </>
           )}
         </div>
       </main>
