@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { connectDB } from "@/lib/mongodb";
 import { Order, Customer } from "@/lib/models";
+import { sendOrderConfirmation } from "@/lib/email";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2026-01-28.clover",
@@ -102,6 +103,23 @@ export async function POST(req: NextRequest) {
       }
 
       console.log(`Order created: ${order.orderNumber} — £${order.total}`);
+
+      // Send order confirmation email
+      try {
+        await sendOrderConfirmation({
+          to: order.customerEmail,
+          customerName: order.customerName,
+          orderNumber: order.orderNumber,
+          items: order.items,
+          subtotal: order.subtotal,
+          shipping: order.shipping,
+          total: order.total,
+          shippingAddress: order.shippingAddress,
+        });
+        console.log(`Confirmation email sent to ${order.customerEmail}`);
+      } catch (emailErr) {
+        console.error("Failed to send order confirmation email:", emailErr);
+      }
       break;
     }
 

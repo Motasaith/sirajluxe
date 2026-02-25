@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { connectDB } from "@/lib/mongodb";
 import { Customer } from "@/lib/models";
+import { sendWelcomeEmail } from "@/lib/email";
 
 // Clerk sends webhook events here when users are created/updated/deleted
 export async function POST(req: NextRequest) {
@@ -54,6 +55,19 @@ export async function POST(req: NextRequest) {
         },
         { upsert: true, new: true }
       );
+
+      // Send welcome email only for new users
+      if (event.type === "user.created" && primaryEmail) {
+        try {
+          await sendWelcomeEmail({
+            to: primaryEmail,
+            customerName: first_name || "",
+          });
+          console.log(`Welcome email sent to ${primaryEmail}`);
+        } catch (emailErr) {
+          console.error("Failed to send welcome email:", emailErr);
+        }
+      }
       break;
     }
 
