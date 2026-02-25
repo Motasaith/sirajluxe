@@ -55,7 +55,7 @@ export default function AdminDashboard() {
     { label: "Total Products", value: stats?.totalProducts || 0, icon: Package, color: "from-violet-500/20 to-violet-600/5 border-violet-500/20" },
     { label: "Total Orders", value: stats?.totalOrders || 0, icon: ShoppingCart, color: "from-blue-500/20 to-blue-600/5 border-blue-500/20" },
     { label: "Customers", value: stats?.totalCustomers || 0, icon: Users, color: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20" },
-    { label: "Revenue", value: `$${(stats?.totalRevenue || 0).toLocaleString()}`, icon: DollarSign, color: "from-amber-500/20 to-amber-600/5 border-amber-500/20" },
+    { label: "Revenue", value: `£${(stats?.totalRevenue || 0).toLocaleString()}`, icon: DollarSign, color: "from-amber-500/20 to-amber-600/5 border-amber-500/20" },
   ];
 
   return (
@@ -105,7 +105,7 @@ export default function AdminDashboard() {
                 <tr key={order._id} className="hover:bg-white/[0.02] transition-colors">
                   <td className="px-5 py-3 text-sm text-violet-400 font-mono">{order.orderNumber}</td>
                   <td className="px-5 py-3 text-sm text-gray-300">{order.customerEmail}</td>
-                  <td className="px-5 py-3 text-sm text-white font-medium">${order.total.toFixed(2)}</td>
+                  <td className="px-5 py-3 text-sm text-white font-medium">£{order.total.toFixed(2)}</td>
                   <td className="px-5 py-3">
                     <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${statusColors[order.status] || statusColors.pending}`}>
                       {order.status}

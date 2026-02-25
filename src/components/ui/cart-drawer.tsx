@@ -45,7 +45,8 @@ export function CartDrawer() {
       const data = await res.json();
 
       if (data.url) {
-        clearCart();
+        // Don't clear cart here — it will be cleared on the success page
+        // after Stripe confirms the payment via session_id
         window.location.href = data.url;
       } else {
         alert(data.error || "Checkout failed. Please try again.");
@@ -124,7 +125,7 @@ export function CartDrawer() {
                         {item.name}
                       </h3>
                       <p className="text-sm font-semibold text-neon-violet mt-1">
-                        ${item.price}
+                        £{item.price}
                       </p>
 
                       {/* Quantity controls */}
@@ -168,7 +169,7 @@ export function CartDrawer() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-fg">Subtotal</span>
                   <span className="text-lg font-bold text-heading">
-                    ${total.toFixed(2)}
+                    £{total.toFixed(2)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-fg">

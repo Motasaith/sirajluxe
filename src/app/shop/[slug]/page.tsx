@@ -201,12 +201,12 @@ export default function ProductDetailPage() {
                 {/* Price */}
                 <div className="flex items-center gap-3 mb-6">
                   <span className="text-3xl font-bold text-heading">
-                    ${product.price}
+                    £{product.price}
                   </span>
                   {product.originalPrice && (
                     <>
                       <span className="text-lg text-subtle-fg line-through">
-                        ${product.originalPrice}
+                        £{product.originalPrice}
                       </span>
                       <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 text-xs font-semibold border border-red-500/20">
                         -{discountPercent}%

@@ -15,16 +15,40 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BinaCodes | The Future of Immersive Commerce",
+  title: {
+    default: "BinaCodes | Premium E-Commerce — UK",
+    template: "%s | BinaCodes",
+  },
   description:
-    "Experience luxury redefined through immersive product exploration. Curated collections that push the boundaries of premium design.",
+    "Shop premium curated products at BinaCodes. UK-based store with fast delivery, free shipping on your first order over £10, and hassle-free returns.",
   keywords: [
     "ecommerce",
-    "luxury",
-    "shopping",
-    "immersive commerce",
-    "premium",
+    "UK online shop",
+    "premium products",
+    "free shipping UK",
+    "BinaCodes",
   ],
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://binacodes.com"
+  ),
+  openGraph: {
+    title: "BinaCodes | Premium E-Commerce — UK",
+    description:
+      "Shop premium curated products. Free shipping on your first order over £10.",
+    type: "website",
+    locale: "en_GB",
+    siteName: "BinaCodes",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BinaCodes | Premium E-Commerce — UK",
+    description:
+      "Shop premium curated products. Free shipping on your first order over £10.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

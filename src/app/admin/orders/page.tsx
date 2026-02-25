@@ -110,7 +110,7 @@ export default function OrdersPage() {
                     {order.customerName && <p className="text-xs text-gray-500">{order.customerEmail}</p>}
                   </td>
                   <td className="px-5 py-3 text-sm text-gray-400">{order.items?.length || 0} items</td>
-                  <td className="px-5 py-3 text-sm text-white font-medium">${order.total?.toFixed(2)}</td>
+                  <td className="px-5 py-3 text-sm text-white font-medium">£{order.total?.toFixed(2)}</td>
                   <td className="px-5 py-3">
                     <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${statusColors[order.paymentStatus] || statusColors.pending}`}>
                       {order.paymentStatus}

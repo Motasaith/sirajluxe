@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Order } from "@/lib/models";
+import { adminGuard } from "@/lib/admin-auth";
 
 // GET /api/admin/orders/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const order = await Order.findById(params.id).lean();
@@ -17,6 +19,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 // PATCH /api/admin/orders/[id] — update order status
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();

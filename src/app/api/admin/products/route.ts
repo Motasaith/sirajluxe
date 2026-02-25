@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Product } from "@/lib/models";
+import { adminGuard } from "@/lib/admin-auth";
 
 // GET /api/admin/products — list all products
 export async function GET(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
@@ -42,6 +44,7 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/products — create product
 export async function POST(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();

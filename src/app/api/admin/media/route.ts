@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { put, del } from "@vercel/blob";
 import connectDB from "@/lib/mongodb";
 import { Media } from "@/lib/models";
+import { adminGuard } from "@/lib/admin-auth";
 
 // GET /api/admin/media — list all media
 export async function GET() {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const media = await Media.find().sort({ createdAt: -1 }).lean();
@@ -17,6 +19,7 @@ export async function GET() {
 
 // POST /api/admin/media — upload file to Vercel Blob
 export async function POST(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -52,6 +55,7 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/admin/media
 export async function DELETE(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     const { id, url } = await req.json();
 

@@ -5,9 +5,16 @@ const isProtectedRoute = createRouteMatcher([
   "/orders(.*)",
   "/checkout(.*)",
   "/admin(.*)",
+  "/api/admin(.*)",
+]);
+
+// Webhooks must bypass auth — Stripe/Clerk send requests without user sessions
+const isWebhookRoute = createRouteMatcher([
+  "/api/webhooks(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  if (isWebhookRoute(req)) return; // skip auth for webhooks
   if (isProtectedRoute(req)) {
     await auth.protect();
   }

@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Order } from "@/lib/models";
+import { adminGuard } from "@/lib/admin-auth";
 
 // GET /api/admin/orders
 export async function GET(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);

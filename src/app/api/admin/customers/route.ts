@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Customer } from "@/lib/models";
+import { adminGuard } from "@/lib/admin-auth";
 
 // GET /api/admin/customers
 export async function GET() {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const customers = await Customer.find().sort({ createdAt: -1 }).lean();

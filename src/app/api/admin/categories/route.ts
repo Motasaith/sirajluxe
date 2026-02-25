@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Category } from "@/lib/models";
+import { adminGuard } from "@/lib/admin-auth";
 
 // GET /api/admin/categories
 export async function GET() {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const categories = await Category.find().sort({ name: 1 }).lean();
@@ -16,6 +18,7 @@ export async function GET() {
 
 // POST /api/admin/categories
 export async function POST(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();
@@ -30,6 +33,7 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/admin/categories
 export async function DELETE(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
     const { id } = await req.json();

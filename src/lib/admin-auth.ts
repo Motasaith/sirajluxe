@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 // Add admin email addresses here
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "").split(",").map((e) => e.trim()).filter(Boolean);
@@ -30,4 +31,16 @@ export async function requireAdmin() {
   if (!admin) {
     throw new Error("Unauthorized: Admin access required");
   }
+}
+
+/**
+ * Call at the top of admin API route handlers.
+ * Returns null if authorized, or a 403 NextResponse if not.
+ */
+export async function adminGuard(): Promise<NextResponse | null> {
+  const admin = await isAdmin();
+  if (!admin) {
+    return NextResponse.json({ error: "Unauthorized: Admin access required" }, { status: 403 });
+  }
+  return null;
 }

@@ -18,14 +18,7 @@ const footerLinks = {
     { label: "Best Sellers", href: "/shop?filter=bestsellers" },
     { label: "Sale", href: "/shop?filter=sale" },
   ],
-  Company: [
-    { label: "About Us", href: "/about" },
-    { label: "Careers", href: "/careers" },
-    { label: "Press", href: "/press" },
-    { label: "Blog", href: "/blog" },
-  ],
   Support: [
-    { label: "Help Center", href: "/help" },
     { label: "Shipping", href: "/shipping" },
     { label: "Returns", href: "/returns" },
     { label: "Contact", href: "/contact" },

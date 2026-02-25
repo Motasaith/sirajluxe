@@ -63,7 +63,7 @@ export default function CustomersPage() {
                   </td>
                   <td className="px-5 py-3 text-sm text-gray-400">{c.email}</td>
                   <td className="px-5 py-3 text-sm text-gray-300">{c.orderCount}</td>
-                  <td className="px-5 py-3 text-sm text-white font-medium">${c.totalSpent.toFixed(2)}</td>
+                  <td className="px-5 py-3 text-sm text-white font-medium">£{c.totalSpent.toFixed(2)}</td>
                   <td className="px-5 py-3 text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}

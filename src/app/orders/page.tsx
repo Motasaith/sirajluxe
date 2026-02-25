@@ -92,10 +92,10 @@ export default function OrdersPage() {
   }, [isSignedIn, isLoaded, fetchOrders]);
 
   const formatCurrency = (n: number) =>
-    new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+    new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(n);
 
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString("en-US", {
+    new Date(d).toLocaleDateString("en-GB", {
       month: "long",
       day: "numeric",
       year: "numeric",

@@ -1,9 +1,36 @@
 "use client";
 
-import { CheckCircle2, ArrowRight, ShoppingBag } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2, ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useCart } from "@/components/providers/cart-provider";
 
-export default function CheckoutSuccessPage() {
+function SuccessContent() {
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("session_id");
+  const { clearCart } = useCart();
+  const [cleared, setCleared] = useState(false);
+
+  // Clear cart once on mount (payment already confirmed by Stripe redirect)
+  useEffect(() => {
+    if (sessionId && !cleared) {
+      clearCart();
+      setCleared(true);
+    }
+  }, [sessionId, cleared, clearCart]);
+
+  if (!sessionId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center max-w-md mx-auto px-6">
+          <Loader2 className="w-8 h-8 text-neon-violet animate-spin mx-auto mb-4" />
+          <p className="text-muted-fg">Verifying your order...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center max-w-md mx-auto px-6">
@@ -14,9 +41,12 @@ export default function CheckoutSuccessPage() {
         <h1 className="text-3xl font-bold text-heading mb-3">
           Order Confirmed!
         </h1>
-        <p className="text-body mb-8 leading-relaxed">
-          Thank you for your purchase. We&apos;ll send you a confirmation email
-          with your order details and tracking information.
+        <p className="text-body mb-4 leading-relaxed">
+          Thank you for your purchase. Your order is being processed and
+          you&apos;ll receive updates via email.
+        </p>
+        <p className="text-sm text-subtle-fg mb-8">
+          Your order will appear in your order history shortly.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -36,5 +66,19 @@ export default function CheckoutSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <Loader2 className="w-8 h-8 text-neon-violet animate-spin" />
+        </div>
+      }
+    >
+      <SuccessContent />
+    </Suspense>
   );
 }

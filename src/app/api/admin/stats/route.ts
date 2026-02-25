@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Product, Order, Customer } from "@/lib/models";
+import { adminGuard } from "@/lib/admin-auth";
 
 export async function GET() {
+  const denied = await adminGuard(); if (denied) return denied;
   try {
     await connectDB();
 

@@ -118,7 +118,7 @@ export default function ProductsPage() {
                     <p className="text-xs text-gray-500 font-mono">{product.slug}</p>
                   </td>
                   <td className="px-5 py-3 text-sm text-gray-400">{product.category}</td>
-                  <td className="px-5 py-3 text-sm text-white font-medium">${product.price}</td>
+                  <td className="px-5 py-3 text-sm text-white font-medium">£{product.price}</td>
                   <td className="px-5 py-3">
                     <span className={`text-sm ${product.inStock ? "text-emerald-400" : "text-red-400"}`}>
                       {product.inStock ? `In Stock (${product.inventory})` : "Out of Stock"}

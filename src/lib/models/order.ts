@@ -10,6 +10,7 @@ export interface IOrderItem {
 
 export interface IOrder extends Document {
   orderNumber: string;
+  stripeSessionId: string;
   clerkUserId: string;
   customerEmail: string;
   customerName: string;
@@ -36,6 +37,7 @@ export interface IOrder extends Document {
 const OrderSchema = new Schema<IOrder>(
   {
     orderNumber: { type: String, required: true, unique: true },
+    stripeSessionId: { type: String, default: "", index: true },
     clerkUserId: { type: String, required: true, index: true },
     customerEmail: { type: String, required: true },
     customerName: { type: String, default: "" },
