@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { StockAlert } from "@/lib/models/stock-alert";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 stock alerts per minute per IP
+    const { allowed } = rateLimit(`stock-alert:${getIP(req)}`, { limit: 5, windowSec: 60 });
+    if (!allowed) {
+      return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
+    }
+
     const { email, productId, productName } = await req.json();
 
     if (!email || !productId) {

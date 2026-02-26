@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import { Customer, Product, Coupon } from "@/lib/models";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
 // Shipping rates (in pence)
 const STANDARD_SHIPPING_RATE = 399; // £3.99
@@ -17,6 +18,12 @@ interface CartItem {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 checkout attempts per minute per IP
+    const { allowed } = rateLimit(`checkout:${getIP(req)}`, { limit: 5, windowSec: 60 });
+    if (!allowed) {
+      return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
+    }
+
     if (!stripe) {
       return NextResponse.json(
         { error: "Stripe is not configured. Please set STRIPE_SECRET_KEY." },

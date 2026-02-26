@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "@/components/layout/header";
@@ -17,16 +17,71 @@ const CollectionsSection = dynamic(() => import("@/components/sections/collectio
 const TestimonialsSection = dynamic(() => import("@/components/sections/testimonials-section").then((mod) => mod.TestimonialsSection), { ssr: false });
 const CTASection = dynamic(() => import("@/components/sections/cta-section").then((mod) => mod.CTASection), { ssr: false });
 
+const PRELOADER_KEY = "sirajluxe-preloader-shown";
+
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
 
+  // Only show preloader once per session
+  useEffect(() => {
+    if (typeof window !== "undefined" && sessionStorage.getItem(PRELOADER_KEY)) {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handlePreloaderComplete = () => {
+    setIsLoading(false);
+    try { sessionStorage.setItem(PRELOADER_KEY, "1"); } catch {}
+  };
+
   return (
     <>
+      {/* JSON-LD structured data */}
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": "https://sirajluxe.com/#org",
+                name: "Siraj Luxe",
+                url: "https://sirajluxe.com",
+                logo: "https://sirajluxe.com/icon",
+                description: "UK-based premium goods store with curated products, fast delivery, and hassle-free returns.",
+                sameAs: [
+                  "https://x.com/sirajluxe",
+                  "https://instagram.com/sirajluxe",
+                  "https://linkedin.com/company/sirajluxe",
+                ],
+              },
+              {
+                "@type": "WebSite",
+                "@id": "https://sirajluxe.com/#website",
+                url: "https://sirajluxe.com",
+                name: "Siraj Luxe",
+                publisher: { "@id": "https://sirajluxe.com/#org" },
+                potentialAction: {
+                  "@type": "SearchAction",
+                  target: {
+                    "@type": "EntryPoint",
+                    urlTemplate: "https://sirajluxe.com/shop?q={search_term_string}",
+                  },
+                  "query-input": "required name=search_term_string",
+                },
+              },
+            ],
+          }),
+        }}
+      />
+
       <AnimatePresence mode="wait">
         {isLoading && (
           <Preloader
             key="preloader"
-            onComplete={() => setIsLoading(false)}
+            onComplete={handlePreloaderComplete}
           />
         )}
       </AnimatePresence>

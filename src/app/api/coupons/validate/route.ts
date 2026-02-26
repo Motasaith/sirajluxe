@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import { Coupon } from "@/lib/models/coupon";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 10 coupon validations per minute per IP
+    const { allowed } = rateLimit(`coupon:${getIP(req)}`, { limit: 10, windowSec: 60 });
+    if (!allowed) {
+      return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
+    }
+
     // Require authentication to prevent anonymous brute-force enumeration
     const { userId } = await auth();
     if (!userId) {

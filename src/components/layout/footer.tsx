@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-  Github,
   Twitter,
   Instagram,
   Linkedin,
@@ -45,10 +44,9 @@ const defaultFooterLinks: Record<string, { label: string; href: string }[]> = {
 };
 
 const defaultSocialLinks = [
-  { icon: Twitter, href: "https://x.com", label: "Twitter" },
-  { icon: Instagram, href: "https://instagram.com", label: "Instagram" },
-  { icon: Github, href: "https://github.com", label: "GitHub" },
-  { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
+  { icon: Twitter, href: "https://x.com/sirajluxe", label: "Twitter" },
+  { icon: Instagram, href: "https://instagram.com/sirajluxe", label: "Instagram" },
+  { icon: Linkedin, href: "https://linkedin.com/company/sirajluxe", label: "LinkedIn" },
 ];
 
 export function Footer() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Loader2, ChevronDown } from "lucide-react";
 
 interface Order {
@@ -104,7 +105,11 @@ export default function OrdersPage() {
             <tbody className="divide-y divide-white/[0.04]">
               {orders.map((order) => (
                 <tr key={order._id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-5 py-3 text-sm text-violet-400 font-mono">{order.orderNumber}</td>
+                  <td className="px-5 py-3 text-sm text-violet-400 font-mono">
+                    <Link href={`/admin/orders/${order._id}`} className="hover:underline">
+                      {order.orderNumber}
+                    </Link>
+                  </td>
                   <td className="px-5 py-3">
                     <p className="text-sm text-gray-300">{order.customerName || order.customerEmail}</p>
                     {order.customerName && <p className="text-xs text-gray-500">{order.customerEmail}</p>}

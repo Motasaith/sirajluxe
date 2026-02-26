@@ -5,6 +5,7 @@ import { Review } from "@/lib/models/review";
 import { Product } from "@/lib/models/product";
 import { Order } from "@/lib/models/order";
 import { isValidObjectId } from "@/lib/validation";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
 // GET /api/reviews?productId=xxx — get approved reviews for a product
 export async function GET(req: NextRequest) {
@@ -56,6 +57,12 @@ export async function GET(req: NextRequest) {
 // POST /api/reviews — submit a review (must be signed in)
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 reviews per minute per IP
+    const { allowed } = rateLimit(`review:${getIP(req)}`, { limit: 5, windowSec: 60 });
+    if (!allowed) {
+      return NextResponse.json({ error: "Too many requests. Please wait a moment." }, { status: 429 });
+    }
+
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Sign in to leave a review" }, { status: 401 });
