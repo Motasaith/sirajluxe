@@ -23,7 +23,6 @@ import {
   RotateCcw,
   Check,
   Share2,
-  ChevronRight,
   ZoomIn,
   Copy,
   CheckCircle2,
@@ -31,6 +30,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ProductDetailSkeleton } from "@/components/ui/skeleton";
+import { SizeGuideModal } from "@/components/ui/size-guide-modal";
+import { blurDataURL } from "@/lib/blur-placeholder";
 
 /* ─── types ─── */
 interface Product {
@@ -124,6 +127,10 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
+  const [stockAlertEmail, setStockAlertEmail] = useState("");
+  const [stockAlertLoading, setStockAlertLoading] = useState(false);
+  const [stockAlertSent, setStockAlertSent] = useState(false);
   const [activeTab, setActiveTab] = useState<"description" | "reviews">(
     "description"
   );
@@ -335,38 +342,18 @@ export default function ProductDetailPage() {
       <main className="min-h-screen pt-32 pb-20">
         <div className="ultra-wide-padding">
           {/* Breadcrumbs */}
-          <nav
-            className="flex items-center gap-2 text-sm text-muted-fg mb-6"
-            aria-label="Breadcrumb"
-          >
-            <Link href="/" className="hover:text-heading transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5" />
-            <Link href="/shop" className="hover:text-heading transition-colors">
-              Shop
-            </Link>
-            {product && (
-              <>
-                <ChevronRight className="w-3.5 h-3.5" />
-                <Link
-                  href={`/shop?category=${encodeURIComponent(product.category)}`}
-                  className="hover:text-heading transition-colors"
-                >
-                  {product.category}
-                </Link>
-                <ChevronRight className="w-3.5 h-3.5" />
-                <span className="text-heading truncate max-w-[200px]">
-                  {product.name}
-                </span>
-              </>
-            )}
-          </nav>
+          {product && (
+            <Breadcrumbs
+              items={[
+                { label: "Shop", href: "/shop" },
+                { label: product.category, href: `/shop?category=${encodeURIComponent(product.category)}` },
+                { label: product.name },
+              ]}
+            />
+          )}
 
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-neon-violet animate-spin" />
-            </div>
+            <ProductDetailSkeleton />
           ) : !product ? (
             <div className="glass-card p-12 text-center max-w-md mx-auto">
               <p className="text-heading font-semibold mb-2">
@@ -454,6 +441,8 @@ export default function ProductDetailPage() {
                           className="object-cover"
                           sizes="(max-width: 1024px) 100vw, 50vw"
                           priority
+                          placeholder="blur"
+                          blurDataURL={blurDataURL}
                         />
                         {/* Zoom lens overlay */}
                         {showZoom && (
@@ -536,37 +525,38 @@ export default function ProductDetailPage() {
                               className="absolute right-0 top-12 glass-card p-2 rounded-xl z-50 min-w-[160px]"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              {[
-                                {
-                                  key: "copy",
-                                  label: copied ? "Copied!" : "Copy Link",
-                                  icon: copied ? Check : Copy,
-                                },
-                                {
-                                  key: "whatsapp",
-                                  label: "WhatsApp",
-                                  icon: Share2,
-                                },
-                                {
-                                  key: "twitter",
-                                  label: "Twitter / X",
-                                  icon: Share2,
-                                },
-                                {
-                                  key: "facebook",
-                                  label: "Facebook",
-                                  icon: Share2,
-                                },
-                              ].map((item) => (
-                                <button
-                                  key={item.key}
-                                  onClick={() => handleShare(item.key)}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-body hover:text-heading hover:bg-[var(--overlay)] rounded-lg transition-colors"
-                                >
-                                  <item.icon className="w-4 h-4" />
-                                  {item.label}
-                                </button>
-                              ))}
+                              <button
+                                onClick={() => handleShare("copy")}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-body hover:text-heading hover:bg-[var(--overlay)] rounded-lg transition-colors"
+                              >
+                                {copied ? (
+                                  <Check className="w-4 h-4" />
+                                ) : (
+                                  <Copy className="w-4 h-4" />
+                                )}
+                                {copied ? "Copied!" : "Copy Link"}
+                              </button>
+                              <button
+                                onClick={() => handleShare("whatsapp")}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-body hover:text-heading hover:bg-[var(--overlay)] rounded-lg transition-colors"
+                              >
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                                WhatsApp
+                              </button>
+                              <button
+                                onClick={() => handleShare("twitter")}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-body hover:text-heading hover:bg-[var(--overlay)] rounded-lg transition-colors"
+                              >
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                X / Twitter
+                              </button>
+                              <button
+                                onClick={() => handleShare("facebook")}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-body hover:text-heading hover:bg-[var(--overlay)] rounded-lg transition-colors"
+                              >
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                Facebook
+                              </button>
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -602,6 +592,8 @@ export default function ProductDetailPage() {
                             fill
                             className="object-cover"
                             sizes="80px"
+                            placeholder="blur"
+                            blurDataURL={blurDataURL}
                           />
                         </button>
                       ))}
@@ -706,12 +698,13 @@ export default function ProductDetailPage() {
                             </span>
                           )}
                         </p>
-                        <Link
-                          href="/size-guide"
+                        <button
+                          type="button"
+                          onClick={() => setShowSizeGuide(true)}
                           className="text-xs text-neon-violet hover:underline"
                         >
                           Size Guide
-                        </Link>
+                        </button>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {product.sizes.map((s) => (
@@ -765,29 +758,103 @@ export default function ProductDetailPage() {
                   </div>
 
                   {/* Add to Cart */}
-                  <button
-                    onClick={handleAddToCart}
-                    disabled={!product.inStock}
-                    className={`w-full py-4 rounded-2xl text-white font-semibold text-lg flex items-center justify-center gap-3 transition-all duration-300 ${
-                      added
-                        ? "bg-emerald-500 shadow-lg shadow-emerald-500/20"
-                        : product.inStock
-                        ? "bg-neon-violet hover:shadow-neon hover:scale-[1.02]"
-                        : "bg-gray-500 cursor-not-allowed opacity-50"
-                    }`}
-                  >
-                    {added ? (
-                      <>
-                        <Check className="w-5 h-5" />
-                        Added to Cart!
-                      </>
-                    ) : (
-                      <>
+                  {product.inStock ? (
+                    <button
+                      onClick={handleAddToCart}
+                      className={`w-full py-4 rounded-2xl text-white font-semibold text-lg flex items-center justify-center gap-3 transition-all duration-300 ${
+                        added
+                          ? "bg-emerald-500 shadow-lg shadow-emerald-500/20"
+                          : "bg-neon-violet hover:shadow-neon hover:scale-[1.02]"
+                      }`}
+                    >
+                      {added ? (
+                        <>
+                          <Check className="w-5 h-5" />
+                          Added to Cart!
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingBag className="w-5 h-5" />
+                          Add to Cart
+                        </>
+                      )}
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="w-full py-4 rounded-2xl bg-gray-500 text-white font-semibold text-lg flex items-center justify-center gap-3 opacity-50 cursor-not-allowed">
                         <ShoppingBag className="w-5 h-5" />
-                        {product.inStock ? "Add to Cart" : "Out of Stock"}
-                      </>
-                    )}
-                  </button>
+                        Out of Stock
+                      </div>
+                      {stockAlertSent ? (
+                        <div className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-sm font-medium">
+                          <CheckCircle2 className="w-4 h-4" />
+                          We&apos;ll notify you when it&apos;s back!
+                        </div>
+                      ) : (
+                        <form
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            setStockAlertLoading(true);
+                            try {
+                              const res = await fetch("/api/stock-alerts", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  email: stockAlertEmail,
+                                  productId: product.id,
+                                  productName: product.name,
+                                }),
+                              });
+                              if (res.ok) {
+                                setStockAlertSent(true);
+                                toast({
+                                  title: "Alert registered!",
+                                  description: "We'll email you when this item is back in stock.",
+                                  variant: "success",
+                                });
+                              } else {
+                                const data = await res.json();
+                                toast({
+                                  title: "Error",
+                                  description: data.error || "Something went wrong.",
+                                  variant: "error",
+                                });
+                              }
+                            } catch {
+                              toast({
+                                title: "Error",
+                                description: "Failed to register alert. Please try again.",
+                                variant: "error",
+                              });
+                            } finally {
+                              setStockAlertLoading(false);
+                            }
+                          }}
+                          className="flex gap-2"
+                        >
+                          <input
+                            type="email"
+                            required
+                            value={stockAlertEmail}
+                            onChange={(e) => setStockAlertEmail(e.target.value)}
+                            placeholder="Enter your email"
+                            className="flex-1 px-4 py-3 rounded-2xl glass text-sm text-body placeholder:text-muted-fg focus:outline-none focus:ring-2 focus:ring-neon-violet/50"
+                          />
+                          <button
+                            type="submit"
+                            disabled={stockAlertLoading}
+                            className="px-5 py-3 rounded-2xl bg-neon-violet text-white text-sm font-semibold hover:shadow-neon transition-all disabled:opacity-50"
+                          >
+                            {stockAlertLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              "Notify Me"
+                            )}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
 
                   {/* Wishlist button (text) */}
                   <button
@@ -1151,6 +1218,8 @@ export default function ProductDetailPage() {
                             width={300}
                             height={400}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            placeholder="blur"
+                            blurDataURL={blurDataURL}
                           />
                         </div>
                         <h3 className="text-sm font-medium text-heading truncate group-hover:text-neon-violet transition-colors">{p.name}</h3>
@@ -1184,6 +1253,8 @@ export default function ProductDetailPage() {
                             width={300}
                             height={400}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            placeholder="blur"
+                            blurDataURL={blurDataURL}
                           />
                         </div>
                         <h3 className="text-sm font-medium text-heading truncate group-hover:text-neon-violet transition-colors">{p.name}</h3>
@@ -1198,6 +1269,7 @@ export default function ProductDetailPage() {
         </div>
       </main>
       <Footer />
+      <SizeGuideModal isOpen={showSizeGuide} onClose={() => setShowSizeGuide(false)} />
     </PageTransitionProvider>
   );
 }

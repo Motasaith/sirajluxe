@@ -14,6 +14,7 @@ import {
   MapPin,
   Calendar,
   CreditCard,
+  Check,
 } from "lucide-react";
 
 interface OrderItem {
@@ -64,6 +65,68 @@ function StatusBadge({ status }: { status: string }) {
     >
       {status}
     </span>
+  );
+}
+
+function OrderTimeline({ status }: { status: string }) {
+  const steps = ["pending", "processing", "shipped", "delivered"];
+  const currentIndex = steps.indexOf(status);
+  const isCancelled = status === "cancelled";
+
+  return (
+    <div className="flex items-center">
+      {steps.map((step, i) => {
+        const isCompleted = !isCancelled && i <= currentIndex;
+        const isCurrent = !isCancelled && i === currentIndex;
+        return (
+          <div key={step} className="flex items-center flex-1 last:flex-none">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
+                  isCompleted
+                    ? "bg-neon-violet border-neon-violet"
+                    : isCancelled && i === 0
+                    ? "bg-red-500 border-red-500"
+                    : "border-[var(--border)] bg-[var(--overlay)]"
+                }`}
+              >
+                {isCompleted ? (
+                  <Check className="w-4 h-4 text-white" />
+                ) : (
+                  <span className="w-2 h-2 rounded-full bg-subtle-fg" />
+                )}
+              </div>
+              <p
+                className={`text-[10px] mt-2 font-medium capitalize ${
+                  isCurrent
+                    ? "text-neon-violet"
+                    : isCompleted
+                    ? "text-heading"
+                    : "text-subtle-fg"
+                }`}
+              >
+                {step === "pending" ? "Ordered" : step}
+              </p>
+            </div>
+            {i < steps.length - 1 && (
+              <div
+                className={`flex-1 h-0.5 mx-2 transition-all ${
+                  !isCancelled && i < currentIndex
+                    ? "bg-neon-violet"
+                    : "bg-[var(--border)]"
+                }`}
+              />
+            )}
+          </div>
+        );
+      })}
+      {isCancelled && (
+        <div className="ml-4 flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20">
+          <span className="w-2 h-2 rounded-full bg-red-400" />
+          <span className="text-xs font-medium text-red-400">Cancelled</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -216,6 +279,14 @@ export default function OrdersPage() {
                       animate={{ opacity: 1, height: "auto" }}
                       transition={{ duration: 0.3 }}
                     >
+                      {/* Status Timeline */}
+                      <div className="mb-8">
+                        <h4 className="text-sm font-semibold text-heading mb-4">
+                          Order Progress
+                        </h4>
+                        <OrderTimeline status={order.status} />
+                      </div>
+
                       {/* Items */}
                       <h4 className="text-sm font-semibold text-heading mb-4">
                         Items

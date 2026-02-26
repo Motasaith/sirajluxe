@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Package, ShoppingCart, Users, DollarSign, Loader2 } from "lucide-react";
+import { RevenueChart, StatusDonut, TopProducts } from "./components/charts";
 
 interface Stats {
   totalProducts: number;
@@ -30,6 +31,9 @@ const statusColors: Record<string, string> = {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [revenueByMonth, setRevenueByMonth] = useState<{ month: string; revenue: number; orders: number }[]>([]);
+  const [ordersByStatus, setOrdersByStatus] = useState<Record<string, number>>({});
+  const [topProducts, setTopProducts] = useState<{ name: string; revenue: number; unitsSold: number }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,6 +42,9 @@ export default function AdminDashboard() {
       .then((data) => {
         setStats(data.stats);
         setRecentOrders(data.recentOrders || []);
+        setRevenueByMonth(data.revenueByMonth || []);
+        setOrdersByStatus(data.ordersByStatus || {});
+        setTopProducts(data.topProducts || []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -80,6 +87,26 @@ export default function AdminDashboard() {
             <p className="text-xs text-gray-500 mt-1">{card.label}</p>
           </div>
         ))}
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+        {/* Revenue Chart */}
+        <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Revenue (Last 6 Months)</h2>
+          <RevenueChart data={revenueByMonth} />
+        </div>
+        {/* Status Donut */}
+        <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5">
+          <h2 className="text-sm font-semibold text-white mb-4">Orders by Status</h2>
+          <StatusDonut data={ordersByStatus} />
+        </div>
+      </div>
+
+      {/* Top Products */}
+      <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5 mb-8">
+        <h2 className="text-sm font-semibold text-white mb-4">Top Products</h2>
+        <TopProducts data={topProducts} />
       </div>
 
       {/* Recent Orders */}

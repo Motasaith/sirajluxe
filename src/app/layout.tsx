@@ -10,6 +10,7 @@ import { SiteContentProvider } from "@/components/providers/site-content-provide
 import { PostHogProvider } from "@/components/providers/posthog-provider";
 import { CrispProvider } from "@/components/providers/crisp-provider";
 import { ToastProvider } from "@/components/ui/toast";
+import { CookieConsent } from "@/components/ui/cookie-consent";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -89,6 +90,7 @@ export default function RootLayout({
                     {children}
                   </ToastProvider>
                   <CrispProvider />
+                  <CookieConsent />
                 </PostHogProvider>
                 </SiteContentProvider>
               </WishlistProvider>

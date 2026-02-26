@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
-import { Customer, Product } from "@/lib/models";
+import { Customer, Product, Coupon } from "@/lib/models";
 
 // Shipping rates (in pence)
 const STANDARD_SHIPPING_RATE = 399; // £3.99
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { items, customerEmail } = await req.json();
+    const { items, customerEmail, couponCode } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json(
@@ -103,6 +103,43 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // --- Coupon / discount handling ---
+    let stripeDiscounts: { coupon: string }[] = [];
+    let appliedCouponCode: string | null = null;
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), active: true });
+      if (
+        coupon &&
+        (!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) &&
+        (coupon.maxUses === 0 || coupon.usedCount < coupon.maxUses)
+      ) {
+        const subtotalPounds = subtotalPence / 100;
+        if (subtotalPounds >= coupon.minOrderAmount) {
+          let amountOff = 0;
+          if (coupon.type === "percentage") {
+            amountOff = Math.round(subtotalPence * (coupon.value / 100));
+          } else {
+            amountOff = Math.round(coupon.value * 100);
+          }
+          amountOff = Math.min(amountOff, subtotalPence);
+
+          if (amountOff > 0) {
+            const stripeCoupon = await stripe.coupons.create({
+              amount_off: amountOff,
+              currency: "gbp",
+              duration: "once",
+            });
+            stripeDiscounts = [{ coupon: stripeCoupon.id }];
+            appliedCouponCode = coupon.code;
+
+            // Increment usage count
+            await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: 1 } });
+          }
+        }
+      }
+    }
+
     // Check if this is a first-time customer (for free shipping promo)
     const customer = await Customer.findOne({ clerkId: userId });
     const isFirstOrder = !customer || customer.orderCount === 0;
@@ -148,6 +185,7 @@ export async function POST(req: NextRequest) {
       payment_method_types: ["card"],
       line_items: lineItems,
       mode: "payment",
+      ...(stripeDiscounts.length > 0 ? { discounts: stripeDiscounts } : {}),
       shipping_address_collection: {
         allowed_countries: ["GB"],
       },
@@ -159,6 +197,7 @@ export async function POST(req: NextRequest) {
         clerkUserId: userId,
         isFirstOrder: isFirstOrder ? "true" : "false",
         productIds: JSON.stringify(productIdMap),
+        ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
       },
     });
 

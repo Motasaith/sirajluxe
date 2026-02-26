@@ -31,6 +31,37 @@ export async function GET() {
       { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
 
+    // Revenue by month (last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const revenueByMonth = await Order.aggregate([
+      { $match: { paymentStatus: "paid", createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+          revenue: { $sum: "$total" },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Top products by revenue
+    const topProducts = await Order.aggregate([
+      { $match: { paymentStatus: "paid" } },
+      { $unwind: "$items" },
+      {
+        $group: {
+          _id: "$items.name",
+          revenue: { $sum: { $multiply: ["$items.price", "$items.quantity"] } },
+          unitsSold: { $sum: "$items.quantity" },
+        },
+      },
+      { $sort: { revenue: -1 } },
+      { $limit: 5 },
+    ]);
+
     return NextResponse.json({
       stats: {
         totalProducts,
@@ -43,6 +74,16 @@ export async function GET() {
         (acc, { _id, count }) => ({ ...acc, [_id]: count }),
         {}
       ),
+      revenueByMonth: revenueByMonth.map((r) => ({
+        month: r._id,
+        revenue: r.revenue,
+        orders: r.orders,
+      })),
+      topProducts: topProducts.map((p) => ({
+        name: p._id,
+        revenue: p.revenue,
+        unitsSold: p.unitsSold,
+      })),
     });
   } catch (error) {
     console.error("GET /api/admin/stats error:", error);

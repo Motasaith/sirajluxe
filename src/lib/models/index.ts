@@ -24,3 +24,9 @@ export type { IWishlist, IWishlistItem } from "./wishlist";
 
 export { SiteContent } from "./site-content";
 export type { ISiteContent } from "./site-content";
+
+export { Coupon } from "./coupon";
+export type { ICoupon } from "./coupon";
+
+export { StockAlert } from "./stock-alert";
+export type { IStockAlert } from "./stock-alert";

@@ -26,6 +26,11 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ProductGridSkeleton } from "@/components/ui/skeleton";
+import { QuickViewModal } from "@/components/ui/quick-view-modal";
+import { blurDataURL } from "@/lib/blur-placeholder";
+import { Eye } from "lucide-react";
 
 interface Product {
   id: string;
@@ -95,6 +100,7 @@ function ShopContent() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const sortRef = useRef<HTMLDivElement>(null);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -235,6 +241,8 @@ function ShopContent() {
       <CartDrawer />
       <main className="min-h-screen pt-32 pb-20">
         <div className="ultra-wide-padding">
+          <Breadcrumbs items={[{ label: "Shop" }]} />
+
           {/* Page Header */}
           <motion.div
             className="mb-12"
@@ -446,9 +454,7 @@ function ShopContent() {
 
           {/* Products Grid */}
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 text-neon-violet animate-spin" />
-            </div>
+            <ProductGridSkeleton />
           ) : products.length === 0 ? (
             <div className="glass-card p-12 text-center">
               <p className="text-heading font-semibold mb-2">
@@ -501,6 +507,8 @@ function ShopContent() {
                               fill
                               className="object-cover group-hover:scale-105 transition-transform duration-500"
                               sizes="(max-width: 768px) 50vw, 33vw"
+                              placeholder="blur"
+                              blurDataURL={blurDataURL}
                             />
                           ) : (
                             <>
@@ -513,7 +521,17 @@ function ShopContent() {
                               </div>
                             </>
                           )}
-                          <div className="absolute top-4 left-4 flex gap-2">
+                          {/* Quick View Overlay */}
+                          <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setQuickViewProduct(product); }}
+                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                          >
+                            <span className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm rounded-xl text-sm font-medium text-white border border-white/20">
+                              <Eye className="w-4 h-4" />
+                              Quick View
+                            </span>
+                          </button>
+                          <div className="absolute top-4 left-4 flex gap-2 z-20">
                             {product.tags?.map((t) => (
                               <span
                                 key={t.tag}
@@ -523,7 +541,7 @@ function ShopContent() {
                               </span>
                             ))}
                           </div>
-                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20">
                             <button
                               onClick={(e) => {
                                 e.preventDefault();
@@ -608,6 +626,8 @@ function ShopContent() {
                               fill
                               className="object-cover"
                               sizes="96px"
+                              placeholder="blur"
+                              blurDataURL={blurDataURL}
                             />
                           ) : (
                             <span className="text-3xl font-display font-bold text-heading/5">
@@ -721,6 +741,14 @@ function ShopContent() {
           )}
         </div>
       </main>
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
+
       <Footer />
     </PageTransitionProvider>
   );

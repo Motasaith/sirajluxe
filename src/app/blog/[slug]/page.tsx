@@ -9,6 +9,7 @@ import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 import { CartDrawer } from "@/components/ui/cart-drawer";
 import { Loader2, ArrowLeft, Calendar, User, Tag } from "lucide-react";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
 interface BlogPost {
   _id: string;
@@ -53,6 +54,15 @@ export default function BlogPostPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Blog
           </Link>
+
+          {!loading && post && (
+            <Breadcrumbs
+              items={[
+                { label: "Blog", href: "/blog" },
+                { label: post.title },
+              ]}
+            />
+          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-20">

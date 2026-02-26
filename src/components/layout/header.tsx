@@ -19,6 +19,7 @@ import { useWishlist } from "@/components/providers/wishlist-provider";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { AnnouncementBar } from "@/components/ui/announcement-bar";
 import { SearchDrawer } from "@/components/ui/search-drawer";
+import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 const defaultNavLinks = [
   { href: "/", label: "Home" },
@@ -39,6 +40,14 @@ export function Header() {
   const [mounted, setMounted] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
   const navLinks = Array.isArray(cms?.navLinks) && cms.navLinks.length > 0 ? cms.navLinks : defaultNavLinks;
+
+  useKeyboardShortcuts({
+    onSearch: () => setIsSearchOpen(true),
+    onEscape: () => {
+      setIsSearchOpen(false);
+      setIsMobileMenuOpen(false);
+    },
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -129,6 +138,7 @@ export function Header() {
               onMouseLeave={handleMagneticLeave}
               className="relative p-2.5 rounded-full text-body hover:text-heading hover:bg-[var(--hover)] transition-all duration-300"
               aria-label="Search"
+              title="Search (Ctrl+K)"
             >
               <Search className="w-5 h-5" />
             </button>

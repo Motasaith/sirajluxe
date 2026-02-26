@@ -14,6 +14,7 @@ import {
   FileText,
   MessageSquare,
   PenTool,
+  Ticket,
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +22,7 @@ const navItems = [
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
+  { label: "Coupons", href: "/admin/coupons", icon: Ticket },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
   { label: "Site Editor", href: "/admin/site-editor", icon: PenTool },
