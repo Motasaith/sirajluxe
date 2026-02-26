@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import connectDB from "@/lib/mongodb";
 import { SiteContent } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
@@ -48,6 +49,15 @@ export async function PUT(req: NextRequest) {
       { upsert: true, new: true }
     );
 
+    // Purge all caches so visitors see the update immediately
+    revalidatePath("/api/site-content");
+    revalidatePath("/");
+    revalidatePath("/about");
+    revalidatePath("/contact");
+    revalidatePath("/faq");
+    revalidatePath("/shop");
+    revalidatePath("/collections");
+
     return NextResponse.json({ section });
   } catch (error) {
     console.error("PUT /api/admin/site-content error:", error);
@@ -73,6 +83,16 @@ export async function DELETE(req: NextRequest) {
     }
 
     await SiteContent.deleteOne({ key });
+
+    // Purge all caches
+    revalidatePath("/api/site-content");
+    revalidatePath("/");
+    revalidatePath("/about");
+    revalidatePath("/contact");
+    revalidatePath("/faq");
+    revalidatePath("/shop");
+    revalidatePath("/collections");
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/admin/site-content error:", error);
