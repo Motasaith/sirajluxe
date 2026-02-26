@@ -459,3 +459,44 @@ body {
     @apply py-24 md:py-32 lg:py-40;
   }
 }
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+@media print {
+  header,
+  footer,
+  nav,
+  .cart-drawer,
+  .cookie-consent,
+  .crisp-client,
+  #crisp-chatbox {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  main {
+    padding-top: 0 !important;
+  }
+
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .glass,
+  .glass-card,
+  .glass-heavy {
+    background: white !important;
+    border: 1px solid #ddd !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+}

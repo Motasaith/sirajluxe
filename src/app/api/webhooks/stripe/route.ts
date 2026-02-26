@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { connectDB } from "@/lib/mongodb";
 import { Order, Customer, Product, Coupon } from "@/lib/models";
-import { sendOrderConfirmation } from "@/lib/email";
+import { sendOrderConfirmation, sendOrderCancelled } from "@/lib/email";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -127,19 +127,16 @@ export async function POST(req: NextRequest) {
         console.error("Failed to send order confirmation email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
       }
 
-      // Decrement inventory for purchased products
+      // Decrement inventory atomically for purchased products
       const productIdMap = session.metadata?.productIds
         ? (JSON.parse(session.metadata.productIds) as Record<string, number>)
         : {};
       for (const [productId, qty] of Object.entries(productIdMap)) {
-        await Product.findByIdAndUpdate(productId, {
-          $inc: { inventory: -(qty as number) },
-        });
-        const updated = await Product.findById(productId);
-        if (updated && updated.inventory <= 0) {
-          updated.inStock = false;
-          await updated.save();
-        }
+        // Single atomic pipeline update: decrement inventory and update inStock flag
+        await Product.findByIdAndUpdate(productId, [
+          { $set: { inventory: { $max: [0, { $subtract: ["$inventory", qty as number] }] } } },
+          { $set: { inStock: { $gt: ["$inventory", 0] } } },
+        ]);
       }
 
       break;
@@ -166,10 +163,57 @@ export async function POST(req: NextRequest) {
         ? charge.payment_intent
         : charge.payment_intent?.id;
       if (paymentIntentId) {
-        await Order.findOneAndUpdate(
+        const refundedOrder = await Order.findOneAndUpdate(
           { paymentIntentId },
-          { paymentStatus: "refunded", status: "cancelled" }
+          { paymentStatus: "refunded", status: "cancelled" },
+          { new: true }
         );
+        // Send cancellation email to customer
+        if (refundedOrder?.customerEmail) {
+          try {
+            await sendOrderCancelled({
+              to: refundedOrder.customerEmail,
+              customerName: refundedOrder.customerName || "Customer",
+              orderNumber: refundedOrder.orderNumber,
+              total: refundedOrder.total,
+            });
+            console.log(`Cancellation email sent to ${refundedOrder.customerEmail}`);
+          } catch (emailErr) {
+            console.error("Failed to send cancellation email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
+          }
+        }
+      }
+      break;
+    }
+
+    case "payment_intent.payment_failed": {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const failedOrder = await Order.findOneAndUpdate(
+        { paymentIntentId: paymentIntent.id },
+        { paymentStatus: "failed" },
+        { new: true }
+      );
+      if (failedOrder) {
+        console.log(`Payment failed for order ${failedOrder.orderNumber}: ${paymentIntent.last_payment_error?.message || "Unknown error"}`);
+      }
+      break;
+    }
+
+    case "charge.dispute.created": {
+      const dispute = event.data.object as Stripe.Dispute;
+      const disputeCharge = typeof dispute.charge === "string" ? dispute.charge : dispute.charge?.id;
+      if (disputeCharge) {
+        // Find order by payment intent from the charge
+        const disputePaymentIntent = typeof dispute.payment_intent === "string"
+          ? dispute.payment_intent
+          : dispute.payment_intent?.id;
+        if (disputePaymentIntent) {
+          await Order.findOneAndUpdate(
+            { paymentIntentId: disputePaymentIntent },
+            { $set: { "adminNotes": `⚠️ DISPUTE OPENED (${new Date().toISOString()}): Reason — ${dispute.reason || "unknown"}. Amount: £${(dispute.amount / 100).toFixed(2)}` } }
+          );
+          console.log(`Dispute created for payment ${disputePaymentIntent}: ${dispute.reason}`);
+        }
       }
       break;
     }

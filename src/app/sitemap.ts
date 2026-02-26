@@ -7,7 +7,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sirajluxe.com";
 
   await connectDB();
-  const products = await Product.find({ status: "active" }).select("slug updatedAt").lean();
+  const products = await Product.find({ inStock: true }).select("slug updatedAt").lean();
   const blogPosts = await BlogPost.find({ published: true }).select("slug updatedAt").lean();
 
   const productUrls: MetadataRoute.Sitemap = products.map((product) => ({

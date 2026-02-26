@@ -603,14 +603,20 @@ function ShopContent() {
                               </span>
                             )}
                           </div>
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            onMouseMove={handleMagnetic}
-                            onMouseLeave={handleMagneticLeave}
-                            className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300 hover:scale-110"
-                          >
-                            <ShoppingBag className="w-4 h-4" />
-                          </button>
+                          {product.inStock ? (
+                            <button
+                              onClick={() => handleAddToCart(product)}
+                              onMouseMove={handleMagnetic}
+                              onMouseLeave={handleMagneticLeave}
+                              className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300 hover:scale-110"
+                            >
+                              <ShoppingBag className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <span className="px-3 py-1.5 rounded-full bg-red-500/10 text-red-400 text-xs font-medium border border-red-500/20">
+                              Out of Stock
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -672,12 +678,18 @@ function ShopContent() {
                             </span>
                           )}
                         </div>
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300"
-                        >
-                          <ShoppingBag className="w-4 h-4" />
-                        </button>
+                        {product.inStock ? (
+                          <button
+                            onClick={() => handleAddToCart(product)}
+                            className="w-10 h-10 rounded-full bg-neon-violet flex items-center justify-center text-white hover:shadow-neon transition-all duration-300"
+                          >
+                            <ShoppingBag className="w-4 h-4" />
+                          </button>
+                        ) : (
+                          <span className="px-3 py-1.5 rounded-full bg-red-500/10 text-red-400 text-xs font-medium border border-red-500/20">
+                            Out of Stock
+                          </span>
+                        )}
                       </div>
                     </div>
                   )}

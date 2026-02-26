@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
-import { Product } from "@/lib/models";
+import { Product, Review, Wishlist, StockAlert } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 import { logActivity } from "@/lib/activity-logger";
 
@@ -45,6 +45,14 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     await connectDB();
     const product = await Product.findByIdAndDelete(params.id);
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+
+    // Cascade delete: remove orphaned reviews, wishlist entries, and stock alerts
+    await Promise.all([
+      Review.deleteMany({ product: params.id }),
+      Wishlist.updateMany({}, { $pull: { items: { productId: params.id } } }),
+      StockAlert.deleteMany({ productId: params.id }),
+    ]);
+
     await logActivity({ action: "delete", entity: "product", entityId: params.id, details: `Deleted product: ${product.name}` });
     return NextResponse.json({ success: true });
   } catch (error) {

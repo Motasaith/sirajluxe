@@ -16,6 +16,7 @@ import {
   Home,
   FileText,
 } from "lucide-react";
+import { ConfirmDialog } from "../components/confirm-dialog";
 
 /* ═══════════════════════════════════════════════════════════
    SECTION CONFIGURATION — defines every editable section
@@ -320,6 +321,7 @@ export default function SiteEditorPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [savedKey, setSavedKey] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [resetTarget, setResetTarget] = useState<string | null>(null);
 
   // Load all content on mount
   useEffect(() => {
@@ -392,7 +394,7 @@ export default function SiteEditorPage() {
   };
 
   const handleReset = async (sectionKey: string) => {
-    if (!confirm("Reset this section to defaults? All custom content will be removed.")) return;
+    setResetTarget(null);
     setSaving(sectionKey);
     try {
       await fetch("/api/admin/site-content", {
@@ -566,7 +568,7 @@ export default function SiteEditorPage() {
                     </button>
                     {hasDBEntry && (
                       <button
-                        onClick={() => handleReset(section.key)}
+                        onClick={() => setResetTarget(section.key)}
                         className="flex items-center gap-2 px-4 py-2.5 text-gray-400 text-sm rounded-lg hover:text-white hover:bg-white/5 transition-colors"
                       >
                         <RotateCcw className="w-4 h-4" />
@@ -580,6 +582,19 @@ export default function SiteEditorPage() {
           );
         })}
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!resetTarget}
+        title="Reset Section"
+        message="Reset this section to defaults? All custom content will be removed."
+        confirmLabel="Reset"
+        variant="warning"
+        onConfirm={() => {
+          if (resetTarget) handleReset(resetTarget);
+        }}
+        onCancel={() => setResetTarget(null)}
+      />
     </div>
   );
 }

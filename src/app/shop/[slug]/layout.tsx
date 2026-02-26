@@ -19,15 +19,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sirajluxe.com";
   const image = product.images?.[0] || product.image;
 
+  // Use custom SEO meta fields if set, otherwise fall back to defaults
+  const title = product.metaTitle || `${product.name} | Siraj Luxe`;
+  const plainDescription = typeof product.description === "string"
+    ? product.description.replace(/<[^>]*>/g, "").slice(0, 160)
+    : `Shop ${product.name} at Siraj Luxe. Premium quality, fast UK delivery.`;
+  const description = product.metaDescription || plainDescription;
+
   return {
-    title: `${product.name} | Siraj Luxe`,
-    description:
-      product.description?.slice(0, 160) ||
-      `Shop ${product.name} at Siraj Luxe. Premium quality, fast UK delivery.`,
+    title,
+    description,
     openGraph: {
-      title: product.name,
-      description:
-        product.description?.slice(0, 160) || `Shop ${product.name} at Siraj Luxe.`,
+      title: product.metaTitle || product.name,
+      description,
       type: "website",
       url: `${baseUrl}/shop/${product.slug}`,
       images: image
@@ -38,10 +42,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: product.name,
-      description:
-        product.description?.slice(0, 160) || `Shop ${product.name} at Siraj Luxe.`,
+      title: product.metaTitle || product.name,
+      description,
       images: image ? [image] : [],
+    },
+    alternates: {
+      canonical: `${baseUrl}/shop/${product.slug}`,
     },
   };
 }

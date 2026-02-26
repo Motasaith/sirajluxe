@@ -11,6 +11,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
+import { ConfirmDialog } from "../components/confirm-dialog";
 
 interface Review {
   _id: string;
@@ -35,6 +36,7 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchReviews = () => {
     setLoading(true);
@@ -253,9 +255,7 @@ export default function AdminReviewsPage() {
                         </button>
                       )}
                       <button
-                        onClick={() =>
-                          handleAction(review._id, "delete")
-                        }
+                        onClick={() => setDeleteTarget(review._id)}
                         className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
                         title="Delete"
                       >
@@ -269,6 +269,23 @@ export default function AdminReviewsPage() {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Delete Review"
+        message="Are you sure you want to permanently delete this review? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={actionLoading === deleteTarget}
+        onConfirm={() => {
+          if (deleteTarget) {
+            handleAction(deleteTarget, "delete");
+            setDeleteTarget(null);
+          }
+        }}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }

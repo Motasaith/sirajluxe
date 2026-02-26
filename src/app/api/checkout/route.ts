@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
-import { Customer, Product, Coupon } from "@/lib/models";
+import { Customer, Product, Coupon, Settings } from "@/lib/models";
 import { rateLimit, getIP } from "@/lib/rate-limit";
-
-// Shipping rates (in pence)
-const STANDARD_SHIPPING_RATE = 399; // £3.99
-const FREE_SHIPPING_THRESHOLD = 1000; // £10.00 in pence
 
 interface CartItem {
   productId: string;
@@ -46,6 +42,11 @@ export async function POST(req: NextRequest) {
     }
 
     await connectDB();
+
+    // --- Fetch shipping rates from Settings ---
+    const settings = await Settings.findOne({ key: "global" }).lean();
+    const STANDARD_SHIPPING_RATE = Math.round((settings?.shippingFlatRate ?? 3.99) * 100); // pence
+    const FREE_SHIPPING_THRESHOLD = Math.round((settings?.freeShippingThreshold ?? 10) * 100); // pence
 
     // --- Server-side product lookup (never trust client prices) ---
     const lineItems = [];

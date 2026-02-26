@@ -306,3 +306,43 @@ export async function sendWelcomeEmail({
     html: baseTemplate("Welcome to Siraj Luxe", body),
   });
 }
+
+// ──────────────────────────────────────────────
+// 5. Order Cancelled / Refund Email
+// ──────────────────────────────────────────────
+export async function sendOrderCancelled({
+  to,
+  customerName,
+  orderNumber,
+  total,
+}: {
+  to: string;
+  customerName: string;
+  orderNumber: string;
+  total: number;
+}) {
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Order Cancelled &amp; Refunded</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
+      Hi ${escapeHtml(customerName) || "there"}, your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been cancelled and a refund of <strong style="color:#e1e2e6;">${currency(total)}</strong> has been initiated.
+    </p>
+
+    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
+      <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
+        💳 Your refund will typically appear within <strong style="color:#c4c4d0;">5–10 business days</strong> depending on your bank or card issuer.<br/><br/>
+        If you have any questions about your refund, please don&rsquo;t hesitate to <a href="${SITE_URL}/contact" style="color:#8b5cf6;text-decoration:underline;">contact us</a>.
+      </p>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="${SITE_URL}/shop" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Continue Shopping</a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `Order Cancelled — ${orderNumber} | Siraj Luxe`,
+    html: baseTemplate("Order Cancelled", body),
+  });
+}
