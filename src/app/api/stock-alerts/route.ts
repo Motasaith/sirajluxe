@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     if (error && typeof error === "object" && "code" in error && (error as { code: number }).code === 11000) {
       return NextResponse.json({ success: true }); // Already subscribed
     }
-    console.error("Stock alert error:", error);
+    console.error("Stock alert error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to register alert" }, { status: 500 });
   }
 }

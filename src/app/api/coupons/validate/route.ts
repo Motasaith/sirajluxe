@@ -1,12 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import { Coupon } from "@/lib/models/coupon";
 
 export async function POST(req: NextRequest) {
   try {
+    // Require authentication to prevent anonymous brute-force enumeration
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Sign in to apply a coupon" }, { status: 401 });
+    }
+
     const { code, subtotal } = await req.json();
 
-    if (!code) {
+    if (!code || typeof code !== "string") {
       return NextResponse.json({ error: "Coupon code required" }, { status: 400 });
     }
 
@@ -14,16 +21,18 @@ export async function POST(req: NextRequest) {
 
     const coupon = await Coupon.findOne({ code: code.toUpperCase(), active: true });
 
+    // Return a generic error for invalid / expired / maxed-out coupons
+    // to prevent enumeration attacks
     if (!coupon) {
-      return NextResponse.json({ error: "Invalid coupon code" }, { status: 404 });
+      return NextResponse.json({ error: "Invalid or expired coupon code" }, { status: 400 });
     }
 
     if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
-      return NextResponse.json({ error: "This coupon has expired" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid or expired coupon code" }, { status: 400 });
     }
 
     if (coupon.maxUses > 0 && coupon.usedCount >= coupon.maxUses) {
-      return NextResponse.json({ error: "This coupon has reached its maximum usage" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid or expired coupon code" }, { status: 400 });
     }
 
     if (subtotal && subtotal < coupon.minOrderAmount) {
@@ -52,7 +61,7 @@ export async function POST(req: NextRequest) {
           : `£${coupon.value.toFixed(2)} off`,
     });
   } catch (error) {
-    console.error("Coupon validation error:", error);
+    console.error("Coupon validation error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to validate coupon" }, { status: 500 });
   }
 }

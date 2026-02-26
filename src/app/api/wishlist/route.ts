@@ -42,7 +42,7 @@ export async function GET() {
 
     return NextResponse.json({ items });
   } catch (error) {
-    console.error("GET /api/wishlist error:", error);
+    console.error("GET /api/wishlist error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch wishlist" }, { status: 500 });
   }
 }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Added to wishlist" });
   } catch (error) {
-    console.error("POST /api/wishlist error:", error);
+    console.error("POST /api/wishlist error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to add to wishlist" }, { status: 500 });
   }
 }
@@ -104,7 +104,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ message: "Removed from wishlist" });
   } catch (error) {
-    console.error("DELETE /api/wishlist error:", error);
+    console.error("DELETE /api/wishlist error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to remove from wishlist" }, { status: 500 });
   }
 }

@@ -1,4 +1,8 @@
 import mongoose from "mongoose";
+import { validateEnv } from "./env-check";
+
+// Validate env vars once on first import
+validateEnv();
 
 const MONGODB_URI = process.env.MONGODB_URI!;
 

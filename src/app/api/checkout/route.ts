@@ -108,12 +108,29 @@ export async function POST(req: NextRequest) {
     let appliedCouponCode: string | null = null;
 
     if (couponCode) {
-      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), active: true });
-      if (
-        coupon &&
-        (!coupon.expiresAt || new Date(coupon.expiresAt) > new Date()) &&
-        (coupon.maxUses === 0 || coupon.usedCount < coupon.maxUses)
-      ) {
+      if (typeof couponCode !== "string") {
+        return NextResponse.json({ error: "Invalid coupon code" }, { status: 400 });
+      }
+
+      // Atomic: find a valid coupon AND increment usedCount in one operation
+      // This prevents race conditions where two concurrent checkouts both pass the limit check
+      const coupon = await Coupon.findOneAndUpdate(
+        {
+          code: couponCode.toUpperCase(),
+          active: true,
+          $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
+          $expr: {
+            $or: [
+              { $eq: ["$maxUses", 0] },
+              { $lt: ["$usedCount", "$maxUses"] },
+            ],
+          },
+        },
+        { $inc: { usedCount: 1 } },
+        { new: true }
+      );
+
+      if (coupon) {
         const subtotalPounds = subtotalPence / 100;
         if (subtotalPounds >= coupon.minOrderAmount) {
           let amountOff = 0;
@@ -132,10 +149,13 @@ export async function POST(req: NextRequest) {
             });
             stripeDiscounts = [{ coupon: stripeCoupon.id }];
             appliedCouponCode = coupon.code;
-
-            // Increment usage count
-            await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: 1 } });
+          } else {
+            // Coupon didn't apply — roll back the increment
+            await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: -1 } });
           }
+        } else {
+          // Minimum order amount not met — roll back the increment
+          await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: -1 } });
         }
       }
     }
@@ -203,7 +223,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("POST /api/checkout error:", error);
+    console.error("POST /api/checkout error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to create checkout session" },
       { status: 500 }

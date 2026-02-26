@@ -24,7 +24,7 @@ const ReviewSchema = new Schema<IReview>(
     title: { type: String, required: true, maxlength: 120 },
     comment: { type: String, required: true, maxlength: 2000 },
     verified: { type: Boolean, default: false },
-    approved: { type: Boolean, default: true },
+    approved: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

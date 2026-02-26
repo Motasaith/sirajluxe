@@ -36,10 +36,10 @@ export function CartDrawer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((i) => ({
-            name: i.name,
-            price: i.price,
+            productId: i.id,
             quantity: i.quantity,
-            image: i.image,
+            color: i.color,
+            size: i.size,
           })),
           customerEmail: user.primaryEmailAddress?.emailAddress,
         }),
@@ -48,9 +48,12 @@ export function CartDrawer() {
       const data = await res.json();
 
       if (data.url) {
-        // Don't clear cart here — it will be cleared on the success page
-        // after Stripe confirms the payment via session_id
-        window.location.href = data.url;
+        // Validate Stripe URL before redirecting
+        if (typeof data.url === "string" && data.url.startsWith("https://checkout.stripe.com/")) {
+          window.location.href = data.url;
+        } else {
+          toast({ title: "Checkout failed", description: "Invalid checkout URL received.", variant: "error" });
+        }
       } else {
         toast({ title: "Checkout failed", description: data.error || "Please try again.", variant: "error" });
       }

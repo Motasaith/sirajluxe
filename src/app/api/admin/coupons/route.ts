@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Coupon } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
+import { isValidObjectId } from "@/lib/validation";
 
 // GET /api/admin/coupons
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
     const coupons = await Coupon.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json({ docs: coupons });
   } catch (error) {
-    console.error("GET /api/admin/coupons error:", error);
+    console.error("GET /api/admin/coupons error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch coupons" }, { status: 500 });
   }
 }
@@ -49,9 +50,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(coupon, { status: 201 });
   } catch (error: unknown) {
-    console.error("POST /api/admin/coupons error:", error);
-    const message = error instanceof Error ? error.message : "Failed to create coupon";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("POST /api/admin/coupons error:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Failed to create coupon" }, { status: 500 });
   }
 }
 
@@ -63,18 +63,33 @@ export async function PUT(req: NextRequest) {
     await connectDB();
     const body = await req.json();
 
-    if (!body.id) {
-      return NextResponse.json({ error: "Coupon ID required" }, { status: 400 });
+    if (!isValidObjectId(body.id)) {
+      return NextResponse.json({ error: "Valid coupon ID required" }, { status: 400 });
     }
 
-    const updated = await Coupon.findByIdAndUpdate(body.id, body, { new: true });
+    // Whitelist allowed fields — prevent mass assignment
+    const allowed: Record<string, unknown> = {};
+    if (body.code !== undefined) allowed.code = body.code;
+    if (body.type !== undefined) {
+      if (!["percentage", "fixed"].includes(body.type)) {
+        return NextResponse.json({ error: "Type must be percentage or fixed" }, { status: 400 });
+      }
+      allowed.type = body.type;
+    }
+    if (body.value !== undefined) allowed.value = body.value;
+    if (body.minOrderAmount !== undefined) allowed.minOrderAmount = body.minOrderAmount;
+    if (body.maxUses !== undefined) allowed.maxUses = body.maxUses;
+    if (body.expiresAt !== undefined) allowed.expiresAt = body.expiresAt;
+    if (body.active !== undefined) allowed.active = body.active;
+
+    const updated = await Coupon.findByIdAndUpdate(body.id, allowed, { new: true });
     if (!updated) {
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
     }
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("PUT /api/admin/coupons error:", error);
+    console.error("PUT /api/admin/coupons error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to update coupon" }, { status: 500 });
   }
 }
@@ -86,10 +101,13 @@ export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
     const { id } = await req.json();
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Valid coupon ID required" }, { status: 400 });
+    }
     await Coupon.findByIdAndDelete(id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/admin/coupons error:", error);
+    console.error("DELETE /api/admin/coupons error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to delete coupon" }, { status: 500 });
   }
 }

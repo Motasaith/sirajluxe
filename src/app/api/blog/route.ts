@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { BlogPost } from "@/lib/models";
+import { capInt } from "@/lib/validation";
 
 // GET /api/blog — list published blog posts
 export async function GET(req: NextRequest) {
@@ -8,8 +9,8 @@ export async function GET(req: NextRequest) {
     await connectDB();
     const { searchParams } = new URL(req.url);
     const category = searchParams.get("category");
-    const limit = parseInt(searchParams.get("limit") || "50");
-    const page = parseInt(searchParams.get("page") || "1");
+    const limit = capInt(searchParams.get("limit"), 50, 1, 100);
+    const page = capInt(searchParams.get("page"), 1, 1, 1000);
     const skip = (page - 1) * limit;
 
     const filter: Record<string, unknown> = { published: true };
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error("GET /api/blog error:", error);
+    console.error("GET /api/blog error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch blog posts" },
       { status: 500 }

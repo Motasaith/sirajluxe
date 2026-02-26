@@ -3,6 +3,16 @@ import connectDB from "@/lib/mongodb";
 import { BlogPost } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 
+const BLOG_FIELDS = ["title", "slug", "content", "excerpt", "coverImage", "category", "tags", "published", "publishedAt", "author", "metaTitle", "metaDescription"] as const;
+
+function pickBlogFields(body: Record<string, unknown>) {
+  const picked: Record<string, unknown> = {};
+  for (const key of BLOG_FIELDS) {
+    if (body[key] !== undefined) picked[key] = body[key];
+  }
+  return picked;
+}
+
 // GET /api/admin/blog/[id]
 export async function GET(
   req: NextRequest,
@@ -17,7 +27,7 @@ export async function GET(
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     return NextResponse.json(post);
   } catch (error) {
-    console.error("GET /api/admin/blog/[id] error:", error);
+    console.error("GET /api/admin/blog/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch post" }, { status: 500 });
   }
 }
@@ -32,14 +42,14 @@ export async function PUT(
   try {
     await connectDB();
     const body = await req.json();
-    const post = await BlogPost.findByIdAndUpdate(params.id, body, {
+    const post = await BlogPost.findByIdAndUpdate(params.id, pickBlogFields(body), {
       new: true,
     });
     if (!post)
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     return NextResponse.json(post);
   } catch (error) {
-    console.error("PUT /api/admin/blog/[id] error:", error);
+    console.error("PUT /api/admin/blog/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
   }
 }
@@ -56,7 +66,7 @@ export async function DELETE(
     await BlogPost.findByIdAndDelete(params.id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/admin/blog/[id] error:", error);
+    console.error("DELETE /api/admin/blog/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
   }
 }

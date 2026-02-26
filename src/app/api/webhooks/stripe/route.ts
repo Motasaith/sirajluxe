@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { connectDB } from "@/lib/mongodb";
-import { Order, Customer, Product } from "@/lib/models";
+import { Order, Customer, Product, Coupon } from "@/lib/models";
 import { sendOrderConfirmation } from "@/lib/email";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   try {
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
-    console.error("Stripe webhook signature verification failed:", err);
+    console.error("Stripe webhook signature verification failed:", err instanceof Error ? err.message : "Unknown error");
     return NextResponse.json(
       { error: "Webhook signature verification failed" },
       { status: 400 }
@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
         });
         console.log(`Confirmation email sent to ${order.customerEmail}`);
       } catch (emailErr) {
-        console.error("Failed to send order confirmation email:", emailErr);
+        console.error("Failed to send order confirmation email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
       }
 
       // Decrement inventory for purchased products
@@ -146,7 +146,17 @@ export async function POST(req: NextRequest) {
     }
 
     case "checkout.session.expired": {
-      console.log("Checkout session expired:", event.data.object.id);
+      // Roll back coupon usage for abandoned checkouts
+      const expiredSession = event.data.object as Stripe.Checkout.Session;
+      const expiredCouponCode = expiredSession.metadata?.couponCode;
+      if (expiredCouponCode) {
+        await Coupon.findOneAndUpdate(
+          { code: expiredCouponCode, usedCount: { $gt: 0 } },
+          { $inc: { usedCount: -1 } }
+        );
+        console.log(`Coupon ${expiredCouponCode} usage rolled back (session expired)`);
+      }
+      console.log("Checkout session expired:", expiredSession.id);
       break;
     }
 

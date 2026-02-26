@@ -12,7 +12,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
     return NextResponse.json({ ...product, id: product._id.toString() });
   } catch (error) {
-    console.error("GET /api/admin/products/[id] error:", error);
+    console.error("GET /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
   }
 }
@@ -31,9 +31,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
     return NextResponse.json({ ...product, id: product._id.toString() });
   } catch (error: unknown) {
-    console.error("PUT /api/admin/products/[id] error:", error);
-    const message = error instanceof Error ? error.message : "Failed to update product";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("PUT /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Failed to update product" }, { status: 500 });
   }
 }
 
@@ -46,7 +45,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/admin/products/[id] error:", error);
+    console.error("DELETE /api/admin/products/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to delete product" }, { status: 500 });
   }
 }

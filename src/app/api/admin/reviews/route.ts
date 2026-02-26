@@ -3,6 +3,7 @@ import connectDB from "@/lib/mongodb";
 import { Review } from "@/lib/models/review";
 import { Product } from "@/lib/models/product";
 import { adminGuard } from "@/lib/admin-auth";
+import { isValidObjectId } from "@/lib/validation";
 
 // GET /api/admin/reviews — list all reviews (admin)
 export async function GET() {
@@ -39,7 +40,7 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error("GET /api/admin/reviews error:", error);
+    console.error("GET /api/admin/reviews error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
   }
 }
@@ -53,8 +54,8 @@ export async function PATCH(req: NextRequest) {
     await connectDB();
     const { reviewId, approved } = await req.json();
 
-    if (!reviewId) {
-      return NextResponse.json({ error: "reviewId required" }, { status: 400 });
+    if (!isValidObjectId(reviewId)) {
+      return NextResponse.json({ error: "Valid reviewId required" }, { status: 400 });
     }
 
     const review = await Review.findByIdAndUpdate(
@@ -79,7 +80,7 @@ export async function PATCH(req: NextRequest) {
 
     return NextResponse.json({ message: "Review updated" });
   } catch (error) {
-    console.error("PATCH /api/admin/reviews error:", error);
+    console.error("PATCH /api/admin/reviews error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to update review" }, { status: 500 });
   }
 }
@@ -92,6 +93,10 @@ export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
     const { reviewId } = await req.json();
+
+    if (!isValidObjectId(reviewId)) {
+      return NextResponse.json({ error: "Valid reviewId required" }, { status: 400 });
+    }
 
     const review = await Review.findByIdAndDelete(reviewId);
     if (!review) {
@@ -110,7 +115,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ message: "Review deleted" });
   } catch (error) {
-    console.error("DELETE /api/admin/reviews error:", error);
+    console.error("DELETE /api/admin/reviews error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to delete review" }, { status: 500 });
   }
 }

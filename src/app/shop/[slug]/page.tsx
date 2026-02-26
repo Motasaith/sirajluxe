@@ -10,6 +10,7 @@ import { CartDrawer } from "@/components/ui/cart-drawer";
 import { useCart } from "@/components/providers/cart-provider";
 import { useWishlist } from "@/components/providers/wishlist-provider";
 import { useToast } from "@/components/ui/toast";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 import { useUser } from "@clerk/nextjs";
 import {
   ShoppingBag,
@@ -929,7 +930,7 @@ export default function ProductDetailPage() {
                       <div
                         className="prose prose-invert prose-sm max-w-none prose-p:text-body prose-strong:text-heading prose-li:text-body prose-a:text-neon-violet"
                         dangerouslySetInnerHTML={{
-                          __html: product.description,
+                          __html: sanitizeHtml(product.description),
                         }}
                       />
                     </motion.div>

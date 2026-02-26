@@ -11,7 +11,7 @@ export async function GET() {
     const customers = await Customer.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json({ docs: customers });
   } catch (error) {
-    console.error("GET /api/admin/customers error:", error);
+    console.error("GET /api/admin/customers error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch customers" }, { status: 500 });
   }
 }

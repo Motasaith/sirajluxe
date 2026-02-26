@@ -21,7 +21,7 @@ export async function GET() {
       })),
     });
   } catch (error) {
-    console.error("GET /api/admin/site-content error:", error);
+    console.error("GET /api/admin/site-content error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to fetch content" },
       { status: 500 }
@@ -60,7 +60,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ section });
   } catch (error) {
-    console.error("PUT /api/admin/site-content error:", error);
+    console.error("PUT /api/admin/site-content error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to update content" },
       { status: 500 }
@@ -95,7 +95,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/admin/site-content error:", error);
+    console.error("DELETE /api/admin/site-content error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json(
       { error: "Failed to reset content" },
       { status: 500 }

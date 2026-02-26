@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error("GET /api/products error:", error);
+    console.error("GET /api/products error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }

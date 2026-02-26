@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Product } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
+import { capInt } from "@/lib/validation";
 
 function escapeRegex(str: string) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -13,8 +14,8 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const page = capInt(searchParams.get("page"), 1, 1, 1000);
+    const limit = capInt(searchParams.get("limit"), 20, 1, 100);
     const search = searchParams.get("search") || "";
     const category = searchParams.get("category") || "";
     const featured = searchParams.get("featured");
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
       pages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error("GET /api/admin/products error:", error);
+    console.error("GET /api/admin/products error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch products" }, { status: 500 });
   }
 }
@@ -56,8 +57,7 @@ export async function POST(req: NextRequest) {
     const product = await Product.create({ name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory });
     return NextResponse.json({ ...product.toObject(), id: product._id.toString() }, { status: 201 });
   } catch (error: unknown) {
-    console.error("POST /api/admin/products error:", error);
-    const message = error instanceof Error ? error.message : "Failed to create product";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("POST /api/admin/products error:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Failed to create product" }, { status: 500 });
   }
 }

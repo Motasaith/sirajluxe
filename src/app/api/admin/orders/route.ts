@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Order } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
+import { validateEnum, ORDER_STATUSES, capInt } from "@/lib/validation";
 
 // GET /api/admin/orders
 export async function GET(req: NextRequest) {
@@ -9,13 +10,19 @@ export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const status = searchParams.get("status") || "";
+    const page = capInt(searchParams.get("page"), 1, 1, 1000);
+    const limit = capInt(searchParams.get("limit"), 20, 1, 100);
+    const statusRaw = searchParams.get("status") || "";
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: any = {};
-    if (status) filter.status = status;
+    if (statusRaw) {
+      const validStatus = validateEnum(statusRaw, ORDER_STATUSES);
+      if (!validStatus) {
+        return NextResponse.json({ error: "Invalid status filter" }, { status: 400 });
+      }
+      filter.status = validStatus;
+    }
 
     const [orders, total] = await Promise.all([
       Order.find(filter)
@@ -33,7 +40,7 @@ export async function GET(req: NextRequest) {
       pages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error("GET /api/admin/orders error:", error);
+    console.error("GET /api/admin/orders error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch orders" }, { status: 500 });
   }
 }

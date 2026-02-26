@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Category } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
+import { isValidObjectId } from "@/lib/validation";
 
 // GET /api/admin/categories
 export async function GET() {
@@ -11,7 +12,7 @@ export async function GET() {
     const categories = await Category.find().sort({ name: 1 }).lean();
     return NextResponse.json({ docs: categories });
   } catch (error) {
-    console.error("GET /api/admin/categories error:", error);
+    console.error("GET /api/admin/categories error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
   }
 }
@@ -22,12 +23,16 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
-    const category = await Category.create(body);
+    // Whitelist allowed fields only
+    const { name, slug, description, image } = body;
+    if (!name || typeof name !== "string") {
+      return NextResponse.json({ error: "Category name is required" }, { status: 400 });
+    }
+    const category = await Category.create({ name, slug, description, image });
     return NextResponse.json(category, { status: 201 });
   } catch (error: unknown) {
-    console.error("POST /api/admin/categories error:", error);
-    const message = error instanceof Error ? error.message : "Failed to create category";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("POST /api/admin/categories error:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
   }
 }
 
@@ -37,10 +42,13 @@ export async function DELETE(req: NextRequest) {
   try {
     await connectDB();
     const { id } = await req.json();
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid category ID" }, { status: 400 });
+    }
     await Category.findByIdAndDelete(id);
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/admin/categories error:", error);
+    console.error("DELETE /api/admin/categories error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
   }
 }

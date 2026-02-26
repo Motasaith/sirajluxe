@@ -3,6 +3,7 @@ import connectDB from "@/lib/mongodb";
 import { Order } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 import { sendOrderShipped, sendOrderDelivered } from "@/lib/email";
+import { validateEnum, ORDER_STATUSES, ensureString } from "@/lib/validation";
 
 // GET /api/admin/orders/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
     return NextResponse.json(order);
   } catch (error) {
-    console.error("GET /api/admin/orders/[id] error:", error);
+    console.error("GET /api/admin/orders/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch order" }, { status: 500 });
   }
 }
@@ -25,11 +26,25 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     await connectDB();
     const body = await req.json();
 
-    // Only allow updating status and trackingNumber
+    // Only allow updating status and trackingNumber — validate types
     const { status, trackingNumber } = body;
     const updateFields: Record<string, unknown> = {};
-    if (status) updateFields.status = status;
-    if (trackingNumber !== undefined) updateFields.trackingNumber = trackingNumber;
+
+    if (status) {
+      const validStatus = validateEnum(status, ORDER_STATUSES);
+      if (!validStatus) {
+        return NextResponse.json({ error: "Invalid order status" }, { status: 400 });
+      }
+      updateFields.status = validStatus;
+    }
+
+    if (trackingNumber !== undefined) {
+      const safeTracking = ensureString(trackingNumber);
+      if (safeTracking === null && trackingNumber !== null) {
+        return NextResponse.json({ error: "Invalid tracking number" }, { status: 400 });
+      }
+      updateFields.trackingNumber = safeTracking || "";
+    }
 
     // Get the order BEFORE update to compare status
     const previousOrder = await Order.findById(params.id).lean();
@@ -61,13 +76,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           console.log(`Delivered email sent for ${updated.orderNumber}`);
         }
       } catch (emailErr) {
-        console.error("Failed to send status email:", emailErr);
+        console.error("Failed to send status email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
       }
     }
 
     return NextResponse.json(order);
   } catch (error) {
-    console.error("PATCH /api/admin/orders/[id] error:", error);
+    console.error("PATCH /api/admin/orders/[id] error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
   }
 }

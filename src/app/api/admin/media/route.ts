@@ -3,6 +3,7 @@ import { put, del, getDownloadUrl } from "@vercel/blob";
 import connectDB from "@/lib/mongodb";
 import { Media } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
+import { sanitizeFilename, hasAllowedExtension } from "@/lib/validation";
 
 // GET /api/admin/media — list all media
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
     const media = await Media.find().sort({ createdAt: -1 }).lean();
     return NextResponse.json({ docs: media });
   } catch (error) {
-    console.error("GET /api/admin/media error:", error);
+    console.error("GET /api/admin/media error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch media" }, { status: 500 });
   }
 }
@@ -28,14 +29,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    // Validate file type
-    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+    // Validate file type — SVG blocked (stored XSS risk via embedded scripts)
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: `Invalid file type: ${file.type}. Allowed types: JPEG, PNG, WebP, GIF, SVG.` },
+        { error: `Invalid file type: ${file.type}. Allowed types: JPEG, PNG, WebP, GIF.` },
         { status: 400 }
       );
     }
+
+    // Validate file extension (defense-in-depth — don't trust file.type alone)
+    if (!hasAllowedExtension(file.name)) {
+      return NextResponse.json(
+        { error: "Invalid file extension. Allowed: .jpg, .jpeg, .png, .webp, .gif" },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize filename to prevent path traversal & XSS in admin UI
+    const safeName = sanitizeFilename(file.name);
 
     // Validate file size (max 10MB)
     const MAX_SIZE = 10 * 1024 * 1024;
@@ -47,13 +59,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Upload to Vercel Blob
-    // Try public access first; if the store is private, fall back to private access
     let blob;
     try {
-      blob = await put(file.name, file, { access: "public" });
+      blob = await put(safeName, file, { access: "public" });
     } catch {
-      // Store is configured as private — upload privately and get a download URL
-      blob = await put(file.name, file, { access: "private" });
+      blob = await put(safeName, file, { access: "private" });
     }
 
     // For private blobs, generate a long-lived download URL
@@ -69,11 +79,11 @@ export async function POST(req: NextRequest) {
     // Save reference in MongoDB
     await connectDB();
     const media = await Media.create({
-      filename: file.name,
+      filename: safeName,
       url: publicUrl,
       type: file.type.startsWith("image/") ? "image" : "file",
       size: file.size,
-      alt: file.name.replace(/\.[^/.]+$/, ""),
+      alt: safeName.replace(/\.[^/.]+$/, ""),
     });
 
     return NextResponse.json(
@@ -81,7 +91,7 @@ export async function POST(req: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("POST /api/admin/media error:", error);
+    console.error("POST /api/admin/media error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
   }
 }
@@ -107,7 +117,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("DELETE /api/admin/media error:", error);
+    console.error("DELETE /api/admin/media error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to delete media" }, { status: 500 });
   }
 }

@@ -27,7 +27,7 @@ export async function GET() {
       }
     );
   } catch (error) {
-    console.error("GET /api/site-content error:", error);
+    console.error("GET /api/site-content error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ sections: [] });
   }
 }

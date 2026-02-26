@@ -10,6 +10,7 @@ import { PageTransitionProvider } from "@/components/providers/page-transition-p
 import { CartDrawer } from "@/components/ui/cart-drawer";
 import { Loader2, ArrowLeft, Calendar, User, Tag } from "lucide-react";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 
 interface BlogPost {
   _id: string;
@@ -151,7 +152,7 @@ export default function BlogPostPage() {
               {/* Content */}
               <div
                 className="prose prose-invert prose-sm max-w-none prose-p:text-body prose-strong:text-heading prose-li:text-body prose-a:text-neon-violet prose-headings:text-heading prose-img:rounded-xl"
-                dangerouslySetInnerHTML={{ __html: post.content }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
               />
 
               {/* Tags */}

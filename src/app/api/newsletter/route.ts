@@ -33,13 +33,13 @@ export async function POST(req: NextRequest) {
       const data = await res.json().catch(() => ({}));
       // "Contact already exists" is fine
       if (data.code !== "duplicate_parameter") {
-        console.error("Brevo API error:", data);
+        console.error("Brevo API error:", typeof data === "object" ? JSON.stringify(data).slice(0, 200) : "Unknown");
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Newsletter error:", error);
+    console.error("Newsletter error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to subscribe" }, { status: 500 });
   }
 }

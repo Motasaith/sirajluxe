@@ -4,6 +4,7 @@ import connectDB from "@/lib/mongodb";
 import { Review } from "@/lib/models/review";
 import { Product } from "@/lib/models/product";
 import { Order } from "@/lib/models/order";
+import { isValidObjectId } from "@/lib/validation";
 
 // GET /api/reviews?productId=xxx — get approved reviews for a product
 export async function GET(req: NextRequest) {
@@ -12,8 +13,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const productId = searchParams.get("productId");
 
-    if (!productId) {
-      return NextResponse.json({ error: "productId is required" }, { status: 400 });
+    if (!productId || !isValidObjectId(productId)) {
+      return NextResponse.json({ error: "Valid productId is required" }, { status: 400 });
     }
 
     const reviews = await Review.find({ product: productId, approved: true })
@@ -47,7 +48,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("GET /api/reviews error:", error);
+    console.error("GET /api/reviews error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
   }
 }
@@ -68,7 +69,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
     }
 
-    if (rating < 1 || rating > 5) {
+    if (!isValidObjectId(productId)) {
+      return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
+    }
+
+    if (typeof rating !== "number" || rating < 1 || rating > 5) {
       return NextResponse.json({ error: "Rating must be 1-5" }, { status: 400 });
     }
 
@@ -92,7 +97,7 @@ export async function POST(req: NextRequest) {
 
     // Check if user has purchased this product (verified review)
     const orders = await Order.find({
-      clerkId: userId,
+      clerkUserId: userId,
       "items.productId": productId,
       paymentStatus: "paid",
     }).limit(1);
@@ -127,7 +132,7 @@ export async function POST(req: NextRequest) {
     if (error && typeof error === "object" && "code" in error && (error as { code: number }).code === 11000) {
       return NextResponse.json({ error: "You have already reviewed this product" }, { status: 409 });
     }
-    console.error("POST /api/reviews error:", error);
+    console.error("POST /api/reviews error:", error instanceof Error ? error.message : "Unknown error");
     return NextResponse.json({ error: "Failed to submit review" }, { status: 500 });
   }
 }

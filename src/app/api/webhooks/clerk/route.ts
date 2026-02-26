@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     try {
       event = wh.verify(body, headers) as WebhookEvent;
     } catch (err) {
-      console.error("Clerk webhook verification failed:", err);
+      console.error("Clerk webhook verification failed:", err instanceof Error ? err.message : "Unknown error");
       return NextResponse.json(
         { error: "Webhook verification failed" },
         { status: 400 }
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
           });
           console.log(`Welcome email sent to ${primaryEmail}`);
         } catch (emailErr) {
-          console.error("Failed to send welcome email:", emailErr);
+          console.error("Failed to send welcome email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
         }
       }
       break;
