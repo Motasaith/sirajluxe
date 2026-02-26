@@ -5,12 +5,14 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 export function CTASection() {
+  const { data: cms, enabled } = useSiteContent("homepage.cta");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -34,6 +36,8 @@ export function CTASection() {
 
     return () => ctx.revert();
   }, []);
+
+  if (!enabled) return null;
 
   return (
     <section ref={sectionRef} className="relative section-padding overflow-hidden">
@@ -60,30 +64,29 @@ export function CTASection() {
             >
               <Sparkles className="w-4 h-4 text-neon-violet" />
               <span className="text-xs font-medium tracking-widest uppercase text-body">
-                Join the movement
+                {cms?.badge || "Join the movement"}
               </span>
             </motion.div>
 
             <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-bold text-white max-w-4xl mx-auto leading-[1.1] mb-8">
-              Ready to experience the{" "}
+              {cms?.heading || "Ready to experience the"}{" "}
               <span className="neon-text">future</span> of shopping?
             </h2>
 
             <p className="text-lg text-body max-w-2xl mx-auto mb-12 leading-relaxed">
-              Join 50,000+ customers who have already made the switch to
-              immersive commerce. Your next favorite product is waiting.
+              {cms?.body || "Join 50,000+ customers who have already made the switch to immersive commerce. Your next favorite product is waiting."}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
               <button className="magnetic-btn px-8 py-4">
                 <span className="flex items-center gap-2 text-base">
-                  Start Shopping
+                  {cms?.primaryText || "Start Shopping"}
                   <ArrowRight className="w-5 h-5" />
                 </span>
               </button>
 
               <button className="group flex items-center gap-2 px-8 py-4 rounded-full border border-[var(--border-strong)] text-white hover:bg-[var(--hover)] transition-all duration-300">
-                <span className="text-sm font-medium">Learn More</span>
+                <span className="text-sm font-medium">{cms?.secondaryText || "Learn More"}</span>
               </button>
             </div>
           </div>

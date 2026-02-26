@@ -5,12 +5,14 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight } from "lucide-react";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
 export function ShowcaseSection() {
+  const { data: cms, enabled } = useSiteContent("homepage.showcase");
   const sectionRef = useRef<HTMLElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
 
@@ -69,32 +71,32 @@ export function ShowcaseSection() {
     return () => ctx.revert();
   }, []);
 
-  const features = [
-    {
-      number: "01",
-      title: "3D Product Exploration",
-      description:
-        "Rotate, zoom, and interact with products in full 3D before you buy. No more guessing.",
-    },
-    {
-      number: "02",
-      title: "AI-Powered Curation",
-      description:
-        "Our algorithms learn your style and surface products that match your unique aesthetic.",
-    },
-    {
-      number: "03",
-      title: "Instant AR Try-On",
-      description:
-        "See how products look on you or in your space using cutting-edge augmented reality.",
-    },
-    {
-      number: "04",
-      title: "Global Express Delivery",
-      description:
-        "From checkout to doorstep in 24-48 hours. Premium packaging, carbon-neutral shipping.",
-    },
-  ];
+  if (!enabled) return null;
+
+  const features = Array.isArray(cms?.features) && cms.features.length > 0
+    ? cms.features
+    : [
+        {
+          number: "01",
+          title: "3D Product Exploration",
+          description: "Rotate, zoom, and interact with products in full 3D before you buy. No more guessing.",
+        },
+        {
+          number: "02",
+          title: "AI-Powered Curation",
+          description: "Our algorithms learn your style and surface products that match your unique aesthetic.",
+        },
+        {
+          number: "03",
+          title: "Instant AR Try-On",
+          description: "See how products look on you or in your space using cutting-edge augmented reality.",
+        },
+        {
+          number: "04",
+          title: "Global Express Delivery",
+          description: "From checkout to doorstep in 24-48 hours. Premium packaging, carbon-neutral shipping.",
+        },
+      ];
 
   return (
     <section ref={sectionRef} className="relative section-padding overflow-hidden">
@@ -119,7 +121,7 @@ export function ShowcaseSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              Why Siraj Luxe
+              {cms?.label || "Why Siraj Luxe"}
             </motion.p>
             <motion.h2
               className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-heading leading-[1.1] mb-8"
@@ -128,7 +130,7 @@ export function ShowcaseSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              Shopping should feel like an{" "}
+              {cms?.heading || "Shopping should feel like an"}{" "}
               <span className="neon-text">experience</span>, not a transaction.
             </motion.h2>
             <motion.p
@@ -138,9 +140,7 @@ export function ShowcaseSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              We bridge the gap between digital and physical shopping by creating
-              immersive product stories. Every scroll, every click, every
-              interaction is designed to delight.
+              {cms?.body || "We bridge the gap between digital and physical shopping by creating immersive product stories. Every scroll, every click, every interaction is designed to delight."}
             </motion.p>
             <motion.button
               className="magnetic-btn"
@@ -150,7 +150,7 @@ export function ShowcaseSection() {
               transition={{ delay: 0.3 }}
             >
               <span className="flex items-center gap-2">
-                Our Story
+                {cms?.ctaText || "Our Story"}
                 <ArrowRight className="w-4 h-4" />
               </span>
             </motion.button>

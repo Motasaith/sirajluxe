@@ -10,8 +10,9 @@ import {
   ArrowUpRight,
   Mail,
 } from "lucide-react";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 
-const footerLinks = {
+const defaultFooterLinks: Record<string, { label: string; href: string }[]> = {
   Shop: [
     { label: "All Products", href: "/shop" },
     { label: "New Arrivals", href: "/shop?filter=new" },
@@ -41,7 +42,7 @@ const footerLinks = {
   ],
 };
 
-const socialLinks = [
+const defaultSocialLinks = [
   { icon: Twitter, href: "#", label: "Twitter" },
   { icon: Instagram, href: "#", label: "Instagram" },
   { icon: Github, href: "#", label: "GitHub" },
@@ -49,6 +50,28 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const { data: cms } = useSiteContent("footer");
+
+  // Parse CMS footer columns if available
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const footerLinks: Record<string, { label: string; href: string }[]> = (() => {
+    if (Array.isArray(cms?.columns) && cms.columns.length > 0) {
+      const result: Record<string, { label: string; href: string }[]> = {};
+      for (const col of cms.columns) {
+        const title = col.title || "Links";
+        const linkLines = (col.linksText || "").split("\n").filter(Boolean);
+        result[title] = linkLines.map((line: string) => {
+          const [label, href] = line.split("|");
+          return { label: label?.trim() || "", href: href?.trim() || "#" };
+        });
+      }
+      return result;
+    }
+    return defaultFooterLinks;
+  })();
+
+  const socialLinks = defaultSocialLinks;
+
   return (
     <footer className="relative bg-background border-t border-[var(--border)]">
       {/* Gradient orbs */}
@@ -66,7 +89,7 @@ export function Footer() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              Stay in the loop
+              {cms?.newsletterLabel || "Stay in the loop"}
             </motion.p>
             <motion.h3
               className="text-3xl md:text-4xl font-display font-bold text-heading mb-6"
@@ -75,7 +98,7 @@ export function Footer() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              Get early access to drops, exclusive offers, and the latest news.
+              {cms?.newsletterHeading || "Get early access to drops, exclusive offers, and the latest news."}
             </motion.h3>
             <motion.div
               className="flex gap-3"
@@ -88,13 +111,13 @@ export function Footer() {
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-fg" />
                 <input
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder={cms?.newsletterPlaceholder || "Enter your email"}
                   className="w-full pl-12 pr-4 py-3.5 rounded-full bg-[var(--overlay)] border border-[var(--border-strong)] text-heading placeholder:text-subtle-fg focus:outline-none focus:border-neon-violet/50 focus:ring-2 focus:ring-neon-violet/20 transition-all duration-300"
                 />
               </div>
               <button className="magnetic-btn px-6">
                 <span className="flex items-center gap-2">
-                  Subscribe
+                  {cms?.newsletterButton || "Subscribe"}
                   <ArrowUpRight className="w-4 h-4" />
                 </span>
               </button>
@@ -137,10 +160,10 @@ export function Footer() {
           <div className="w-full flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
+                <span className="text-white font-bold text-sm">{cms?.logoLetter || "S"}</span>
               </div>
               <span className="text-sm text-subtle-fg">
-                © 2026 Siraj Luxe. All rights reserved.
+                {cms?.copyright || "© 2026 Siraj Luxe. All rights reserved."}
               </span>
             </div>
 

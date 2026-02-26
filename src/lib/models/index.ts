@@ -21,3 +21,6 @@ export type { IReview } from "./review";
 
 export { Wishlist } from "./wishlist";
 export type { IWishlist, IWishlistItem } from "./wishlist";
+
+export { SiteContent } from "./site-content";
+export type { ISiteContent } from "./site-content";

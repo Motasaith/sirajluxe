@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRight } from "lucide-react";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 import { categories } from "@/lib/data";
 
 if (typeof window !== "undefined") {
@@ -12,6 +13,7 @@ if (typeof window !== "undefined") {
 }
 
 export function CategoriesSection() {
+  const { data: cms, enabled } = useSiteContent("homepage.categories");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -56,6 +58,8 @@ export function CategoriesSection() {
     return () => ctx.revert();
   }, []);
 
+  if (!enabled) return null;
+
   return (
     <section ref={sectionRef} className="relative section-padding overflow-hidden">
       {/* Background */}
@@ -67,10 +71,10 @@ export function CategoriesSection() {
         {/* Section Header */}
         <div className="categories-title mb-16">
           <p className="text-sm font-medium tracking-widest uppercase text-neon-violet mb-4">
-            Browse Categories
+            {cms?.label || "Browse Categories"}
           </p>
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-heading max-w-3xl">
-            Curated collections for the{" "}
+            {cms?.heading || "Curated collections for the"}{" "}
             <span className="neon-text">discerning</span> eye.
           </h2>
         </div>

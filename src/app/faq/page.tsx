@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import connectDB from "@/lib/mongodb";
+import { SiteContent } from "@/lib/models";
 
 export const metadata: Metadata = {
   title: "FAQ — Frequently Asked Questions",
@@ -8,7 +10,7 @@ export const metadata: Metadata = {
     "Find answers to common questions about Siraj Luxe — shipping, returns, payments, orders, accounts, and more.",
 };
 
-const faqs = [
+const defaultFaqs = [
   {
     question: "Where do you deliver?",
     answer:
@@ -101,12 +103,20 @@ const faqs = [
   },
 ];
 
-export default function FAQPage() {
+export default async function FAQPage() {
+  await connectDB();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const faqContent = await SiteContent.findOne({ key: "faq" }).lean() as any;
+  const cmsData = faqContent?.data || {};
+  const faqs = Array.isArray(cmsData?.items) && cmsData.items.length > 0 ? cmsData.items : defaultFaqs;
+  const pageTitle = cmsData?.title || "Frequently Asked Questions";
+  const pageSubtitle = cmsData?.subtitle || null;
+
   // JSON-LD structured data for FAQ (rich results in Google)
   const faqJsonLd = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    mainEntity: faqs.map((faq) => ({
+    mainEntity: faqs.map((faq: { question: string; answer: string }) => ({
       "@type": "Question",
       name: faq.question,
       acceptedAnswer: {
@@ -126,20 +136,20 @@ export default function FAQPage() {
       <main className="min-h-screen pt-32 pb-20">
         <div className="ultra-wide-padding max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold text-heading mb-4">
-            Frequently Asked Questions
+            {pageTitle}
           </h1>
           <p className="text-muted-fg mb-12">
-            Can&apos;t find what you&apos;re looking for? Contact us at{" "}
+            {pageSubtitle || <>Can&apos;t find what you&apos;re looking for? Contact us at{" "}
             <a
               href="mailto:support@sirajluxe.com"
               className="text-neon-violet hover:underline"
             >
               support@sirajluxe.com
-            </a>
+            </a></>}
           </p>
 
           <div className="space-y-6">
-            {faqs.map((faq, i) => (
+            {faqs.map((faq: { question: string; answer: string }, i: number) => (
               <details
                 key={i}
                 className="group rounded-xl border border-[var(--border)] bg-[var(--overlay)] overflow-hidden"

@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ShoppingBag, Heart, Star, ArrowRight } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -220,6 +221,7 @@ function ProductCard({
 }
 
 export function ProductsSection() {
+  const { data: cms, enabled } = useSiteContent("homepage.products");
   const sectionRef = useRef<HTMLElement>(null);
   const [products, setProducts] = useState<Product[]>([]);
 
@@ -257,6 +259,8 @@ export function ProductsSection() {
     return () => ctx.revert();
   }, []);
 
+  if (!enabled) return null;
+
   return (
     <section ref={sectionRef} className="relative section-padding overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -268,10 +272,10 @@ export function ProductsSection() {
         <div className="products-title flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
           <div>
             <p className="text-sm font-medium tracking-widest uppercase text-neon-violet mb-4">
-              Featured Products
+              {cms?.label || "Featured Products"}
             </p>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-heading">
-              Trending <span className="neon-text">Now</span>
+              {cms?.heading || "Trending"} <span className="neon-text">Now</span>
             </h2>
           </div>
 
@@ -281,7 +285,7 @@ export function ProductsSection() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span className="text-sm font-medium">View All Products</span>
+              <span className="text-sm font-medium">{cms?.buttonText || "View All Products"}</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
             </motion.button>
           </Link>

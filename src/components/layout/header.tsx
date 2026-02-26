@@ -16,9 +16,11 @@ import { useTheme } from "next-themes";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { useCart } from "@/components/providers/cart-provider";
 import { useWishlist } from "@/components/providers/wishlist-provider";
+import { useSiteContent } from "@/components/providers/site-content-provider";
+import { AnnouncementBar } from "@/components/ui/announcement-bar";
 import gsap from "gsap";
 
-const navLinks = [
+const defaultNavLinks = [
   { href: "/", label: "Home" },
   { href: "/shop", label: "Shop" },
   { href: "/collections", label: "Collections" },
@@ -27,6 +29,7 @@ const navLinks = [
 ];
 
 export function Header() {
+  const { data: cms } = useSiteContent("header");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { itemCount, toggleCart } = useCart();
@@ -34,6 +37,7 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
+  const navLinks = Array.isArray(cms?.navLinks) && cms.navLinks.length > 0 ? cms.navLinks : defaultNavLinks;
 
   useEffect(() => {
     setMounted(true);
@@ -73,6 +77,7 @@ export function Header() {
 
   return (
     <>
+      <AnnouncementBar />
       <motion.header
         ref={headerRef}
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
@@ -93,10 +98,10 @@ export function Header() {
               transition={{ duration: 0.3 }}
             >
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center shadow-neon">
-                <span className="text-white font-bold text-lg">S</span>
+                <span className="text-white font-bold text-lg">{cms?.logoLetter || "S"}</span>
               </div>
               <span className="text-xl font-semibold tracking-tight text-heading hidden sm:block">
-                SIRAJ<span className="neon-text"> LUXE</span>
+                {cms?.logoText || "SIRAJ"}<span className="neon-text">{cms?.logoAccent || " LUXE"}</span>
               </span>
             </motion.div>
           </Link>

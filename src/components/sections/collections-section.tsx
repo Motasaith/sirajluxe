@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 import { featuredCollections } from "@/lib/data";
 
 if (typeof window !== "undefined") {
@@ -12,6 +13,7 @@ if (typeof window !== "undefined") {
 }
 
 export function CollectionsSection() {
+  const { data: cms, enabled } = useSiteContent("homepage.collections");
   const sectionRef = useRef<HTMLElement>(null);
   const horizontalRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +58,8 @@ export function CollectionsSection() {
     return () => ctx.revert();
   }, []);
 
+  if (!enabled) return null;
+
   return (
     <section ref={sectionRef} className="relative section-padding overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
@@ -69,11 +73,11 @@ export function CollectionsSection() {
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-4 h-4 text-neon-violet" />
               <p className="text-sm font-medium tracking-widest uppercase text-neon-violet">
-                Featured Collections
+                {cms?.label || "Featured Collections"}
               </p>
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-heading">
-              Explore our <span className="neon-text">curated</span> worlds.
+              {cms?.heading || "Explore our"} <span className="neon-text">curated</span> worlds.
             </h2>
           </div>
 
@@ -82,7 +86,7 @@ export function CollectionsSection() {
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <span className="text-sm font-medium">All Collections</span>
+            <span className="text-sm font-medium">{cms?.buttonText || "All Collections"}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
           </motion.button>
         </div>

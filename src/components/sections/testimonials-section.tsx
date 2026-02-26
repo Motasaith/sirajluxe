@@ -4,12 +4,13 @@ import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const brands = [
+const defaultBrands = [
   "VOIDWARE",
   "NEBULA",
   "PHANTOM",
@@ -22,7 +23,7 @@ const brands = [
   "ZENITH",
 ];
 
-const testimonials = [
+const defaultTestimonials = [
   {
     text: "The most immersive shopping experience I've ever had. The 3D product viewer makes all the difference.",
     author: "Sarah Chen",
@@ -44,6 +45,7 @@ const testimonials = [
 ];
 
 export function TestimonialsSection() {
+  const { data: cms, enabled } = useSiteContent("homepage.testimonials");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -84,13 +86,18 @@ export function TestimonialsSection() {
     return () => ctx.revert();
   }, []);
 
+  if (!enabled) return null;
+
+  const brands = Array.isArray(cms?.brands) && cms.brands.length > 0 ? cms.brands : defaultBrands;
+  const testimonials = Array.isArray(cms?.items) && cms.items.length > 0 ? cms.items : defaultTestimonials;
+
   return (
     <section ref={sectionRef} className="relative section-padding overflow-hidden">
       {/* Brand Marquee */}
       <div className="mb-32 overflow-hidden">
         <div className="mb-12 ultra-wide-padding">
           <p className="text-sm font-medium tracking-widest uppercase text-subtle-fg text-center">
-            Trusted by industry leaders
+            {cms?.brandsLabel || "Trusted by industry leaders"}
           </p>
         </div>
 
@@ -118,10 +125,10 @@ export function TestimonialsSection() {
           viewport={{ once: true }}
         >
           <p className="text-sm font-medium tracking-widest uppercase text-neon-violet mb-4">
-            What people are saying
+            {cms?.label || "What people are saying"}
           </p>
           <h2 className="text-4xl md:text-5xl font-display font-bold text-heading">
-            Loved by <span className="neon-text">thousands</span>
+            {cms?.heading || "Loved by"} <span className="neon-text">thousands</span>
           </h2>
         </motion.div>
 

@@ -12,8 +12,10 @@ import {
   Shield,
   CheckCircle2,
 } from "lucide-react";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 
 export function HeroSection() {
+  const { data: cms, enabled } = useSiteContent("homepage.hero");
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -73,6 +75,8 @@ export function HeroSection() {
     return () => ctx.revert();
   }, []);
 
+  if (!enabled) return null;
+
   return (
     <section
       ref={sectionRef}
@@ -98,7 +102,7 @@ export function HeroSection() {
                 transition={{ delay: 0.15 }}
               >
                 <span className="w-2 h-2 rounded-full bg-neon-violet animate-glow-pulse" />
-                Spring 2026 Collection
+                {cms?.badge || "Spring 2026 Collection"}
               </motion.span>
             </div>
 
@@ -106,40 +110,38 @@ export function HeroSection() {
             <h1>
               <div className="hero-line">
                 <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-heading leading-[1.05] tracking-tight">
-                  Discover Premium
+                  {cms?.headline1 || "Discover Premium"}
                 </span>
               </div>
               <div className="hero-line">
                 <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold leading-[1.05] tracking-tight neon-text">
-                  Products You&apos;ll
+                  {cms?.headline2 || "Products You'll"}
                 </span>
               </div>
               <div className="hero-line">
                 <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-heading leading-[1.05] tracking-tight">
-                  Love.
+                  {cms?.headline3 || "Love."}
                 </span>
               </div>
             </h1>
 
             {/* Subtitle */}
             <p className="hero-subtitle mt-6 text-base md:text-lg text-body max-w-lg leading-relaxed">
-              Shop curated collections from top brands. Premium quality,
-              fast delivery, and an experience designed to delight — every
-              time you shop.
+              {cms?.subtitle || "Shop curated collections from top brands. Premium quality, fast delivery, and an experience designed to delight — every time you shop."}
             </p>
 
             {/* CTA Buttons */}
             <div className="hero-cta flex flex-wrap items-center gap-4 mt-8">
               <button className="magnetic-btn">
                 <span className="flex items-center gap-2">
-                  Shop Now
+                  {cms?.ctaPrimaryText || "Shop Now"}
                   <ArrowRight className="w-4 h-4" />
                 </span>
               </button>
 
               <button className="group flex items-center gap-2 px-6 py-3.5 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300">
                 <span className="text-sm font-medium tracking-wide">
-                  Browse Collections
+                  {cms?.ctaSecondaryText || "Browse Collections"}
                 </span>
                 <ArrowRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
@@ -162,9 +164,9 @@ export function HeroSection() {
                 )}
               </div>
               <div className="border-l border-[var(--border)] pl-6">
-                <p className="text-sm font-semibold text-heading">50K+</p>
+                <p className="text-sm font-semibold text-heading">{cms?.socialProofCount || "50K+"}</p>
                 <p className="text-xs text-muted-fg">
-                  5 Star Rating Customers
+                  {cms?.socialProofText || "5 Star Rating Customers"}
                 </p>
               </div>
             </div>

@@ -8,12 +8,13 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 import { ArrowRight, Award, Globe, Heart, Zap } from "lucide-react";
+import { useSiteContent } from "@/components/providers/site-content-provider";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-const values = [
+const defaultValues = [
   {
     icon: Zap,
     title: "Innovation First",
@@ -40,7 +41,7 @@ const values = [
   },
 ];
 
-const team = [
+const defaultTeam = [
   { name: "Alex Rivera", role: "CEO & Founder", initials: "AR" },
   { name: "Maya Chen", role: "Head of Design", initials: "MC" },
   { name: "Jordan Blake", role: "CTO", initials: "JB" },
@@ -48,7 +49,24 @@ const team = [
 ];
 
 export default function AboutPage() {
+  const { data: cms } = useSiteContent("about");
   const sectionRef = useRef<HTMLDivElement>(null);
+
+  const valueIcons = [Zap, Award, Globe, Heart];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const values: any[] = Array.isArray(cms?.values) && cms.values.length > 0
+    ? cms.values.map((v: { title: string; description: string }, i: number) => ({ icon: valueIcons[i] || Zap, title: v.title, description: v.description }))
+    : defaultValues;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const team: any[] = Array.isArray(cms?.team) && cms.team.length > 0 ? cms.team : defaultTeam;
+  const stats = Array.isArray(cms?.stats) && cms.stats.length > 0
+    ? cms.stats
+    : [
+        { value: "50K+", label: "Happy Customers" },
+        { value: "10K+", label: "Premium Products" },
+        { value: "120+", label: "Countries Served" },
+        { value: "99.9%", label: "Uptime SLA" },
+      ];
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -108,18 +126,15 @@ export default function AboutPage() {
               className="max-w-4xl"
             >
               <p className="text-sm font-medium tracking-widest uppercase text-neon-violet mb-6">
-                Our Story
+                {cms?.heroLabel || "Our Story"}
               </p>
               <h1 className="text-5xl md:text-6xl lg:text-8xl font-display font-bold text-heading leading-[1.05] mb-8">
-                We&apos;re building the{" "}
+                {cms?.heroHeading || "We're building the"}{" "}
                 <span className="neon-text">future</span> of how people shop
                 online.
               </h1>
               <p className="text-xl text-body leading-relaxed max-w-2xl">
-                Founded in 2025, Siraj Luxe was born from a simple belief:
-                online shopping should be as exciting as discovering a product
-                in person. We combine cutting-edge 3D technology with
-                world-class design to create experiences that delight.
+                {cms?.heroBody || "Founded in 2025, Siraj Luxe was born from a simple belief: online shopping should be as exciting as discovering a product in person. We combine cutting-edge 3D technology with world-class design to create experiences that delight."}
               </p>
             </motion.div>
           </div>
@@ -129,12 +144,7 @@ export default function AboutPage() {
         <section className="py-20 border-y border-[var(--border)]">
           <div className="ultra-wide-padding">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-              {[
-                { value: "50K+", label: "Happy Customers" },
-                { value: "10K+", label: "Premium Products" },
-                { value: "120+", label: "Countries Served" },
-                { value: "99.9%", label: "Uptime SLA" },
-              ].map((stat, i) => (
+              {stats.map((stat: { value: string; label: string }, i: number) => (
                 <motion.div
                   key={stat.label}
                   className="text-center"
@@ -238,15 +248,14 @@ export default function AboutPage() {
               viewport={{ once: true }}
             >
               <h2 className="text-4xl md:text-5xl font-display font-bold text-heading mb-6">
-                Want to join the <span className="neon-text">journey</span>?
+                {cms?.ctaHeading || "Want to join the"} <span className="neon-text">journey</span>?
               </h2>
               <p className="text-lg text-body max-w-xl mx-auto mb-10">
-                We&apos;re always looking for passionate people to join our team and
-                help reshape the future of commerce.
+                {cms?.ctaBody || "We're always looking for passionate people to join our team and help reshape the future of commerce."}
               </p>
               <button className="magnetic-btn px-8 py-4">
                 <span className="flex items-center gap-2 text-base">
-                  View Open Roles
+                  {cms?.ctaButtonText || "View Open Roles"}
                   <ArrowRight className="w-5 h-5" />
                 </span>
               </button>

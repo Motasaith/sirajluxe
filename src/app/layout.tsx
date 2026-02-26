@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { SmoothScrollProvider } from "@/components/providers/smooth-scroll-provider";
 import { CartProvider } from "@/components/providers/cart-provider";
 import { WishlistProvider } from "@/components/providers/wishlist-provider";
+import { SiteContentProvider } from "@/components/providers/site-content-provider";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
 import { CrispProvider } from "@/components/providers/crisp-provider";
 
@@ -82,10 +83,12 @@ export default function RootLayout({
           >
             <CartProvider>
               <WishlistProvider>
+                <SiteContentProvider>
                 <PostHogProvider>
                   <SmoothScrollProvider>{children}</SmoothScrollProvider>
                   <CrispProvider />
                 </PostHogProvider>
+                </SiteContentProvider>
               </WishlistProvider>
             </CartProvider>
           </ThemeProvider>
