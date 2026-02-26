@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
+import { stripe } from "@/lib/stripe";
 import { connectDB } from "@/lib/mongodb";
-import { Order, Customer } from "@/lib/models";
+import { Order, Customer, Product } from "@/lib/models";
 import { sendOrderConfirmation } from "@/lib/email";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-01-28.clover",
-  typescript: true,
-});
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 // Stripe sends webhook events here after payment
 export async function POST(req: NextRequest) {
+  if (!stripe) {
+    return NextResponse.json(
+      { error: "Stripe is not configured" },
+      { status: 503 }
+    );
+  }
+
   const body = await req.text();
   const sig = req.headers.get("stripe-signature");
 
@@ -67,6 +70,9 @@ export async function POST(req: NextRequest) {
       const order = await Order.create({
         orderNumber,
         stripeSessionId: session.id,
+        paymentIntentId: typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id || "",
         clerkUserId: session.metadata?.clerkUserId || "",
         customerEmail: customerDetails?.email || session.customer_email || "",
         customerName: customerDetails?.name || "",
@@ -120,6 +126,22 @@ export async function POST(req: NextRequest) {
       } catch (emailErr) {
         console.error("Failed to send order confirmation email:", emailErr);
       }
+
+      // Decrement inventory for purchased products
+      const productIdMap = session.metadata?.productIds
+        ? (JSON.parse(session.metadata.productIds) as Record<string, number>)
+        : {};
+      for (const [productId, qty] of Object.entries(productIdMap)) {
+        await Product.findByIdAndUpdate(productId, {
+          $inc: { inventory: -(qty as number) },
+        });
+        const updated = await Product.findById(productId);
+        if (updated && updated.inventory <= 0) {
+          updated.inStock = false;
+          await updated.save();
+        }
+      }
+
       break;
     }
 
@@ -130,10 +152,14 @@ export async function POST(req: NextRequest) {
 
     case "charge.refunded": {
       const charge = event.data.object as Stripe.Charge;
-      if (charge.payment_intent) {
-        // Find order by looking up the session
-        // For now, log refund — you can match by amount/email
-        console.log(`Refund processed for charge: ${charge.id}`);
+      const paymentIntentId = typeof charge.payment_intent === "string"
+        ? charge.payment_intent
+        : charge.payment_intent?.id;
+      if (paymentIntentId) {
+        await Order.findOneAndUpdate(
+          { paymentIntentId },
+          { paymentStatus: "refunded", status: "cancelled" }
+        );
       }
       break;
     }

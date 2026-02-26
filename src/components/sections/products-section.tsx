@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { ShoppingBag, Heart, Star, ArrowRight } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
 import { useSiteContent } from "@/components/providers/site-content-provider";
+import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -33,6 +34,7 @@ function ProductCard({
   index: number;
 }) {
   const { addItem } = useCart();
+  const { toast } = useToast();
 
   const handleAddToCart = () => {
     addItem({
@@ -41,6 +43,7 @@ function ProductCard({
       price: product.price,
       image: product.image || "",
     });
+    toast({ title: "Added to bag", description: product.name, variant: "success" });
   };
 
   // Magnetic effect on Add to Cart button

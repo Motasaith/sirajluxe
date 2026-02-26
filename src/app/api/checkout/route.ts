@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
     // --- Server-side product lookup (never trust client prices) ---
     const lineItems = [];
     let subtotalPence = 0;
+    const productIdMap: Record<string, number> = {};
 
     for (const item of items as CartItem[]) {
       if (!item.productId || !item.quantity || item.quantity < 1) {
@@ -67,6 +68,17 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+
+      if (product.inventory < item.quantity) {
+        return NextResponse.json(
+          { error: `Insufficient stock for ${product.name}. Only ${product.inventory} available.` },
+          { status: 400 }
+        );
+      }
+
+      // Track product IDs for inventory management
+      productIdMap[product._id.toString()] =
+        (productIdMap[product._id.toString()] || 0) + item.quantity;
 
       const unitAmountPence = Math.round(product.price * 100);
       subtotalPence += unitAmountPence * item.quantity;
@@ -146,6 +158,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         clerkUserId: userId,
         isFirstOrder: isFirstOrder ? "true" : "false",
+        productIds: JSON.stringify(productIdMap),
       },
     });
 

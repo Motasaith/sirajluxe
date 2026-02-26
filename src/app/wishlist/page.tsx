@@ -7,6 +7,7 @@ import { PageTransitionProvider } from "@/components/providers/page-transition-p
 import { CartDrawer } from "@/components/ui/cart-drawer";
 import { useCart } from "@/components/providers/cart-provider";
 import { useWishlist } from "@/components/providers/wishlist-provider";
+import { useToast } from "@/components/ui/toast";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import Image from "next/image";
@@ -22,6 +23,7 @@ export default function WishlistPage() {
   const { items, loading, removeFromWishlist, itemCount } = useWishlist();
   const { addItem } = useCart();
   const { isSignedIn } = useUser();
+  const { toast } = useToast();
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleAddToCart = (product: Record<string, any>) => {
@@ -31,6 +33,7 @@ export default function WishlistPage() {
       price: product.price,
       image: product.image || "",
     });
+    toast({ title: "Added to bag", description: product.name, variant: "success" });
   };
 
   return (

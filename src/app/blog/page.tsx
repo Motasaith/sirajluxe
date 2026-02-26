@@ -7,7 +7,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 import { CartDrawer } from "@/components/ui/cart-drawer";
-import { Loader2, Calendar, ArrowRight, Tag } from "lucide-react";
+import { Loader2, Calendar, ArrowRight, Tag, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface BlogPost {
   _id: string;
@@ -25,17 +25,33 @@ export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [total, setTotal] = useState(0);
+
+  // Reset to page 1 when category changes
+  useEffect(() => {
+    setPage(1);
+  }, [selectedCategory]);
 
   useEffect(() => {
+    setLoading(true);
     const params = new URLSearchParams();
     if (selectedCategory !== "All") params.set("category", selectedCategory);
+    params.set("page", String(page));
+    params.set("limit", "9");
 
     fetch(`/api/blog?${params}`)
       .then((r) => r.json())
-      .then((data) => setPosts(data.docs || []))
+      .then((data) => {
+        setPosts(data.docs || []);
+        setTotalPages(data.totalPages || 1);
+        setTotal(data.total || 0);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [selectedCategory]);
+  }, [selectedCategory, page]);
 
   const categories = [
     "All",
@@ -169,6 +185,31 @@ export default function BlogPage() {
                   </div>
                 </Link>
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && !loading && (
+            <div className="flex items-center justify-center gap-4 mt-12">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border border-[var(--border)] text-muted-fg hover:text-heading hover:border-heading/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Previous
+              </button>
+              <span className="text-sm text-muted-fg">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium border border-[var(--border)] text-muted-fg hover:text-heading hover:border-heading/30 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                Next
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           )}
         </div>

@@ -18,6 +18,7 @@ import { useCart } from "@/components/providers/cart-provider";
 import { useWishlist } from "@/components/providers/wishlist-provider";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { AnnouncementBar } from "@/components/ui/announcement-bar";
+import { SearchDrawer } from "@/components/ui/search-drawer";
 
 const defaultNavLinks = [
   { href: "/", label: "Home" },
@@ -31,6 +32,7 @@ export function Header() {
   const { data: cms } = useSiteContent("header");
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { itemCount, toggleCart } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
   const { theme, setTheme } = useTheme();
@@ -122,6 +124,7 @@ export function Header() {
           <div className="flex items-center gap-2">
             {/* Search */}
             <button
+              onClick={() => setIsSearchOpen(true)}
               onMouseMove={handleMagnetic}
               onMouseLeave={handleMagneticLeave}
               className="relative p-2.5 rounded-full text-body hover:text-heading hover:bg-[var(--hover)] transition-all duration-300"
@@ -293,6 +296,8 @@ export function Header() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SearchDrawer isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );
 }

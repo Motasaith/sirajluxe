@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -11,6 +12,7 @@ import {
   Mail,
 } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
+import { useToast } from "@/components/ui/toast";
 
 const defaultFooterLinks: Record<string, { label: string; href: string }[]> = {
   Shop: [
@@ -51,6 +53,32 @@ const defaultSocialLinks = [
 
 export function Footer() {
   const { data: cms } = useSiteContent("footer");
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [subscribing, setSubscribing] = useState(false);
+
+  const handleSubscribe = async () => {
+    if (!email || subscribing) return;
+    setSubscribing(true);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        toast({ title: "Subscribed!", description: "Welcome to the club.", variant: "success" });
+        setEmail("");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        toast({ title: "Failed to subscribe", description: data.error || "Please try again.", variant: "error" });
+      }
+    } catch {
+      toast({ title: "Network error", description: "Check your connection and try again.", variant: "error" });
+    } finally {
+      setSubscribing(false);
+    }
+  };
 
   // Parse CMS footer columns if available
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -112,12 +140,15 @@ export function Footer() {
                 <input
                   type="email"
                   placeholder={cms?.newsletterPlaceholder || "Enter your email"}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
                   className="w-full pl-12 pr-4 py-3.5 rounded-full bg-[var(--overlay)] border border-[var(--border-strong)] text-heading placeholder:text-subtle-fg focus:outline-none focus:border-neon-violet/50 focus:ring-2 focus:ring-neon-violet/20 transition-all duration-300"
                 />
               </div>
-              <button className="magnetic-btn px-6">
+              <button className="magnetic-btn px-6" onClick={handleSubscribe} disabled={subscribing}>
                 <span className="flex items-center gap-2">
-                  {cms?.newsletterButton || "Subscribe"}
+                  {subscribing ? "Subscribing…" : (cms?.newsletterButton || "Subscribe")}
                   <ArrowUpRight className="w-4 h-4" />
                 </span>
               </button>

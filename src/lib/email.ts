@@ -17,6 +17,19 @@ const FROM = `"${process.env.EMAIL_FROM_NAME || "Siraj Luxe"}" <${process.env.EM
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://sirajluxe.com";
 
 // ──────────────────────────────────────────────
+// HTML escape helper (XSS prevention)
+// ──────────────────────────────────────────────
+function escapeHtml(str: string): string {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+// ──────────────────────────────────────────────
 // Shared email wrapper
 // ──────────────────────────────────────────────
 function baseTemplate(title: string, body: string) {
@@ -118,7 +131,7 @@ export async function sendOrderConfirmation({
     .map(
       (item) => `
         <tr>
-          <td style="padding:8px 0;color:#c4c4d0;font-size:14px;border-bottom:1px solid #1e1e2e;">${item.name}</td>
+          <td style="padding:8px 0;color:#c4c4d0;font-size:14px;border-bottom:1px solid #1e1e2e;">${escapeHtml(item.name)}</td>
           <td style="padding:8px 0;color:#9090a0;font-size:14px;text-align:center;border-bottom:1px solid #1e1e2e;">${item.quantity}</td>
           <td style="padding:8px 0;color:#c4c4d0;font-size:14px;text-align:right;border-bottom:1px solid #1e1e2e;">${currency(item.price * item.quantity)}</td>
         </tr>`
@@ -130,9 +143,9 @@ export async function sendOrderConfirmation({
       <div style="margin-top:24px;padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;">
         <p style="margin:0 0 8px;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Shipping to</p>
         <p style="margin:0;color:#c4c4d0;font-size:14px;line-height:1.6;">
-          ${shippingAddress.line1}${shippingAddress.line2 ? `<br/>${shippingAddress.line2}` : ""}<br/>
-          ${shippingAddress.city || ""}${shippingAddress.postalCode ? `, ${shippingAddress.postalCode}` : ""}<br/>
-          ${shippingAddress.country || "GB"}
+          ${escapeHtml(shippingAddress.line1 || "")}${shippingAddress.line2 ? `<br/>${escapeHtml(shippingAddress.line2)}` : ""}<br/>
+          ${escapeHtml(shippingAddress.city || "")}${shippingAddress.postalCode ? `, ${escapeHtml(shippingAddress.postalCode)}` : ""}<br/>
+          ${escapeHtml(shippingAddress.country || "GB")}
         </p>
       </div>`
     : "";
@@ -140,7 +153,7 @@ export async function sendOrderConfirmation({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Order Confirmed ✓</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${customerName || "there"}, thanks for shopping with us! Your order <strong style="color:#8b5cf6;">${orderNumber}</strong> has been received and is being processed.
+      Hi ${escapeHtml(customerName) || "there"}, thanks for shopping with us! Your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been received and is being processed.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
@@ -197,13 +210,13 @@ export async function sendOrderShipped({
   trackingNumber?: string;
 }) {
   const trackingHtml = trackingNumber
-    ? `<p style="margin:0 0 24px;font-size:14px;color:#9090a0;">Tracking number: <strong style="color:#e1e2e6;">${trackingNumber}</strong></p>`
+    ? `<p style="margin:0 0 24px;font-size:14px;color:#9090a0;">Tracking number: <strong style="color:#e1e2e6;">${escapeHtml(trackingNumber)}</strong></p>`
     : "";
 
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Your Order is On Its Way! 📦</h1>
     <p style="margin:0 0 16px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${customerName || "there"}, great news — your order <strong style="color:#8b5cf6;">${orderNumber}</strong> has been dispatched and is on its way to you.
+      Hi ${escapeHtml(customerName) || "there"}, great news — your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been dispatched and is on its way to you.
     </p>
     ${trackingHtml}
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
@@ -240,7 +253,7 @@ export async function sendOrderDelivered({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Order Delivered ✨</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${customerName || "there"}, your order <strong style="color:#8b5cf6;">${orderNumber}</strong> has been delivered. We hope you love your new items!
+      Hi ${escapeHtml(customerName) || "there"}, your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been delivered. We hope you love your new items!
     </p>
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
       <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
@@ -274,7 +287,7 @@ export async function sendWelcomeEmail({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Welcome to Siraj Luxe ✦</h1>
     <p style="margin:0 0 16px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${customerName || "there"}, welcome aboard! We're thrilled to have you.
+      Hi ${escapeHtml(customerName) || "there"}, welcome aboard! We're thrilled to have you.
     </p>
     <div style="padding:20px;background:linear-gradient(135deg,#8b5cf620,#7c3aed10);border-radius:10px;border:1px solid #8b5cf630;margin-bottom:24px;text-align:center;">
       <p style="margin:0 0 4px;font-size:13px;color:#8b5cf6;font-weight:600;text-transform:uppercase;letter-spacing:1px;">New Customer Offer</p>

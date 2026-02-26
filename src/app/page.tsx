@@ -1,18 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { HeroSection } from "@/components/sections/hero-section";
-import { CategoriesSection } from "@/components/sections/categories-section";
-import { ProductsSection } from "@/components/sections/products-section";
-import { ShowcaseSection } from "@/components/sections/showcase-section";
-import { CollectionsSection } from "@/components/sections/collections-section";
-import { TestimonialsSection } from "@/components/sections/testimonials-section";
-import { CTASection } from "@/components/sections/cta-section";
 import { Preloader } from "@/components/ui/preloader";
 import { CartDrawer } from "@/components/ui/cart-drawer";
+
+// Below-fold sections lazy loaded
+const CategoriesSection = dynamic(() => import("@/components/sections/categories-section").then((mod) => mod.CategoriesSection), { ssr: false });
+const ProductsSection = dynamic(() => import("@/components/sections/products-section").then((mod) => mod.ProductsSection), { ssr: false });
+const ShowcaseSection = dynamic(() => import("@/components/sections/showcase-section").then((mod) => mod.ShowcaseSection), { ssr: false });
+const CollectionsSection = dynamic(() => import("@/components/sections/collections-section").then((mod) => mod.CollectionsSection), { ssr: false });
+const TestimonialsSection = dynamic(() => import("@/components/sections/testimonials-section").then((mod) => mod.TestimonialsSection), { ssr: false });
+const CTASection = dynamic(() => import("@/components/sections/cta-section").then((mod) => mod.CTASection), { ssr: false });
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);

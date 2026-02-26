@@ -6,6 +6,7 @@ import { useCart } from "@/components/providers/cart-provider";
 import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import Image from "next/image";
+import { useToast } from "@/components/ui/toast";
 
 export function CartDrawer() {
   const {
@@ -20,6 +21,7 @@ export function CartDrawer() {
   } = useCart();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const handleCheckout = async () => {
     if (!user) {
@@ -50,10 +52,10 @@ export function CartDrawer() {
         // after Stripe confirms the payment via session_id
         window.location.href = data.url;
       } else {
-        alert(data.error || "Checkout failed. Please try again.");
+        toast({ title: "Checkout failed", description: data.error || "Please try again.", variant: "error" });
       }
     } catch {
-      alert("Something went wrong. Please try again.");
+      toast({ title: "Something went wrong", description: "Please try again.", variant: "error" });
     } finally {
       setLoading(false);
     }

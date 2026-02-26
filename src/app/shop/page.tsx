@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -8,8 +8,10 @@ import { PageTransitionProvider } from "@/components/providers/page-transition-p
 import { CartDrawer } from "@/components/ui/cart-drawer";
 import { useCart } from "@/components/providers/cart-provider";
 import { useWishlist } from "@/components/providers/wishlist-provider";
+import { useToast } from "@/components/ui/toast";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   ShoppingBag,
   Heart,
@@ -53,7 +55,23 @@ const SORT_OPTIONS = [
 const PER_PAGE = 12;
 
 export default function ShopPage() {
-  const [activeFilter, setActiveFilter] = useState("All");
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
+        <Loader2 className="w-8 h-8 animate-spin text-neon-violet" />
+      </div>
+    }>
+      <ShopContent />
+    </Suspense>
+  );
+}
+
+function ShopContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const mountedRef = useRef(false);
+
+  const [activeFilter, setActiveFilter] = useState(() => searchParams.get("category") || "All");
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [products, setProducts] = useState<Product[]>([]);
@@ -61,15 +79,19 @@ export default function ShopPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
 
-  // Search, sort, filter, pagination
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  // Search, sort, filter, pagination — initialized from URL
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("search") || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(() => searchParams.get("search") || "");
+  const [sortBy, setSortBy] = useState(() => searchParams.get("sort") || "newest");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
-  const [minPrice, setMinPrice] = useState("");
-  const [maxPrice, setMaxPrice] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [minPrice, setMinPrice] = useState(() => searchParams.get("minPrice") || "");
+  const [maxPrice, setMaxPrice] = useState(() => searchParams.get("maxPrice") || "");
+  const [currentPage, setCurrentPage] = useState(() => {
+    const p = searchParams.get("page");
+    return p ? parseInt(p, 10) || 1 : 1;
+  });
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const sortRef = useRef<HTMLDivElement>(null);
@@ -80,10 +102,30 @@ export default function ShopPage() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset page when filters change
+  // Reset page when filters change (skip initial mount)
   useEffect(() => {
+    if (!mountedRef.current) return;
     setCurrentPage(1);
   }, [activeFilter, debouncedSearch, sortBy, minPrice, maxPrice]);
+
+  // Sync filters to URL (skip initial mount)
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    const params = new URLSearchParams();
+    if (activeFilter !== "All") params.set("category", activeFilter);
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (sortBy !== "newest") params.set("sort", sortBy);
+    if (currentPage > 1) params.set("page", currentPage.toString());
+    if (minPrice) params.set("minPrice", minPrice);
+    if (maxPrice) params.set("maxPrice", maxPrice);
+    const newUrl = params.toString() ? `/shop?${params}` : "/shop";
+    router.replace(newUrl, { scroll: false });
+  }, [activeFilter, debouncedSearch, sortBy, currentPage, minPrice, maxPrice, router]);
+
+  // Mark component as mounted (must be AFTER the guard effects above)
+  useEffect(() => {
+    mountedRef.current = true;
+  }, []);
 
   // Close sort dropdown on outside click
   useEffect(() => {
@@ -150,6 +192,7 @@ export default function ShopPage() {
       price: product.price,
       image: product.image || "",
     });
+    toast({ title: "Added to bag", description: product.name, variant: "success" });
   };
 
   const handleMagnetic = (e: React.MouseEvent<HTMLButtonElement>) => {

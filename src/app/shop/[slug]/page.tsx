@@ -9,6 +9,7 @@ import { PageTransitionProvider } from "@/components/providers/page-transition-p
 import { CartDrawer } from "@/components/ui/cart-drawer";
 import { useCart } from "@/components/providers/cart-provider";
 import { useWishlist } from "@/components/providers/wishlist-provider";
+import { useToast } from "@/components/ui/toast";
 import { useUser } from "@clerk/nextjs";
 import {
   ShoppingBag,
@@ -115,6 +116,7 @@ export default function ProductDetailPage() {
   const { addItem } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { isSignedIn } = useUser();
+  const { toast } = useToast();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -241,6 +243,7 @@ export default function ProductDetailPage() {
       },
       quantity
     );
+    toast({ title: "Added to bag", description: product.name, variant: "success" });
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
   };
@@ -389,8 +392,12 @@ export default function ProductDetailPage() {
                     "@context": "https://schema.org",
                     "@type": "Product",
                     name: product.name,
+                    image: allImages.length > 0 ? allImages : product.image,
                     description: product.description?.replace(/<[^>]*>/g, ""),
-                    image: allImages.length > 0 ? allImages : undefined,
+                    brand: {
+                      "@type": "Brand",
+                      name: "Siraj Luxe",
+                    },
                     sku: product.id,
                     offers: {
                       "@type": "Offer",
@@ -399,10 +406,7 @@ export default function ProductDetailPage() {
                       availability: product.inStock
                         ? "https://schema.org/InStock"
                         : "https://schema.org/OutOfStock",
-                      url:
-                        typeof window !== "undefined"
-                          ? window.location.href
-                          : "",
+                      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://sirajluxe.com"}/shop/${product.slug}`,
                     },
                     ...(reviewStats.total > 0
                       ? {
@@ -412,7 +416,15 @@ export default function ProductDetailPage() {
                             reviewCount: reviewStats.total,
                           },
                         }
-                      : {}),
+                      : product.rating
+                        ? {
+                            aggregateRating: {
+                              "@type": "AggregateRating",
+                              ratingValue: product.rating,
+                              reviewCount: product.reviews || 1,
+                            },
+                          }
+                        : {}),
                   }),
                 }}
               />
@@ -1127,13 +1139,32 @@ export default function ProductDetailPage() {
 
               {/* ─── Related Products ─── */}
               {relatedProducts.length > 0 && (
-                <section className="mt-16">
-                  <h2 className="text-2xl font-bold text-heading mb-8">
-                    You May Also Like
-                  </h2>
+                <section className="mt-24">
+                  <h2 className="text-2xl font-bold text-heading mb-8">You May Also Like</h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {relatedProducts.map((p) => (
-                      <ProductCard key={p.id} product={p} />
+                      <Link key={p.id} href={`/shop/${p.slug}`} className="group">
+                        <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-[var(--overlay)] mb-3">
+                          <Image
+                            src={p.images?.[0]?.url || p.image || "/placeholder.jpg"}
+                            alt={p.name}
+                            width={300}
+                            height={400}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                        <h3 className="text-sm font-medium text-heading truncate group-hover:text-neon-violet transition-colors">{p.name}</h3>
+                        <p className="text-sm text-muted-fg">
+                          {p.originalPrice ? (
+                            <>
+                              <span className="line-through mr-2">£{p.originalPrice?.toFixed(2)}</span>
+                              <span className="text-heading font-semibold">£{p.price?.toFixed(2)}</span>
+                            </>
+                          ) : (
+                            <span>£{p.price?.toFixed(2)}</span>
+                          )}
+                        </p>
+                      </Link>
                     ))}
                   </div>
                 </section>
@@ -1141,13 +1172,23 @@ export default function ProductDetailPage() {
 
               {/* ─── Recently Viewed ─── */}
               {recentlyViewed.length > 0 && (
-                <section className="mt-16">
-                  <h2 className="text-2xl font-bold text-heading mb-8">
-                    Recently Viewed
-                  </h2>
+                <section className="mt-24">
+                  <h2 className="text-2xl font-bold text-heading mb-8">Recently Viewed</h2>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {recentlyViewed.map((p) => (
-                      <ProductCard key={p.id} product={p} />
+                      <Link key={p.id} href={`/shop/${p.slug}`} className="group">
+                        <div className="aspect-[3/4] rounded-2xl overflow-hidden bg-[var(--overlay)] mb-3">
+                          <Image
+                            src={p.images?.[0]?.url || p.image || "/placeholder.jpg"}
+                            alt={p.name}
+                            width={300}
+                            height={400}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        </div>
+                        <h3 className="text-sm font-medium text-heading truncate group-hover:text-neon-violet transition-colors">{p.name}</h3>
+                        <p className="text-sm text-muted-fg">£{p.price?.toFixed(2)}</p>
+                      </Link>
                     ))}
                   </div>
                 </section>
@@ -1161,48 +1202,4 @@ export default function ProductDetailPage() {
   );
 }
 
-/* ─── Small Product Card (for related / recently viewed) ─── */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function ProductCard({ product }: { product: Record<string, any> }) {
-  return (
-    <Link href={`/shop/${product.slug}`} className="group">
-      <div className="glass-card overflow-hidden">
-        <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden">
-          {product.image ? (
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
-              sizes="(max-width: 768px) 50vw, 25vw"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-4xl font-display font-bold text-heading/5">
-                {product.name?.charAt(0)}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="p-4">
-          <p className="text-xs text-subtle-fg uppercase tracking-wider mb-1">
-            {product.category}
-          </p>
-          <h3 className="text-sm font-semibold text-heading line-clamp-1 group-hover:text-neon-glow transition-colors">
-            {product.name}
-          </h3>
-          <div className="flex items-center gap-2 mt-2">
-            <span className="text-base font-bold text-heading">
-              £{product.price}
-            </span>
-            {product.originalPrice && (
-              <span className="text-xs text-subtle-fg line-through">
-                £{product.originalPrice}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    </Link>
-  );
-}
+
