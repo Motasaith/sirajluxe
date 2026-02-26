@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
+import Link from "next/link";
 
 export function CTASection() {
   const { data: cms, enabled } = useSiteContent("homepage.cta");
@@ -54,16 +55,16 @@ export function CTASection() {
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <button className="magnetic-btn px-8 py-4">
+              <Link href="/shop" className="magnetic-btn px-8 py-4">
                 <span className="flex items-center gap-2 text-base">
                   {cms?.primaryText || "Start Shopping"}
                   <ArrowRight className="w-5 h-5" />
                 </span>
-              </button>
+              </Link>
 
-              <button className="group flex items-center gap-2 px-8 py-4 rounded-full border border-[var(--border-strong)] text-white hover:bg-[var(--hover)] transition-all duration-300">
+              <Link href="/about" className="group flex items-center gap-2 px-8 py-4 rounded-full border border-[var(--border-strong)] text-white hover:bg-[var(--hover)] transition-all duration-300">
                 <span className="text-sm font-medium">{cms?.secondaryText || "Learn More"}</span>
-              </button>
+              </Link>
             </div>
           </div>
         </motion.div>

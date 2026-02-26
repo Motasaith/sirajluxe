@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
+import Link from "next/link";
 
 const fadeUp = (delay: number) => ({
   initial: { opacity: 0, y: 40 },
@@ -83,19 +84,19 @@ export function HeroSection() {
 
             {/* CTA Buttons */}
             <motion.div {...fadeUp(0.9)} className="flex flex-wrap items-center gap-4 mt-8">
-              <button className="magnetic-btn">
+              <Link href="/shop" className="magnetic-btn">
                 <span className="flex items-center gap-2">
                   {cms?.ctaPrimaryText || "Shop Now"}
                   <ArrowRight className="w-4 h-4" />
                 </span>
-              </button>
+              </Link>
 
-              <button className="group flex items-center gap-2 px-6 py-3.5 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300">
+              <Link href="/collections" className="group flex items-center gap-2 px-6 py-3.5 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300">
                 <span className="text-sm font-medium tracking-wide">
                   {cms?.ctaSecondaryText || "Browse Collections"}
                 </span>
                 <ArrowRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform duration-300" />
-              </button>
+              </Link>
             </motion.div>
 
             {/* Social proof */}
@@ -217,9 +218,9 @@ export function HeroSection() {
 
                   {/* Price on image */}
                   <div className="absolute bottom-4 right-4 glass px-4 py-2 rounded-2xl">
-                    <span className="text-lg font-bold text-heading">$249</span>
+                    <span className="text-lg font-bold text-heading">£249</span>
                     <span className="text-xs text-muted-fg line-through ml-2">
-                      $349
+                      £349
                     </span>
                   </div>
                 </div>
@@ -242,7 +243,7 @@ export function HeroSection() {
                   <p className="text-xs font-semibold text-heading">
                     Free Delivery
                   </p>
-                  <p className="text-[10px] text-muted-fg">On orders $50+</p>
+                  <p className="text-[10px] text-muted-fg">On orders £50+</p>
                 </div>
               </motion.div>
 

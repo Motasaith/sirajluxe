@@ -25,5 +25,7 @@ const CustomerSchema = new Schema<ICustomer>(
   { timestamps: true }
 );
 
+CustomerSchema.index({ email: 1 });
+
 export const Customer: Model<ICustomer> =
   mongoose.models.Customer || mongoose.model<ICustomer>("Customer", CustomerSchema);

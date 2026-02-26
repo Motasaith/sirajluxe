@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       title: title.slice(0, 120),
       comment: comment.slice(0, 2000),
       verified,
-      approved: true, // auto-approve; admin can moderate later
+      approved: false, // requires admin moderation before appearing publicly
     });
 
     // Update product's aggregate rating
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       id: review._id.toString(),
-      message: "Review submitted successfully",
+      message: "Review submitted and pending approval",
     }, { status: 201 });
   } catch (error: unknown) {
     // Duplicate key = user already reviewed

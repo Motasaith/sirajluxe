@@ -28,6 +28,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    // Validate file type
+    const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return NextResponse.json(
+        { error: `Invalid file type: ${file.type}. Allowed types: JPEG, PNG, WebP, GIF, SVG.` },
+        { status: 400 }
+      );
+    }
+
+    // Validate file size (max 10MB)
+    const MAX_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      return NextResponse.json(
+        { error: `File too large (${(file.size / 1024 / 1024).toFixed(1)}MB). Maximum allowed size is 10MB.` },
+        { status: 400 }
+      );
+    }
+
     // Upload to Vercel Blob
     // Try public access first; if the store is private, fall back to private access
     let blob;

@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { categories } from "@/lib/data";
+import Link from "next/link";
 
 export function CategoriesSection() {
   const { data: cms, enabled } = useSiteContent("homepage.categories");
@@ -42,8 +43,8 @@ export function CategoriesSection() {
             const isLarge = i < 2;
 
             return (
+              <Link key={category.id} href={`/shop?category=${encodeURIComponent(category.name)}`}>
               <motion.div
-                key={category.id}
                 initial={{ opacity: 0, y: 40, scale: 0.95 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: "-50px" }}
@@ -105,6 +106,7 @@ export function CategoriesSection() {
                   <div className="absolute inset-0 bg-gradient-to-t from-neon-violet/10 to-transparent" />
                 </div>
               </motion.div>
+              </Link>
             );
           })}
         </div>

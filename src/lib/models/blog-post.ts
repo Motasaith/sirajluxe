@@ -41,6 +41,9 @@ BlogPostSchema.pre("validate", function () {
   }
 });
 
+BlogPostSchema.index({ published: 1, publishedAt: -1 });
+BlogPostSchema.index({ category: 1 });
+
 export const BlogPost =
   mongoose.models.BlogPost ||
   mongoose.model<IBlogPost>("BlogPost", BlogPostSchema);

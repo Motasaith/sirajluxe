@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { featuredCollections } from "@/lib/data";
+import Link from "next/link";
 
 export function CollectionsSection() {
   const { data: cms, enabled } = useSiteContent("homepage.collections");
@@ -37,21 +38,23 @@ export function CollectionsSection() {
             </h2>
           </div>
 
-          <motion.button
-            className="group flex items-center gap-2 px-6 py-3 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300 self-start md:self-auto"
+          <motion.div
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
+            className="self-start md:self-auto"
           >
-            <span className="text-sm font-medium">{cms?.buttonText || "All Collections"}</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-          </motion.button>
+            <Link href="/collections" className="group flex items-center gap-2 px-6 py-3 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300">
+              <span className="text-sm font-medium">{cms?.buttonText || "All Collections"}</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            </Link>
+          </motion.div>
         </motion.div>
 
         {/* Collections Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {featuredCollections.map((collection, i) => (
+            <Link key={collection.id} href={`/shop?category=${encodeURIComponent(collection.title)}`}>
             <motion.div
-              key={collection.id}
               className="collection-card group relative rounded-3xl overflow-hidden min-h-[400px] lg:min-h-[500px] cursor-pointer"
               initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -108,6 +111,7 @@ export function CollectionsSection() {
               {/* Hover gradient overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-neon-violet/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             </motion.div>
+            </Link>
           ))}
         </div>
       </div>

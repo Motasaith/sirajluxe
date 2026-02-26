@@ -2,12 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Product } from "@/lib/models";
 
+function escapeRegex(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // GET /api/products — public product listing
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "20", 10) || 20, 100);
     const page = parseInt(searchParams.get("page") || "1");
     const category = searchParams.get("category") || "";
     const featured = searchParams.get("featured");
@@ -22,7 +26,7 @@ export async function GET(req: NextRequest) {
     if (category) filter.category = category;
     if (featured === "true") filter.featured = true;
     if (slug) filter.slug = slug;
-    if (search) filter.name = { $regex: search, $options: "i" };
+    if (search) filter.name = { $regex: escapeRegex(search), $options: "i" };
     if (minPrice || maxPrice) {
       filter.price = {};
       if (minPrice) filter.price.$gte = parseFloat(minPrice);

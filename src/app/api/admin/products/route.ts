@@ -3,6 +3,10 @@ import connectDB from "@/lib/mongodb";
 import { Product } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 
+function escapeRegex(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // GET /api/admin/products — list all products
 export async function GET(req: NextRequest) {
   const denied = await adminGuard(); if (denied) return denied;
@@ -17,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: any = {};
-    if (search) filter.name = { $regex: search, $options: "i" };
+    if (search) filter.name = { $regex: escapeRegex(search), $options: "i" };
     if (category) filter.category = category;
     if (featured === "true") filter.featured = true;
 
@@ -48,7 +52,8 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
-    const product = await Product.create(body);
+    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory } = body;
+    const product = await Product.create({ name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory });
     return NextResponse.json({ ...product.toObject(), id: product._id.toString() }, { status: 201 });
   } catch (error: unknown) {
     console.error("POST /api/admin/products error:", error);

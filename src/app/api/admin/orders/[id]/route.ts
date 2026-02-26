@@ -25,9 +25,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     await connectDB();
     const body = await req.json();
 
+    // Only allow updating status and trackingNumber
+    const { status, trackingNumber } = body;
+    const updateFields: Record<string, unknown> = {};
+    if (status) updateFields.status = status;
+    if (trackingNumber !== undefined) updateFields.trackingNumber = trackingNumber;
+
     // Get the order BEFORE update to compare status
     const previousOrder = await Order.findById(params.id).lean();
-    const order = await Order.findByIdAndUpdate(params.id, body, { new: true }).lean();
+    const order = await Order.findByIdAndUpdate(params.id, updateFields, { new: true, runValidators: true }).lean();
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
     // Send status-change emails
@@ -43,7 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             to: updated.customerEmail,
             customerName: updated.customerName || "",
             orderNumber: updated.orderNumber,
-            trackingNumber: body.trackingNumber,
+            trackingNumber,
           });
           console.log(`Shipped email sent for ${updated.orderNumber}`);
         } else if (updated.status === "delivered") {

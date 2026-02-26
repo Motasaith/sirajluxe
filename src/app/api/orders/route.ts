@@ -47,32 +47,4 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST /api/orders — create an order
-export async function POST(req: NextRequest) {
-  try {
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
-    await connectDB();
-    const body = await req.json();
-
-    // Generate order number
-    const orderNumber = `SL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-
-    const order = await Order.create({
-      ...body,
-      orderNumber,
-      clerkUserId: userId,
-    });
-
-    return NextResponse.json(order, { status: 201 });
-  } catch (error) {
-    console.error("POST /api/orders error:", error);
-    return NextResponse.json(
-      { error: "Failed to create order" },
-      { status: 500 }
-    );
-  }
-}

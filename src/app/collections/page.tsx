@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 import { featuredCollections } from "@/lib/data";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
+import Link from "next/link";
 
 export default function CollectionsPage() {
   return (
@@ -78,12 +79,12 @@ export default function CollectionsPage() {
                   </div>
 
                   <div className="flex items-center gap-4 mt-10">
-                    <button className="magnetic-btn">
+                    <Link href={`/shop?category=${encodeURIComponent(collection.title)}`} className="magnetic-btn">
                       <span className="flex items-center gap-2">
                         Explore Collection
                         <ArrowRight className="w-4 h-4" />
                       </span>
-                    </button>
+                    </Link>
                   </div>
                 </div>
 

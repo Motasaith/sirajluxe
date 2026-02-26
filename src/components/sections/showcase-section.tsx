@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
+import Link from "next/link";
 
 export function ShowcaseSection() {
   const { data: cms, enabled } = useSiteContent("homepage.showcase");
@@ -88,18 +89,19 @@ export function ShowcaseSection() {
             >
               {cms?.body || "We bridge the gap between digital and physical shopping by creating immersive product stories. Every scroll, every click, every interaction is designed to delight."}
             </motion.p>
-            <motion.button
-              className="magnetic-btn"
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              <span className="flex items-center gap-2">
-                {cms?.ctaText || "Our Story"}
-                <ArrowRight className="w-4 h-4" />
-              </span>
-            </motion.button>
+              <Link href="/about" className="magnetic-btn inline-flex">
+                <span className="flex items-center gap-2">
+                  {cms?.ctaText || "Our Story"}
+                  <ArrowRight className="w-4 h-4" />
+                </span>
+              </Link>
+            </motion.div>
           </div>
 
           {/* Right: Abstract Morph Shape */}

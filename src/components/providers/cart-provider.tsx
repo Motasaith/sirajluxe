@@ -24,8 +24,8 @@ interface CartContextValue {
   itemCount: number;
   total: number;
   addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  removeItem: (id: string, color?: string, size?: string) => void;
+  updateQuantity: (id: string, quantity: number, color?: string, size?: string) => void;
   clearCart: () => void;
   isOpen: boolean;
   openCart: () => void;
@@ -65,10 +65,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
       setItems((prev) => {
-        const existing = prev.find((i) => i.id === item.id);
+        // Create unique key: id + color + size
+        const cartKey = `${item.id}-${item.color || ""}-${item.size || ""}`;
+        const existing = prev.find(
+          (i) => `${i.id}-${i.color || ""}-${i.size || ""}` === cartKey
+        );
         if (existing) {
           return prev.map((i) =>
-            i.id === item.id
+            `${i.id}-${i.color || ""}-${i.size || ""}` === cartKey
               ? { ...i, quantity: i.quantity + quantity }
               : i
           );
@@ -80,17 +84,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const removeItem = useCallback((id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id));
+  const removeItem = useCallback((id: string, color?: string, size?: string) => {
+    const cartKey = `${id}-${color || ""}-${size || ""}`;
+    setItems((prev) => prev.filter((i) => `${i.id}-${i.color || ""}-${i.size || ""}` !== cartKey));
   }, []);
 
-  const updateQuantity = useCallback((id: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number, color?: string, size?: string) => {
+    const cartKey = `${id}-${color || ""}-${size || ""}`;
     if (quantity <= 0) {
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      setItems((prev) => prev.filter((i) => `${i.id}-${i.color || ""}-${i.size || ""}` !== cartKey));
       return;
     }
     setItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, quantity } : i))
+      prev.map((i) => (`${i.id}-${i.color || ""}-${i.size || ""}` === cartKey ? { ...i, quantity } : i))
     );
   }, []);
 

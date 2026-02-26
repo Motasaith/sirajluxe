@@ -56,5 +56,12 @@ ProductSchema.pre("validate", function () {
   }
 });
 
+ProductSchema.index({ category: 1 });
+ProductSchema.index({ featured: 1 });
+ProductSchema.index({ price: 1 });
+ProductSchema.index({ rating: -1 });
+ProductSchema.index({ createdAt: -1 });
+ProductSchema.index({ name: "text", description: "text" });
+
 export const Product: Model<IProduct> =
   mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);

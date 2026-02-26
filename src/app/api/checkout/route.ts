@@ -2,11 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
-import { Customer } from "@/lib/models";
+import { Customer, Product } from "@/lib/models";
 
 // Shipping rates (in pence)
 const STANDARD_SHIPPING_RATE = 399; // £3.99
 const FREE_SHIPPING_THRESHOLD = 1000; // £10.00 in pence
+
+interface CartItem {
+  productId: string;
+  quantity: number;
+  color?: string;
+  size?: string;
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,40 +38,68 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if this is a first-time customer (for free shipping promo)
     await connectDB();
-    const customer = await Customer.findOne({ clerkId: userId });
-    const isFirstOrder = !customer || customer.orderCount === 0;
 
-    // Calculate subtotal in pence
-    const subtotalPence = items.reduce(
-      (sum: number, item: { price: number; quantity: number }) =>
-        sum + Math.round(item.price * 100) * item.quantity,
-      0
-    );
+    // --- Server-side product lookup (never trust client prices) ---
+    const lineItems = [];
+    let subtotalPence = 0;
 
-    // Free shipping: first order AND spend £10+
-    const qualifiesForFreeShipping = isFirstOrder && subtotalPence >= FREE_SHIPPING_THRESHOLD;
+    for (const item of items as CartItem[]) {
+      if (!item.productId || !item.quantity || item.quantity < 1) {
+        return NextResponse.json(
+          { error: "Invalid item: productId and quantity are required" },
+          { status: 400 }
+        );
+      }
 
-    // Build Stripe line items
-    const lineItems = items.map(
-      (item: {
-        name: string;
-        price: number;
-        quantity: number;
-        image?: string;
-      }) => ({
+      const product = await Product.findById(item.productId);
+
+      if (!product) {
+        return NextResponse.json(
+          { error: `Product not found: ${item.productId}` },
+          { status: 400 }
+        );
+      }
+
+      if (!product.inStock) {
+        return NextResponse.json(
+          { error: `Product out of stock: ${product.name}` },
+          { status: 400 }
+        );
+      }
+
+      const unitAmountPence = Math.round(product.price * 100);
+      subtotalPence += unitAmountPence * item.quantity;
+
+      // Build variant description from selected options
+      const variantParts: string[] = [];
+      if (item.color) variantParts.push(`Colour: ${item.color}`);
+      if (item.size) variantParts.push(`Size: ${item.size}`);
+      const variantDesc = variantParts.length > 0 ? variantParts.join(", ") : undefined;
+
+      lineItems.push({
         price_data: {
           currency: "gbp",
           product_data: {
-            name: item.name,
-            ...(item.image ? { images: [item.image] } : {}),
+            name: product.name,
+            ...(variantDesc ? { description: variantDesc } : {}),
+            ...(product.image ? { images: [product.image] } : {}),
           },
-          unit_amount: Math.round(item.price * 100), // pence
+          unit_amount: unitAmountPence,
         },
         quantity: item.quantity,
-      })
-    );
+      });
+    }
+
+    // Check if this is a first-time customer (for free shipping promo)
+    const customer = await Customer.findOne({ clerkId: userId });
+    const isFirstOrder = !customer || customer.orderCount === 0;
+
+    // Resolve customer email: prefer explicit param, fall back to DB record
+    const resolvedEmail = customerEmail || customer?.email || undefined;
+
+    // Free shipping: first order AND spend £10+
+    const qualifiesForFreeShipping = isFirstOrder && subtotalPence >= FREE_SHIPPING_THRESHOLD;
 
     // Shipping options
     const shippingOptions: { shipping_rate_data: { type: "fixed_amount"; fixed_amount: { amount: number; currency: string }; display_name: string; delivery_estimate?: { minimum: { unit: "business_day"; value: number }; maximum: { unit: "business_day"; value: number } } } }[] = [];
@@ -95,6 +130,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.headers.get("origin");
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
@@ -103,9 +140,9 @@ export async function POST(req: NextRequest) {
         allowed_countries: ["GB"],
       },
       shipping_options: shippingOptions,
-      success_url: `${req.headers.get("origin")}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/shop`,
-      customer_email: customerEmail,
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/shop`,
+      ...(resolvedEmail ? { customer_email: resolvedEmail } : {}),
       metadata: {
         clerkUserId: userId,
         isFirstOrder: isFirstOrder ? "true" : "false",

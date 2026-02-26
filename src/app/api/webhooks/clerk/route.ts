@@ -30,6 +30,11 @@ export async function POST(req: NextRequest) {
       );
     }
   } else {
+    // In production, webhook secret is required
+    if (process.env.NODE_ENV === "production") {
+      console.error("CLERK_WEBHOOK_SECRET is not set in production!");
+      return NextResponse.json({ error: "Webhook secret not configured" }, { status: 500 });
+    }
     event = JSON.parse(body) as WebhookEvent;
   }
 

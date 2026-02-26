@@ -28,32 +28,31 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {!isLoading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-        >
-          <Header />
-          <main className="relative">
-            <HeroSection />
-            <div className="section-divider" />
-            <CategoriesSection />
-            <div className="section-divider" />
-            <ProductsSection />
-            <div className="section-divider" />
-            <ShowcaseSection />
-            <div className="section-divider" />
-            <CollectionsSection />
-            <div className="section-divider" />
-            <TestimonialsSection />
-            <div className="section-divider" />
-            <CTASection />
-          </main>
-          <Footer />
-          <CartDrawer />
-        </motion.div>
-      )}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isLoading ? 0 : 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        aria-hidden={isLoading}
+      >
+        <Header />
+        <main className="relative">
+          <HeroSection />
+          <div className="section-divider" />
+          <CategoriesSection />
+          <div className="section-divider" />
+          <ProductsSection />
+          <div className="section-divider" />
+          <ShowcaseSection />
+          <div className="section-divider" />
+          <CollectionsSection />
+          <div className="section-divider" />
+          <TestimonialsSection />
+          <div className="section-divider" />
+          <CTASection />
+        </main>
+        <Footer />
+        <CartDrawer />
+      </motion.div>
     </>
   );
 }
