@@ -11,6 +11,8 @@ export interface IBlogPost extends Document {
   tags: string[];
   published: boolean;
   publishedAt: Date;
+  metaTitle?: string;
+  metaDescription?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +29,8 @@ const BlogPostSchema = new Schema<IBlogPost>(
     tags: [{ type: String }],
     published: { type: Boolean, default: false },
     publishedAt: { type: Date, default: Date.now },
+    metaTitle: { type: String, default: "" },
+    metaDescription: { type: String, default: "" },
   },
   { timestamps: true }
 );

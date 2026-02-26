@@ -18,6 +18,8 @@ export interface IProduct extends Document {
   sizes: string[];
   sku: string;
   inventory: number;
+  metaTitle?: string;
+  metaDescription?: string;
   weight?: number;
   dimensions?: {
     length?: number;
@@ -48,6 +50,8 @@ const ProductSchema = new Schema<IProduct>(
     sizes: [{ type: String }],
     sku: { type: String, default: "" },
     inventory: { type: Number, default: 0 },
+    metaTitle: { type: String, default: "" },
+    metaDescription: { type: String, default: "" },
     weight: { type: Number, min: 0 },
     dimensions: {
       length: { type: Number, min: 0 },

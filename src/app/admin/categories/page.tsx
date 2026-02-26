@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit, Check, X } from "lucide-react";
+import { ConfirmDialog } from "../components/confirm-dialog";
+import { toast } from "../components/toast";
 
 interface Category {
   _id: string;
@@ -18,6 +20,11 @@ export default function CategoriesPage() {
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
 
   const fetchCategories = () => {
     fetch("/api/admin/categories")
@@ -44,27 +51,60 @@ export default function CategoriesPage() {
       setName("");
       setDescription("");
       fetchCategories();
+      toast("Category created", "success");
     } catch (e) {
       console.error("Failed to create category:", e);
+      toast("Failed to create category", "error");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this category?")) return;
-    setDeleting(id);
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+    setDeleting(confirmDeleteId);
     try {
       await fetch("/api/admin/categories", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id: confirmDeleteId }),
       });
-      setCategories((prev) => prev.filter((c) => c._id !== id));
+      setCategories((prev) => prev.filter((c) => c._id !== confirmDeleteId));
+      toast("Category deleted", "success");
     } catch (e) {
       console.error("Failed to delete:", e);
+      toast("Failed to delete category", "error");
     } finally {
       setDeleting(null);
+      setConfirmDeleteId(null);
+    }
+  };
+
+  const startEdit = (cat: Category) => {
+    setEditingId(cat._id);
+    setEditName(cat.name);
+    setEditDescription(cat.description || "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingId || !editName.trim()) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingId, name: editName.trim(), description: editDescription.trim() }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setCategories((prev) => prev.map((c) => (c._id === editingId ? { ...c, name: updated.name, description: updated.description } : c)));
+        setEditingId(null);
+        toast("Category updated", "success");
+      }
+    } catch {
+      toast("Failed to update category", "error");
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -113,7 +153,7 @@ export default function CategoriesPage() {
             <thead>
               <tr className="border-b border-white/[0.04]">
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Slug</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Slug</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
@@ -121,17 +161,43 @@ export default function CategoriesPage() {
             <tbody className="divide-y divide-white/[0.04]">
               {categories.map((cat) => (
                 <tr key={cat._id} className="hover:bg-white/[0.02] transition-colors">
-                  <td className="px-5 py-3 text-sm text-white font-medium">{cat.name}</td>
-                  <td className="px-5 py-3 text-sm text-gray-500 font-mono">{cat.slug}</td>
-                  <td className="px-5 py-3 text-sm text-gray-400">{cat.description || "—"}</td>
+                  <td className="px-5 py-3 text-sm text-white font-medium">
+                    {editingId === cat._id ? (
+                      <input value={editName} onChange={(e) => setEditName(e.target.value)} className={inputClass} autoFocus />
+                    ) : cat.name}
+                  </td>
+                  <td className="px-5 py-3 text-sm text-gray-500 font-mono hidden sm:table-cell">{cat.slug}</td>
+                  <td className="px-5 py-3 text-sm text-gray-400">
+                    {editingId === cat._id ? (
+                      <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className={inputClass} />
+                    ) : (cat.description || "—")}
+                  </td>
                   <td className="px-5 py-3 text-right">
-                    <button
-                      onClick={() => handleDelete(cat._id)}
-                      disabled={deleting === cat._id}
-                      className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
-                    >
-                      {deleting === cat._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center justify-end gap-1">
+                      {editingId === cat._id ? (
+                        <>
+                          <button onClick={handleSaveEdit} disabled={editSaving} className="p-2 rounded-lg text-emerald-400 hover:bg-emerald-500/10 transition-colors disabled:opacity-50">
+                            {editSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                          </button>
+                          <button onClick={() => setEditingId(null)} className="p-2 rounded-lg text-gray-400 hover:bg-white/[0.05] transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => startEdit(cat)} className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.05] transition-colors">
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => setConfirmDeleteId(cat._id)}
+                            disabled={deleting === cat._id}
+                            className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                          >
+                            {deleting === cat._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -139,6 +205,17 @@ export default function CategoriesPage() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete Category"
+        message="Are you sure you want to delete this category? Products using it will need to be updated."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={!!deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 }

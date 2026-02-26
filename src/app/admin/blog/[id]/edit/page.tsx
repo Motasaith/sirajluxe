@@ -29,6 +29,8 @@ export default function EditBlogPostPage() {
     category: "General",
     tags: "",
     published: false,
+    metaTitle: "",
+    metaDescription: "",
   });
 
   useEffect(() => {
@@ -46,6 +48,8 @@ export default function EditBlogPostPage() {
           category: data.category || "General",
           tags: (data.tags || []).join(", "),
           published: data.published ?? false,
+          metaTitle: data.metaTitle || "",
+          metaDescription: data.metaDescription || "",
         });
       })
       .catch((e) => setError(e.message))
@@ -171,6 +175,20 @@ export default function EditBlogPostPage() {
                 </button>
               </div>
             </div>
+
+            {/* SEO */}
+            <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5 space-y-4">
+              <h3 className="text-sm font-medium text-white">SEO</h3>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Meta Title</label>
+                <input type="text" value={form.metaTitle} onChange={(e) => setForm({ ...form, metaTitle: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors" placeholder="Custom title for search engines" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Meta Description</label>
+                <textarea value={form.metaDescription} onChange={(e) => setForm({ ...form, metaDescription: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors" rows={3} placeholder="Custom description for search engines (150-160 chars)" />
+              </div>
+            </div>
+
             <button type="submit" disabled={saving} className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 disabled:opacity-50">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {saving ? "Saving..." : "Save Changes"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import {
   Plus,
@@ -10,7 +10,10 @@ import {
   Eye,
   EyeOff,
   Calendar,
+  Search,
 } from "lucide-react";
+import { ConfirmDialog } from "../components/confirm-dialog";
+import { toast } from "../components/toast";
 
 interface BlogPost {
   _id: string;
@@ -24,9 +27,15 @@ interface BlogPost {
   createdAt: string;
 }
 
+type StatusFilter = "all" | "published" | "draft";
+
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchPosts = () => {
     setLoading(true);
@@ -41,10 +50,35 @@ export default function AdminBlogPage() {
     fetchPosts();
   }, []);
 
-  const deletePost = async (id: string) => {
-    if (!confirm("Delete this blog post?")) return;
-    await fetch(`/api/admin/blog/${id}`, { method: "DELETE" });
-    fetchPosts();
+  const filtered = useMemo(() => {
+    let result = posts;
+    if (statusFilter === "published") result = result.filter((p) => p.published);
+    if (statusFilter === "draft") result = result.filter((p) => !p.published);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q) ||
+          p.author?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [posts, statusFilter, search]);
+
+  const handleDelete = async () => {
+    if (!confirmDeleteId) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/admin/blog/${confirmDeleteId}`, { method: "DELETE" });
+      setPosts((prev) => prev.filter((p) => p._id !== confirmDeleteId));
+      toast("Post deleted", "success");
+    } catch {
+      toast("Failed to delete post", "error");
+    } finally {
+      setDeleting(false);
+      setConfirmDeleteId(null);
+    }
   };
 
   const togglePublish = async (id: string, published: boolean) => {
@@ -53,8 +87,17 @@ export default function AdminBlogPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ published: !published }),
     });
-    fetchPosts();
+    setPosts((prev) =>
+      prev.map((p) => (p._id === id ? { ...p, published: !p.published } : p))
+    );
+    toast(published ? "Post unpublished" : "Post published", "success");
   };
+
+  const tabs: { label: string; value: StatusFilter }[] = [
+    { label: "All", value: "all" },
+    { label: "Published", value: "published" },
+    { label: "Drafts", value: "draft" },
+  ];
 
   return (
     <div>
@@ -62,7 +105,7 @@ export default function AdminBlogPage() {
         <div>
           <h1 className="text-2xl font-bold text-white">Blog Posts</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {posts.length} post{posts.length !== 1 ? "s" : ""}
+            {filtered.length} post{filtered.length !== 1 ? "s" : ""}
           </p>
         </div>
         <Link
@@ -74,16 +117,49 @@ export default function AdminBlogPage() {
         </Link>
       </div>
 
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-6">
+        <div className="relative flex-1 w-full sm:max-w-xs">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+          <input
+            type="text"
+            placeholder="Search posts..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors"
+          />
+        </div>
+        <div className="flex gap-1 p-0.5 rounded-lg bg-[#0d0d12] border border-white/[0.06]">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setStatusFilter(tab.value)}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                statusFilter === tab.value
+                  ? "bg-violet-600 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center h-64">
           <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
         </div>
-      ) : posts.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-12 text-center">
-          <p className="text-gray-400 mb-2">No blog posts yet</p>
-          <p className="text-sm text-gray-600">
-            Create your first post to improve SEO and engage customers.
+          <p className="text-gray-400 mb-2">
+            {posts.length === 0 ? "No blog posts yet" : "No matching posts"}
           </p>
+          {posts.length === 0 && (
+            <p className="text-sm text-gray-600">
+              Create your first post to improve SEO and engage customers.
+            </p>
+          )}
         </div>
       ) : (
         <div className="rounded-xl border border-white/[0.06] overflow-hidden">
@@ -108,7 +184,7 @@ export default function AdminBlogPage() {
               </tr>
             </thead>
             <tbody>
-              {posts.map((post) => (
+              {filtered.map((post) => (
                 <tr
                   key={post._id}
                   className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors"
@@ -161,7 +237,7 @@ export default function AdminBlogPage() {
                         <Edit className="w-4 h-4" />
                       </Link>
                       <button
-                        onClick={() => deletePost(post._id)}
+                        onClick={() => setConfirmDeleteId(post._id)}
                         className="p-2 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -174,6 +250,17 @@ export default function AdminBlogPage() {
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirmDeleteId}
+        title="Delete Blog Post"
+        message="Are you sure you want to delete this blog post? This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   );
 }

@@ -31,6 +31,8 @@ export default function NewProductPage() {
     sizes: "",
     sku: "",
     inventory: 0,
+    metaTitle: "",
+    metaDescription: "",
   });
 
   // Fetch existing categories for suggestions
@@ -297,6 +299,19 @@ export default function NewProductPage() {
               <div>
                 <label className={labelClass}>Sizes (comma separated)</label>
                 <input type="text" value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} className={inputClass} placeholder="S, M, L, XL" />
+              </div>
+            </div>
+
+            {/* SEO */}
+            <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5 space-y-4">
+              <h3 className="text-sm font-medium text-white">SEO</h3>
+              <div>
+                <label className={labelClass}>Meta Title</label>
+                <input type="text" value={form.metaTitle} onChange={(e) => setForm({ ...form, metaTitle: e.target.value })} className={inputClass} placeholder="Custom title for search engines" />
+              </div>
+              <div>
+                <label className={labelClass}>Meta Description</label>
+                <textarea value={form.metaDescription} onChange={(e) => setForm({ ...form, metaDescription: e.target.value })} className={inputClass} rows={3} placeholder="Custom description for search engines (150-160 chars)" />
               </div>
             </div>
 

@@ -4,6 +4,7 @@ import { Order } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 import { sendOrderShipped, sendOrderDelivered } from "@/lib/email";
 import { validateEnum, ORDER_STATUSES, ensureString } from "@/lib/validation";
+import { logActivity } from "@/lib/activity-logger";
 
 // GET /api/admin/orders/[id]
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
@@ -46,10 +47,23 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       updateFields.trackingNumber = safeTracking || "";
     }
 
+    if (body.adminNotes !== undefined) {
+      const safeNotes = ensureString(body.adminNotes);
+      updateFields.adminNotes = safeNotes || "";
+    }
+
     // Get the order BEFORE update to compare status
     const previousOrder = await Order.findById(params.id).lean();
     const order = await Order.findByIdAndUpdate(params.id, updateFields, { new: true, runValidators: true }).lean();
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+
+    // Log activity
+    await logActivity({
+      action: "update",
+      entity: "order",
+      entityId: params.id,
+      details: `Updated order: ${Object.keys(updateFields).join(", ")}`,
+    });
 
     // Send status-change emails
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

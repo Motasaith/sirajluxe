@@ -89,7 +89,7 @@ export default function AdminReviewsPage() {
   const filtered = reviews.filter((r) => {
     if (filter === "approved") return r.approved;
     if (filter === "rejected") return !r.approved;
-    if (filter === "pending") return r.approved; // all auto-approve, so pending = approved but could be a different logic
+    if (filter === "pending") return !r.approved;
     return true;
   });
 
@@ -135,7 +135,7 @@ export default function AdminReviewsPage() {
 
       {/* Filter Tabs */}
       <div className="flex gap-2 mb-6">
-        {(["all", "approved", "rejected"] as const).map((f) => (
+        {(["all", "pending", "approved", "rejected"] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}

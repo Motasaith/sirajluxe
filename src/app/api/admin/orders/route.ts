@@ -4,6 +4,10 @@ import { Order } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 import { validateEnum, ORDER_STATUSES, capInt } from "@/lib/validation";
 
+function escapeRegex(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // GET /api/admin/orders
 export async function GET(req: NextRequest) {
   const denied = await adminGuard(); if (denied) return denied;
@@ -13,6 +17,7 @@ export async function GET(req: NextRequest) {
     const page = capInt(searchParams.get("page"), 1, 1, 1000);
     const limit = capInt(searchParams.get("limit"), 20, 1, 100);
     const statusRaw = searchParams.get("status") || "";
+    const search = searchParams.get("search") || "";
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: any = {};
@@ -22,6 +27,15 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Invalid status filter" }, { status: 400 });
       }
       filter.status = validStatus;
+    }
+
+    if (search) {
+      const escaped = escapeRegex(search);
+      filter.$or = [
+        { orderNumber: { $regex: escaped, $options: "i" } },
+        { customerEmail: { $regex: escaped, $options: "i" } },
+        { customerName: { $regex: escaped, $options: "i" } },
+      ];
     }
 
     const [orders, total] = await Promise.all([

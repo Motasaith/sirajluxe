@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -15,6 +16,9 @@ import {
   MessageSquare,
   PenTool,
   Ticket,
+  Menu,
+  X,
+  ClipboardList,
 } from "lucide-react";
 
 const navItems = [
@@ -28,15 +32,35 @@ const navItems = [
   { label: "Site Editor", href: "/admin/site-editor", icon: PenTool },
   { label: "Blog", href: "/admin/blog", icon: FileText },
   { label: "Media", href: "/admin/media", icon: ImageIcon },
+  { label: "Activity Log", href: "/admin/activity", icon: ClipboardList },
+  { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
-  return (
-    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0a0a0f] border-r border-white/[0.06] flex flex-col z-50">
+  // Close on route change
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  // Prevent scroll when open on mobile
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const sidebarContent = (
+    <>
       {/* Logo */}
-      <div className="p-6 border-b border-white/[0.06]">
+      <div className="p-6 border-b border-white/[0.06] flex items-center justify-between">
         <Link href="/admin" className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
             <Settings className="w-4 h-4 text-white" />
@@ -46,6 +70,13 @@ export function AdminSidebar() {
             <p className="text-[10px] text-gray-500 uppercase tracking-widest">Admin Panel</p>
           </div>
         </Link>
+        {/* Mobile close */}
+        <button
+          onClick={() => setOpen(false)}
+          className="md:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.05] transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -83,6 +114,36 @@ export function AdminSidebar() {
           Back to Store
         </Link>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        onClick={() => setOpen(true)}
+        className="fixed top-3 left-3 z-50 md:hidden p-2 rounded-lg bg-[#0a0a0f] border border-white/[0.06] text-gray-400 hover:text-white transition-colors"
+        aria-label="Open menu"
+      >
+        <Menu className="w-5 h-5" />
+      </button>
+
+      {/* Mobile overlay */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`fixed left-0 top-0 bottom-0 w-64 bg-[#0a0a0f] border-r border-white/[0.06] flex flex-col z-50 transition-transform duration-300 ${
+          open ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
+        {sidebarContent}
+      </aside>
+    </>
   );
 }

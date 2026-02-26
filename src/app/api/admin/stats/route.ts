@@ -8,6 +8,11 @@ export async function GET() {
   try {
     await connectDB();
 
+    const now = new Date();
+    const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
     const [totalProducts, totalOrders, totalCustomers, revenueAgg] = await Promise.all([
       Product.countDocuments(),
       Order.countDocuments(),
@@ -19,6 +24,38 @@ export async function GET() {
     ]);
 
     const totalRevenue = revenueAgg[0]?.total || 0;
+
+    // Trends: this month vs last month
+    const [thisMonthOrders, lastMonthOrders, thisMonthRevAgg, lastMonthRevAgg] = await Promise.all([
+      Order.countDocuments({ createdAt: { $gte: thisMonthStart } }),
+      Order.countDocuments({ createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd } }),
+      Order.aggregate([
+        { $match: { paymentStatus: "paid", createdAt: { $gte: thisMonthStart } } },
+        { $group: { _id: null, total: { $sum: "$total" } } },
+      ]),
+      Order.aggregate([
+        { $match: { paymentStatus: "paid", createdAt: { $gte: lastMonthStart, $lte: lastMonthEnd } } },
+        { $group: { _id: null, total: { $sum: "$total" } } },
+      ]),
+    ]);
+
+    const thisMonthRevenue = thisMonthRevAgg[0]?.total || 0;
+    const lastMonthRevenue = lastMonthRevAgg[0]?.total || 0;
+
+    const ordersTrend = lastMonthOrders > 0
+      ? Math.round(((thisMonthOrders - lastMonthOrders) / lastMonthOrders) * 100)
+      : thisMonthOrders > 0 ? 100 : 0;
+
+    const revenueTrend = lastMonthRevenue > 0
+      ? Math.round(((thisMonthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100)
+      : thisMonthRevenue > 0 ? 100 : 0;
+
+    // Low stock products (inventory <= 5 and inStock)
+    const lowStockProducts = await Product.find({ inStock: true, inventory: { $lte: 5 } })
+      .select("name slug inventory image")
+      .sort({ inventory: 1 })
+      .limit(10)
+      .lean();
 
     // Recent orders
     const recentOrders = await Order.find()
@@ -69,6 +106,11 @@ export async function GET() {
         totalCustomers,
         totalRevenue,
       },
+      trends: {
+        ordersTrend,
+        revenueTrend,
+      },
+      lowStockProducts,
       recentOrders,
       ordersByStatus: statusCounts.reduce(
         (acc, { _id, count }) => ({ ...acc, [_id]: count }),

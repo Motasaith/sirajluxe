@@ -30,3 +30,9 @@ export type { ICoupon } from "./coupon";
 
 export { StockAlert } from "./stock-alert";
 export type { IStockAlert } from "./stock-alert";
+
+export { Settings } from "./settings";
+export type { ISettings } from "./settings";
+
+export { ActivityLog } from "./activity-log";
+export type { IActivityLog } from "./activity-log";

@@ -31,6 +31,7 @@ export interface IOrder extends Document {
     country: string;
   };
   trackingNumber: string;
+  adminNotes: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -75,6 +76,7 @@ const OrderSchema = new Schema<IOrder>(
       country: { type: String, default: "" },
     },
     trackingNumber: { type: String, default: "" },
+    adminNotes: { type: String, default: "" },
   },
   { timestamps: true }
 );

@@ -96,6 +96,22 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// PUT /api/admin/media — update alt text
+export async function PUT(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
+  try {
+    await connectDB();
+    const { id, alt } = await req.json();
+    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+    const doc = await Media.findByIdAndUpdate(id, { alt: alt || "" }, { new: true });
+    if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(doc);
+  } catch (error) {
+    console.error("PUT /api/admin/media error:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Failed to update media" }, { status: 500 });
+  }
+}
+
 // DELETE /api/admin/media
 export async function DELETE(req: NextRequest) {
   const denied = await adminGuard(); if (denied) return denied;

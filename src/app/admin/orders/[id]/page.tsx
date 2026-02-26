@@ -15,7 +15,11 @@ import {
   User,
   Check,
   Save,
+  Printer,
+  StickyNote,
 } from "lucide-react";
+import { toast } from "../../components/toast";
+import { ConfirmDialog } from "../../components/confirm-dialog";
 
 interface OrderItem {
   productId: string;
@@ -47,6 +51,7 @@ interface Order {
     country: string;
   };
   trackingNumber: string;
+  adminNotes: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -122,7 +127,34 @@ export default function AdminOrderDetailPage() {
   const [saving, setSaving] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
   const [message, setMessage] = useState("");
+  const [refunding, setRefunding] = useState(false);
+  const [showRefundConfirm, setShowRefundConfirm] = useState(false);
+
+  const handleRefund = async () => {
+    if (!order) return;
+    setRefunding(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${id}/refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setOrder((prev) => prev ? { ...prev, paymentStatus: "refunded", status: "cancelled" } : prev);
+        toast(`Refund processed: £${data.amount?.toFixed(2)}`, "success");
+      } else {
+        toast(data.error || "Refund failed", "error");
+      }
+    } catch {
+      toast("Network error", "error");
+    } finally {
+      setRefunding(false);
+      setShowRefundConfirm(false);
+    }
+  };
 
   useEffect(() => {
     fetch(`/api/admin/orders/${id}`)
@@ -134,6 +166,7 @@ export default function AdminOrderDetailPage() {
         setOrder(data);
         setNewStatus(data.status);
         setTrackingNumber(data.trackingNumber || "");
+        setAdminNotes(data.adminNotes || "");
       })
       .catch(() => setOrder(null))
       .finally(() => setLoading(false));
@@ -150,21 +183,21 @@ export default function AdminOrderDetailPage() {
         body: JSON.stringify({
           status: newStatus,
           trackingNumber,
+          adminNotes,
         }),
       });
       if (res.ok) {
         const updated = await res.json();
         setOrder(updated);
-        setMessage("Order updated successfully");
+        toast("Order updated successfully", "success");
       } else {
         const data = await res.json().catch(() => ({}));
-        setMessage(data.error || "Failed to update order");
+        toast(data.error || "Failed to update order", "error");
       }
     } catch {
-      setMessage("Network error");
+      toast("Network error", "error");
     } finally {
       setSaving(false);
-      setTimeout(() => setMessage(""), 3000);
     }
   };
 
@@ -223,6 +256,23 @@ export default function AdminOrderDetailPage() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] text-gray-400 hover:text-white hover:border-white/10 text-xs transition-colors print:hidden"
+          >
+            <Printer className="w-3.5 h-3.5" />
+            Print Invoice
+          </button>
+          {order.paymentStatus === "paid" && (
+            <button
+              onClick={() => setShowRefundConfirm(true)}
+              disabled={refunding}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs transition-colors disabled:opacity-50 print:hidden"
+            >
+              {refunding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "£"}
+              Refund
+            </button>
+          )}
           <span
             className={`inline-flex px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-full border ${
               statusColors[order.paymentStatus] || statusColors.pending
@@ -296,6 +346,22 @@ export default function AdminOrderDetailPage() {
             </span>
           )}
         </div>
+      </div>
+
+      {/* Admin Notes */}
+      <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6 print:hidden">
+        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+          <StickyNote className="w-4 h-4 text-violet-400" />
+          Admin Notes
+        </h3>
+        <textarea
+          value={adminNotes}
+          onChange={(e) => setAdminNotes(e.target.value)}
+          placeholder="Add internal notes about this order (not visible to customer)..."
+          rows={3}
+          className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#111118] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-violet-500/50 resize-y"
+        />
+        <p className="text-[10px] text-gray-600 mt-1">Notes are saved when you click &quot;Save Changes&quot; above.</p>
       </div>
 
       {/* Customer + Address */}
@@ -401,6 +467,17 @@ export default function AdminOrderDetailPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={showRefundConfirm}
+        title="Issue Refund"
+        message={`Are you sure you want to issue a full refund of ${formatCurrency(order.total)} for order ${order.orderNumber}? This will refund the customer via Stripe and cancel the order.`}
+        confirmLabel="Issue Refund"
+        variant="danger"
+        loading={refunding}
+        onConfirm={handleRefund}
+        onCancel={() => setShowRefundConfirm(false)}
+      />
     </div>
   );
 }

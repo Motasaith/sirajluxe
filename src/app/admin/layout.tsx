@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { isAdmin } from "@/lib/admin-auth";
 import { AdminSidebar } from "./components/sidebar";
+import { AdminToastProvider } from "./components/toast";
 
 export const metadata = {
   title: "Admin | Siraj Luxe",
@@ -20,9 +21,10 @@ export default async function AdminLayout({
   return (
     <div className="min-h-screen bg-[#050505]">
       <AdminSidebar />
-      <main className="ml-64 min-h-screen">
-        <div className="p-8">{children}</div>
+      <main className="md:ml-64 min-h-screen">
+        <div className="p-4 md:p-8 pt-16 md:pt-8">{children}</div>
       </main>
+      <AdminToastProvider />
     </div>
   );
 }

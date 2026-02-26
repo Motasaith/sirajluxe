@@ -25,6 +25,8 @@ export default function NewBlogPostPage() {
     category: "General",
     tags: "",
     published: false,
+    metaTitle: "",
+    metaDescription: "",
   });
 
   const uploadImage = useCallback(async (file: File) => {
@@ -165,6 +167,19 @@ export default function NewBlogPostPage() {
                 <button type="button" onClick={() => setForm({ ...form, published: !form.published })} className={`w-10 h-5 rounded-full transition-colors relative ${form.published ? "bg-violet-600" : "bg-gray-700"}`}>
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${form.published ? "left-5" : "left-0.5"}`} />
                 </button>
+              </div>
+            </div>
+
+            {/* SEO */}
+            <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5 space-y-4">
+              <h3 className="text-sm font-medium text-white">SEO</h3>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Meta Title</label>
+                <input type="text" value={form.metaTitle} onChange={(e) => setForm({ ...form, metaTitle: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors" placeholder="Custom title for search engines" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Meta Description</label>
+                <textarea value={form.metaDescription} onChange={(e) => setForm({ ...form, metaDescription: e.target.value })} className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 transition-colors" rows={3} placeholder="Custom description for search engines (150-160 chars)" />
               </div>
             </div>
 

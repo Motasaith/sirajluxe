@@ -52,3 +52,31 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
   }
 }
+
+// PUT /api/admin/categories — update category
+export async function PUT(req: NextRequest) {
+  const denied = await adminGuard(); if (denied) return denied;
+  try {
+    await connectDB();
+    const body = await req.json();
+    const { id, name, description } = body;
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid category ID" }, { status: 400 });
+    }
+    if (!name || typeof name !== "string") {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+    const updated = await Category.findByIdAndUpdate(
+      id,
+      { name, description },
+      { new: true }
+    );
+    if (!updated) {
+      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+    }
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("PUT /api/admin/categories error:", error instanceof Error ? error.message : "Unknown error");
+    return NextResponse.json({ error: "Failed to update category" }, { status: 500 });
+  }
+}
