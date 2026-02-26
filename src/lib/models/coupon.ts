@@ -27,7 +27,7 @@ const CouponSchema = new Schema<ICoupon>(
   { timestamps: true }
 );
 
-CouponSchema.index({ code: 1 });
+// Note: code already has { unique: true } which creates an index — no need for duplicate
 CouponSchema.index({ active: 1 });
 
 export const Coupon: Model<ICoupon> =
