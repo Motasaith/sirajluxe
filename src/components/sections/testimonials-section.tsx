@@ -1,14 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSiteContent } from "@/components/providers/site-content-provider";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 const defaultBrands = [
   "VOIDWARE",
@@ -46,45 +39,6 @@ const defaultTestimonials = [
 
 export function TestimonialsSection() {
   const { data: cms, enabled } = useSiteContent("homepage.testimonials");
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Marquee continuous scroll
-      gsap.to(".marquee-track", {
-        xPercent: -50,
-        duration: 20,
-        ease: "none",
-        repeat: -1,
-      });
-
-      gsap.to(".marquee-track-reverse", {
-        xPercent: 50,
-        duration: 25,
-        ease: "none",
-        repeat: -1,
-      });
-
-      // Testimonial cards reveal
-      gsap.fromTo(
-        ".testimonial-card",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.15,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".testimonials-grid",
-            start: "top 80%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   if (!enabled) return null;
 
@@ -92,7 +46,7 @@ export function TestimonialsSection() {
   const testimonials = Array.isArray(cms?.items) && cms.items.length > 0 ? cms.items : defaultTestimonials;
 
   return (
-    <section ref={sectionRef} className="relative section-padding overflow-hidden">
+    <section className="relative section-padding overflow-hidden">
       {/* Brand Marquee */}
       <div className="mb-32 overflow-hidden">
         <div className="mb-12 ultra-wide-padding">
@@ -103,7 +57,11 @@ export function TestimonialsSection() {
 
         {/* Marquee Row 1 */}
         <div className="overflow-hidden py-6 border-y border-[var(--border)]">
-          <div className="marquee-track flex gap-16 whitespace-nowrap">
+          <motion.div
+            className="marquee-track flex gap-16 whitespace-nowrap"
+            animate={{ x: ["0%", "-50%"] }}
+            transition={{ duration: 20, ease: "linear", repeat: Infinity }}
+          >
             {[...brands, ...brands].map((brand, i) => (
               <span
                 key={`${brand}-${i}`}
@@ -112,7 +70,7 @@ export function TestimonialsSection() {
                 {brand}
               </span>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
 
@@ -133,10 +91,14 @@ export function TestimonialsSection() {
         </motion.div>
 
         <div className="testimonials-grid grid md:grid-cols-3 gap-6">
-            {testimonials.map((testimonial) => (
-            <div
+            {testimonials.map((testimonial, index) => (
+            <motion.div
               key={testimonial.author}
               className="testimonial-card glass-card p-8 flex flex-col justify-between"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.15, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
               {/* Stars */}
               <div className="flex gap-1 mb-6">
@@ -164,7 +126,7 @@ export function TestimonialsSection() {
                   <p className="text-xs text-subtle-fg">{testimonial.role}</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>

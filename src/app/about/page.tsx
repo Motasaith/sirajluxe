@@ -1,18 +1,12 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
 import { ArrowRight, Award, Globe, Heart, Zap } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 const defaultValues = [
   {
@@ -50,7 +44,6 @@ const defaultTeam = [
 
 export default function AboutPage() {
   const { data: cms } = useSiteContent("about");
-  const sectionRef = useRef<HTMLDivElement>(null);
 
   const valueIcons = [Zap, Award, Globe, Heart];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,49 +61,12 @@ export default function AboutPage() {
         { value: "99.9%", label: "Uptime SLA" },
       ];
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".about-reveal",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.1,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".about-values",
-            start: "top 80%",
-          },
-        }
-      );
 
-      gsap.fromTo(
-        ".team-reveal",
-        { y: 40, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          stagger: 0.1,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".team-grid",
-            start: "top 80%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   return (
     <PageTransitionProvider>
       <Header />
-      <main ref={sectionRef} className="min-h-screen">
+      <main className="min-h-screen">
         {/* Hero */}
         <section className="relative pt-40 pb-20 overflow-hidden">
           <div className="absolute inset-0">
@@ -181,10 +137,14 @@ export default function AboutPage() {
             </motion.div>
 
             <div className="about-values grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {values.map((value) => (
-                <div
+              {values.map((value, index) => (
+                <motion.div
                   key={value.title}
-                  className="about-reveal glass-card p-8 group hover:border-neon-violet/30"
+                  className="glass-card p-8 group hover:border-neon-violet/30"
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className="w-12 h-12 rounded-2xl bg-neon-violet/10 flex items-center justify-center mb-6 group-hover:bg-neon-violet/20 transition-colors duration-300">
                     <value.icon className="w-6 h-6 text-neon-violet" />
@@ -195,7 +155,7 @@ export default function AboutPage() {
                   <p className="text-sm text-muted-fg leading-relaxed">
                     {value.description}
                   </p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -219,10 +179,14 @@ export default function AboutPage() {
             </motion.div>
 
             <div className="team-grid grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {team.map((member) => (
-                <div
+              {team.map((member, index) => (
+                <motion.div
                   key={member.name}
-                  className="team-reveal glass-card p-8 text-center group hover:border-neon-violet/30"
+                  className="glass-card p-8 text-center group hover:border-neon-violet/30"
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 >
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center mx-auto mb-6 group-hover:shadow-neon transition-shadow duration-300">
                     <span className="text-xl font-bold text-white">
@@ -233,7 +197,7 @@ export default function AboutPage() {
                     {member.name}
                   </h3>
                   <p className="text-sm text-muted-fg">{member.role}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>

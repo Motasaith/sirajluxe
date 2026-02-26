@@ -1,48 +1,24 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 export function CTASection() {
   const { data: cms, enabled } = useSiteContent("homepage.cta");
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".cta-content",
-        { y: 60, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".cta-content",
-            start: "top 80%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   if (!enabled) return null;
 
   return (
-    <section ref={sectionRef} className="relative section-padding overflow-hidden">
+    <section className="relative section-padding overflow-hidden">
       <div className="ultra-wide-padding">
-        <div className="cta-content relative rounded-[2.5rem] overflow-hidden">
+        <motion.div
+          className="cta-content relative rounded-[2.5rem] overflow-hidden"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        >
           {/* Background */}
           <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/20 via-background to-neon-blue/10" />
           <div className="absolute inset-0 glass !rounded-[2.5rem]" />
@@ -90,7 +66,7 @@ export function CTASection() {
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -1,8 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
 import {
   ArrowRight,
   ChevronDown,
@@ -14,72 +12,25 @@ import {
 } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 
+const fadeUp = (delay: number) => ({
+  initial: { opacity: 0, y: 40 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const, delay },
+});
+
+const fadeRight = (delay: number) => ({
+  initial: { opacity: 0, x: 60, scale: 0.95 },
+  animate: { opacity: 1, x: 0, scale: 1 },
+  transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const, delay },
+});
+
 export function HeroSection() {
   const { data: cms, enabled } = useSiteContent("homepage.hero");
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".hero-line",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.12,
-          duration: 0.9,
-          ease: "power3.out",
-          delay: 0.2,
-        }
-      );
-
-      gsap.fromTo(
-        ".hero-subtitle",
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out", delay: 0.7 }
-      );
-
-      gsap.fromTo(
-        ".hero-cta",
-        { y: 20, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.7, ease: "power3.out", delay: 0.9 }
-      );
-
-      gsap.fromTo(
-        ".hero-trust",
-        { y: 20, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.08,
-          duration: 0.6,
-          ease: "power3.out",
-          delay: 1.1,
-        }
-      );
-
-      gsap.fromTo(
-        ".hero-product",
-        { x: 60, opacity: 0, scale: 0.95 },
-        {
-          x: 0,
-          opacity: 1,
-          scale: 1,
-          duration: 1,
-          ease: "power3.out",
-          delay: 0.5,
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   if (!enabled) return null;
 
   return (
     <section
-      ref={sectionRef}
       className="relative min-h-screen flex items-center overflow-hidden"
     >
       {/* Background */}
@@ -94,7 +45,7 @@ export function HeroSection() {
           {/* ── Left: Text content ── */}
           <div className="max-w-2xl">
             {/* Badge */}
-            <div className="hero-line">
+            <motion.div {...fadeUp(0.2)}>
               <motion.span
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-xs font-medium tracking-widest uppercase text-body mb-6"
                 initial={{ opacity: 0 }}
@@ -104,34 +55,34 @@ export function HeroSection() {
                 <span className="w-2 h-2 rounded-full bg-neon-violet animate-glow-pulse" />
                 {cms?.badge || "Spring 2026 Collection"}
               </motion.span>
-            </div>
+            </motion.div>
 
             {/* Title */}
             <h1>
-              <div className="hero-line">
+              <motion.div {...fadeUp(0.3)}>
                 <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-heading leading-[1.05] tracking-tight">
                   {cms?.headline1 || "Discover Premium"}
                 </span>
-              </div>
-              <div className="hero-line">
+              </motion.div>
+              <motion.div {...fadeUp(0.42)}>
                 <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold leading-[1.05] tracking-tight neon-text">
                   {cms?.headline2 || "Products You'll"}
                 </span>
-              </div>
-              <div className="hero-line">
+              </motion.div>
+              <motion.div {...fadeUp(0.54)}>
                 <span className="block text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold text-heading leading-[1.05] tracking-tight">
                   {cms?.headline3 || "Love."}
                 </span>
-              </div>
+              </motion.div>
             </h1>
 
             {/* Subtitle */}
-            <p className="hero-subtitle mt-6 text-base md:text-lg text-body max-w-lg leading-relaxed">
+            <motion.p {...fadeUp(0.7)} className="mt-6 text-base md:text-lg text-body max-w-lg leading-relaxed">
               {cms?.subtitle || "Shop curated collections from top brands. Premium quality, fast delivery, and an experience designed to delight — every time you shop."}
-            </p>
+            </motion.p>
 
             {/* CTA Buttons */}
-            <div className="hero-cta flex flex-wrap items-center gap-4 mt-8">
+            <motion.div {...fadeUp(0.9)} className="flex flex-wrap items-center gap-4 mt-8">
               <button className="magnetic-btn">
                 <span className="flex items-center gap-2">
                   {cms?.ctaPrimaryText || "Shop Now"}
@@ -145,10 +96,10 @@ export function HeroSection() {
                 </span>
                 <ArrowRight className="w-4 h-4 opacity-60 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
-            </div>
+            </motion.div>
 
             {/* Social proof */}
-            <div className="hero-cta flex items-center gap-6 mt-8">
+            <motion.div {...fadeUp(0.9)} className="flex items-center gap-6 mt-8">
               {/* Avatars */}
               <div className="flex -space-x-2">
                 {["#8b5cf6", "#ec4899", "#f59e0b", "#10b981"].map(
@@ -169,10 +120,10 @@ export function HeroSection() {
                   {cms?.socialProofText || "5 Star Rating Customers"}
                 </p>
               </div>
-            </div>
+            </motion.div>
 
             {/* Trust badges */}
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <motion.div {...fadeUp(1.1)} className="mt-10 flex flex-col sm:flex-row gap-4 sm:gap-6">
               {[
                 { icon: CheckCircle2, text: "Premium Quality" },
                 { icon: Shield, text: "Secure Checkout" },
@@ -180,17 +131,17 @@ export function HeroSection() {
               ].map((badge) => (
                 <div
                   key={badge.text}
-                  className="hero-trust flex items-center gap-2 text-muted-fg"
+                  className="flex items-center gap-2 text-muted-fg"
                 >
                   <badge.icon className="w-4 h-4 text-neon-violet" />
                   <span className="text-sm font-medium">{badge.text}</span>
                 </div>
               ))}
-            </div>
+            </motion.div>
           </div>
 
           {/* ── Right: Product showcase ── */}
-          <div className="hero-product relative flex items-center justify-center lg:justify-end">
+          <motion.div {...fadeRight(0.5)} className="relative flex items-center justify-center lg:justify-end">
             <div className="relative w-full max-w-md lg:max-w-lg">
               {/* Decorative glow behind product */}
               <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/20 via-neon-purple/10 to-transparent rounded-[2rem] blur-3xl scale-110" />
@@ -317,7 +268,7 @@ export function HeroSection() {
                 </div>
               </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 

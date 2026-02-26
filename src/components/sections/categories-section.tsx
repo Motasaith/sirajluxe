@@ -1,67 +1,17 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowUpRight } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { categories } from "@/lib/data";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 export function CategoriesSection() {
   const { data: cms, enabled } = useSiteContent("homepage.categories");
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Section title reveal
-      gsap.fromTo(
-        ".categories-title",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".categories-title",
-            start: "top 85%",
-            end: "top 30%",
-          },
-        }
-      );
-
-      // Bento grid items stagger
-      gsap.fromTo(
-        ".bento-item",
-        { y: 80, opacity: 0, scale: 0.95 },
-        {
-          y: 0,
-          opacity: 1,
-          scale: 1,
-          stagger: 0.1,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".bento-grid",
-            start: "top 80%",
-            end: "top 20%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   if (!enabled) return null;
 
   return (
-    <section ref={sectionRef} className="relative section-padding overflow-hidden">
+    <section className="relative section-padding overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="gradient-orb gradient-orb-2 opacity-10" />
@@ -69,7 +19,13 @@ export function CategoriesSection() {
 
       <div className="relative ultra-wide-padding">
         {/* Section Header */}
-        <div className="categories-title mb-16">
+        <motion.div
+          className="mb-16"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        >
           <p className="text-sm font-medium tracking-widest uppercase text-neon-violet mb-4">
             {cms?.label || "Browse Categories"}
           </p>
@@ -77,10 +33,10 @@ export function CategoriesSection() {
             {cms?.heading || "Curated collections for the"}{" "}
             <span className="neon-text">discerning</span> eye.
           </h2>
-        </div>
+        </motion.div>
 
         {/* Bento Grid */}
-        <div className="bento-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
           {categories.map((category, i) => {
             // First 2 items are large (span 2 on lg), rest are normal
             const isLarge = i < 2;
@@ -88,7 +44,11 @@ export function CategoriesSection() {
             return (
               <motion.div
                 key={category.id}
-                className={`bento-item group relative rounded-3xl overflow-hidden cursor-pointer ${
+                initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
+                className={`group relative rounded-3xl overflow-hidden cursor-pointer ${
                   isLarge && i === 0
                     ? "lg:col-span-2 lg:row-span-2 min-h-[300px] lg:min-h-[500px]"
                     : isLarge
@@ -96,7 +56,6 @@ export function CategoriesSection() {
                     : "min-h-[250px] lg:min-h-[300px]"
                 }`}
                 whileHover={{ scale: 0.99 }}
-                transition={{ duration: 0.4 }}
               >
                 {/* Gradient Background */}
                 <div

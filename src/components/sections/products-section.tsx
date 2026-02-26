@@ -1,18 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ShoppingBag, Heart, Star, ArrowRight } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import Link from "next/link";
 import Image from "next/image";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
 
 interface Product {
   id: string;
@@ -38,7 +32,6 @@ function ProductCard({
   product: Product;
   index: number;
 }) {
-  const cardRef = useRef<HTMLDivElement>(null);
   const { addItem } = useCart();
 
   const handleAddToCart = () => {
@@ -57,26 +50,17 @@ function ProductCard({
     const x = e.clientX - rect.left - rect.width / 2;
     const y = e.clientY - rect.top - rect.height / 2;
 
-    gsap.to(btn, {
-      x: x * 0.3,
-      y: y * 0.3,
-      duration: 0.3,
-      ease: "power2.out",
-    });
+    btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+    btn.style.transition = "transform 0.3s cubic-bezier(0.33, 1, 0.68, 1)";
   };
 
   const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    gsap.to(e.currentTarget, {
-      x: 0,
-      y: 0,
-      duration: 0.5,
-      ease: "elastic.out(1, 0.3)",
-    });
+    e.currentTarget.style.transform = "translate(0, 0)";
+    e.currentTarget.style.transition = "transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)";
   };
 
   return (
     <motion.div
-      ref={cardRef}
       className="product-card group relative"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -222,7 +206,6 @@ function ProductCard({
 
 export function ProductsSection() {
   const { data: cms, enabled } = useSiteContent("homepage.products");
-  const sectionRef = useRef<HTMLElement>(null);
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -238,38 +221,23 @@ export function ProductsSection() {
     fetchFeatured();
   }, []);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".products-title",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".products-title",
-            start: "top 85%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
-
   if (!enabled) return null;
 
   return (
-    <section ref={sectionRef} className="relative section-padding overflow-hidden">
+    <section className="relative section-padding overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="gradient-orb gradient-orb-1 opacity-5" />
       </div>
 
       <div className="relative ultra-wide-padding">
         {/* Section Header */}
-        <div className="products-title flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+        <motion.div
+          className="products-title flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div>
             <p className="text-sm font-medium tracking-widest uppercase text-neon-violet mb-4">
               {cms?.label || "Featured Products"}
@@ -289,7 +257,7 @@ export function ProductsSection() {
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
             </motion.button>
           </Link>
-        </div>
+        </motion.div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

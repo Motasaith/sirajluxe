@@ -1,74 +1,30 @@
 "use client";
 
-import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { featuredCollections } from "@/lib/data";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 export function CollectionsSection() {
   const { data: cms, enabled } = useSiteContent("homepage.collections");
-  const sectionRef = useRef<HTMLElement>(null);
-  const horizontalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ".collections-title",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".collections-title",
-            start: "top 85%",
-          },
-        }
-      );
-
-      // Horizontal scroll for collection cards
-      const cards = gsap.utils.toArray(".collection-card");
-      if (horizontalRef.current && cards.length > 0) {
-        gsap.fromTo(
-          cards,
-          { x: 100, opacity: 0 },
-          {
-            x: 0,
-            opacity: 1,
-            stagger: 0.15,
-            duration: 0.8,
-            ease: "power3.out",
-            scrollTrigger: {
-              trigger: horizontalRef.current,
-              start: "top 75%",
-            },
-          }
-        );
-      }
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   if (!enabled) return null;
 
   return (
-    <section ref={sectionRef} className="relative section-padding overflow-hidden">
+    <section className="relative section-padding overflow-hidden">
       <div className="absolute inset-0 pointer-events-none">
         <div className="gradient-orb gradient-orb-3 opacity-10" />
       </div>
 
       <div className="relative ultra-wide-padding">
         {/* Section Header */}
-        <div className="collections-title flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+        <motion.div
+          className="collections-title flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16"
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-50px" }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-4 h-4 text-neon-violet" />
@@ -89,19 +45,19 @@ export function CollectionsSection() {
             <span className="text-sm font-medium">{cms?.buttonText || "All Collections"}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
           </motion.button>
-        </div>
+        </motion.div>
 
         {/* Collections Cards */}
-        <div
-          ref={horizontalRef}
-          className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {featuredCollections.map((collection) => (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {featuredCollections.map((collection, i) => (
             <motion.div
               key={collection.id}
               className="collection-card group relative rounded-3xl overflow-hidden min-h-[400px] lg:min-h-[500px] cursor-pointer"
+              initial={{ opacity: 0, x: 40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
               whileHover={{ scale: 0.98 }}
-              transition={{ duration: 0.4 }}
+              transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
               {/* Background gradient */}
               <div

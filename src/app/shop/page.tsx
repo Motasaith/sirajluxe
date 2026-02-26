@@ -24,7 +24,6 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import gsap from "gsap";
 
 interface Product {
   id: string;
@@ -156,13 +155,16 @@ export default function ShopPage() {
   const handleMagnetic = (e: React.MouseEvent<HTMLButtonElement>) => {
     const btn = e.currentTarget;
     const rect = btn.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.3, ease: "power2.out" });
+    const relX = e.clientX - rect.left - rect.width / 2;
+    const relY = e.clientY - rect.top - rect.height / 2;
+    btn.style.transform = `translate(${relX * 0.3}px, ${relY * 0.3}px)`;
+    btn.style.transition = "transform 0.3s cubic-bezier(0.33, 1, 0.68, 1)";
   };
 
   const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    gsap.to(e.currentTarget, { x: 0, y: 0, duration: 0.5, ease: "elastic.out(1, 0.3)" });
+    const target = e.currentTarget as HTMLButtonElement;
+    target.style.transform = "translate(0, 0)";
+    target.style.transition = "transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55)";
   };
 
   const allCategories = ["All", ...categories];

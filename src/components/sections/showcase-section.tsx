@@ -1,75 +1,13 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import { motion } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
-
 export function ShowcaseSection() {
   const { data: cms, enabled } = useSiteContent("homepage.showcase");
-  const sectionRef = useRef<HTMLElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Parallax text movement
-      gsap.fromTo(
-        ".showcase-big-text",
-        { x: "10%" },
-        {
-          x: "-10%",
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1,
-          },
-        }
-      );
-
-      // Opposite direction text
-      gsap.fromTo(
-        ".showcase-big-text-reverse",
-        { x: "-10%" },
-        {
-          x: "10%",
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 1,
-          },
-        }
-      );
-
-      // Feature cards stagger
-      gsap.fromTo(
-        ".showcase-feature",
-        { y: 60, opacity: 0 },
-        {
-          y: 0,
-          opacity: 1,
-          stagger: 0.15,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: ".showcase-features",
-            start: "top 80%",
-          },
-        }
-      );
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, []);
 
   if (!enabled) return null;
 
@@ -99,15 +37,23 @@ export function ShowcaseSection() {
       ];
 
   return (
-    <section ref={sectionRef} className="relative section-padding overflow-hidden">
+    <section className="relative section-padding overflow-hidden">
       {/* Massive scrolling background text */}
       <div className="absolute inset-0 flex flex-col justify-center gap-4 pointer-events-none opacity-[0.03]">
-        <div className="showcase-big-text whitespace-nowrap text-[12vw] font-display font-black text-heading select-none">
+        <motion.div
+          className="whitespace-nowrap text-[12vw] font-display font-black text-heading select-none"
+          animate={{ x: ["10%", "-10%"] }}
+          transition={{ duration: 30, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
+        >
           FUTURE OF COMMERCE • IMMERSIVE SHOPPING • NEXT LEVEL •
-        </div>
-        <div className="showcase-big-text-reverse whitespace-nowrap text-[12vw] font-display font-black text-heading select-none">
+        </motion.div>
+        <motion.div
+          className="whitespace-nowrap text-[12vw] font-display font-black text-heading select-none"
+          animate={{ x: ["-10%", "10%"] }}
+          transition={{ duration: 30, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
+        >
           OBSIDIAN STORE • PREMIUM DESIGN • INNOVATION •
-        </div>
+        </motion.div>
       </div>
 
       <div className="relative ultra-wide-padding">
@@ -182,10 +128,14 @@ export function ShowcaseSection() {
 
         {/* Features Grid */}
         <div className="showcase-features grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {features.map((feature) => (
+          {features.map((feature, index) => (
             <motion.div
               key={feature.number}
-              className="showcase-feature group glass-card p-8 hover:border-neon-violet/30"
+              className="group glass-card p-8 hover:border-neon-violet/30"
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: index * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             >
               <span className="text-5xl font-display font-black text-heading/5 group-hover:text-neon-violet/20 transition-colors duration-500">
                 {feature.number}
