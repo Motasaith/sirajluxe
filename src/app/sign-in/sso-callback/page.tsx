@@ -14,7 +14,12 @@ export default function SSOCallbackPage() {
         <Loader2 className="w-8 h-8 text-neon-violet animate-spin" />
         <p className="text-sm text-[var(--muted)]">Completing sign in...</p>
       </div>
-      <AuthenticateWithRedirectCallback />
+      <AuthenticateWithRedirectCallback
+        signInUrl="/sign-in"
+        signUpUrl="/sign-up"
+        signInFallbackRedirectUrl="/"
+        signUpFallbackRedirectUrl="/"
+      />
     </div>
   );
 }
