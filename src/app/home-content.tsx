@@ -8,6 +8,7 @@ import { Footer } from "@/components/layout/footer";
 import { HeroSection } from "@/components/sections/hero-section";
 import { Preloader } from "@/components/ui/preloader";
 import { CartDrawer } from "@/components/ui/cart-drawer";
+import { PromoBanner } from "@/components/ui/promo-banner";
 
 // Below-fold sections lazy loaded
 const CategoriesSection = dynamic(() => import("@/components/sections/categories-section").then((mod) => mod.CategoriesSection), { ssr: false });
@@ -52,6 +53,7 @@ export default function HomeContent() {
         aria-hidden={isLoading}
       >
         <Header />
+        <PromoBanner />
         <main className="relative">
           <HeroSection />
           <div className="section-divider" />

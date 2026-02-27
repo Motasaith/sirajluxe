@@ -28,7 +28,7 @@ const SettingsSchema = new Schema<ISettings>(
     storePhone: { type: String, default: "" },
     currency: { type: String, default: "GBP" },
     taxRate: { type: Number, default: 0 },
-    freeShippingThreshold: { type: Number, default: 50 },
+    freeShippingThreshold: { type: Number, default: 10 },
     shippingFlatRate: { type: Number, default: 4.99 },
     lowStockThreshold: { type: Number, default: 5 },
     orderPrefix: { type: String, default: "SL" },

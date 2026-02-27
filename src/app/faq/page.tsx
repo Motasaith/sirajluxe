@@ -19,7 +19,7 @@ const defaultFaqs = [
   {
     question: "How much does shipping cost?",
     answer:
-      "Standard shipping costs £3.99 and takes 3–5 business days. New customers get FREE shipping on their first order when spending £10 or more — applied automatically at checkout.",
+      "Standard shipping costs £3.99 and takes 3–5 business days. New customers get FREE shipping on their first order with no minimum spend! After that, orders over £10 qualify for free shipping — applied automatically at checkout.",
   },
   {
     question: "How long does delivery take?",

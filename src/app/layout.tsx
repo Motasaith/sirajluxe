@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Siraj Luxe",
   },
   description:
-    "Shop premium curated products at Siraj Luxe. UK-based store with fast delivery, free shipping on your first order over £10, and hassle-free returns.",
+    "Shop premium curated products at Siraj Luxe. UK-based store with fast delivery, free shipping on your first order, and hassle-free returns.",
   keywords: [
     "ecommerce",
     "UK online shop",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Siraj Luxe — Beacon of Premium Goods",
     description:
-      "Shop premium curated products. Free shipping on your first order over £10.",
+      "Shop premium curated products. Free shipping on your first order.",
     type: "website",
     locale: "en_GB",
     siteName: "Siraj Luxe",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Siraj Luxe — Beacon of Premium Goods",
     description:
-      "Shop premium curated products. Free shipping on your first order over £10.",
+      "Shop premium curated products. Free shipping on your first order.",
   },
   robots: {
     index: true,

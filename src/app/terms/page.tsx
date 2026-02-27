@@ -38,7 +38,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">4. Shipping</h2>
-              <p>We currently ship to UK addresses only. Standard delivery takes 3–5 business days. Shipping costs £3.99 unless you qualify for our free shipping promotion (spend £10 or more on your first order).</p>
+              <p>We currently ship to UK addresses only. Standard delivery takes 3–5 business days. Shipping costs £3.99 unless you qualify for our free shipping promotion (free on your first order, or spend £10 or more on subsequent orders).</p>
             </section>
 
             <section>

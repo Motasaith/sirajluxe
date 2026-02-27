@@ -44,7 +44,7 @@ export default function ShippingPage() {
 
             <section className="glass-card p-6">
               <h2 className="text-xl font-semibold text-heading mb-3">🎉 Free Shipping Promotion</h2>
-              <p className="text-lg"><strong>Spend £10 or more on your first order</strong> and get <span className="text-neon-violet font-semibold">FREE shipping</span>!</p>
+              <p className="text-lg"><strong>Your first order ships FREE</strong> — no minimum spend! After that, <strong>spend £10 or more</strong> for <span className="text-neon-violet font-semibold">FREE shipping</span>.</p>
               <p className="text-sm text-muted-fg mt-2">This offer applies automatically at checkout for new customers.</p>
             </section>
 

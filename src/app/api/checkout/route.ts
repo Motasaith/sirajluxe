@@ -175,8 +175,8 @@ export async function POST(req: NextRequest) {
     // Resolve customer email: prefer explicit param, fall back to DB record
     const resolvedEmail = customerEmail || customer?.email || undefined;
 
-    // Free shipping: first order AND spend £10+
-    const qualifiesForFreeShipping = isFirstOrder && subtotalPence >= FREE_SHIPPING_THRESHOLD;
+    // Free shipping: always free on first order, OR spend above threshold on subsequent orders
+    const qualifiesForFreeShipping = isFirstOrder || subtotalPence >= FREE_SHIPPING_THRESHOLD;
 
     // Shipping options
     const shippingOptions: { shipping_rate_data: { type: "fixed_amount"; fixed_amount: { amount: number; currency: string }; display_name: string; delivery_estimate?: { minimum: { unit: "business_day"; value: number }; maximum: { unit: "business_day"; value: number } } } }[] = [];
@@ -186,7 +186,7 @@ export async function POST(req: NextRequest) {
         shipping_rate_data: {
           type: "fixed_amount",
           fixed_amount: { amount: 0, currency: "gbp" },
-          display_name: "Free Shipping (First Order Promo!)",
+          display_name: isFirstOrder ? "Free Shipping (Welcome! Your First Order)" : "Free Shipping",
           delivery_estimate: {
             minimum: { unit: "business_day", value: 3 },
             maximum: { unit: "business_day", value: 5 },

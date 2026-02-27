@@ -42,10 +42,12 @@ export async function POST(req: NextRequest) {
       code: body.code,
       type: body.type,
       value: body.value,
+      description: body.description || "",
       minOrderAmount: body.minOrderAmount || 0,
       maxUses: body.maxUses || 0,
       expiresAt: body.expiresAt || null,
       active: body.active !== false,
+      isPublic: body.isPublic || false,
     });
 
     return NextResponse.json(coupon, { status: 201 });
@@ -77,10 +79,12 @@ export async function PUT(req: NextRequest) {
       allowed.type = body.type;
     }
     if (body.value !== undefined) allowed.value = body.value;
+    if (body.description !== undefined) allowed.description = body.description;
     if (body.minOrderAmount !== undefined) allowed.minOrderAmount = body.minOrderAmount;
     if (body.maxUses !== undefined) allowed.maxUses = body.maxUses;
     if (body.expiresAt !== undefined) allowed.expiresAt = body.expiresAt;
     if (body.active !== undefined) allowed.active = body.active;
+    if (body.isPublic !== undefined) allowed.isPublic = body.isPublic;
 
     const updated = await Coupon.findByIdAndUpdate(body.id, allowed, { new: true });
     if (!updated) {

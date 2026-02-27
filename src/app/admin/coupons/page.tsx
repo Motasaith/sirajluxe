@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Trash2, ToggleLeft, ToggleRight, Edit } from "lucide-react";
+import { Loader2, Plus, Trash2, ToggleLeft, ToggleRight, Edit, Eye, EyeOff } from "lucide-react";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { toast } from "../components/toast";
 
@@ -10,11 +10,13 @@ interface CouponDoc {
   code: string;
   type: "percentage" | "fixed";
   value: number;
+  description: string;
   minOrderAmount: number;
   maxUses: number;
   usedCount: number;
   expiresAt: string | null;
   active: boolean;
+  isPublic: boolean;
   createdAt: string;
 }
 
@@ -32,17 +34,21 @@ export default function CouponsPage() {
   const [editCode, setEditCode] = useState("");
   const [editType, setEditType] = useState<"percentage" | "fixed">("percentage");
   const [editValue, setEditValue] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [editMinOrder, setEditMinOrder] = useState("");
   const [editMaxUses, setEditMaxUses] = useState("");
   const [editExpires, setEditExpires] = useState("");
+  const [editIsPublic, setEditIsPublic] = useState(false);
 
   // Form state
   const [code, setCode] = useState("");
   const [type, setType] = useState<"percentage" | "fixed">("percentage");
   const [value, setValue] = useState("");
+  const [description, setDescription] = useState("");
   const [minOrderAmount, setMinOrderAmount] = useState("");
   const [maxUses, setMaxUses] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
 
   const fetchCoupons = () => {
     fetch("/api/admin/coupons")
@@ -68,17 +74,21 @@ export default function CouponsPage() {
           code: code.trim(),
           type,
           value: parseFloat(value),
+          description: description.trim(),
           minOrderAmount: minOrderAmount ? parseFloat(minOrderAmount) : 0,
           maxUses: maxUses ? parseInt(maxUses, 10) : 0,
           expiresAt: expiresAt || null,
+          isPublic,
         }),
       });
       if (res.ok) {
         setCode("");
         setValue("");
+        setDescription("");
         setMinOrderAmount("");
         setMaxUses("");
         setExpiresAt("");
+        setIsPublic(false);
         fetchCoupons();
         toast("Coupon created", "success");
       } else {
@@ -135,9 +145,11 @@ export default function CouponsPage() {
     setEditCode(coupon.code);
     setEditType(coupon.type);
     setEditValue(String(coupon.value));
+    setEditDescription(coupon.description || "");
     setEditMinOrder(coupon.minOrderAmount > 0 ? String(coupon.minOrderAmount) : "");
     setEditMaxUses(coupon.maxUses > 0 ? String(coupon.maxUses) : "");
     setEditExpires(coupon.expiresAt ? coupon.expiresAt.split("T")[0] : "");
+    setEditIsPublic(coupon.isPublic || false);
   };
 
   const handleSaveEdit = async () => {
@@ -152,9 +164,11 @@ export default function CouponsPage() {
           code: editCode.trim(),
           type: editType,
           value: parseFloat(editValue),
+          description: editDescription.trim(),
           minOrderAmount: editMinOrder ? parseFloat(editMinOrder) : 0,
           maxUses: editMaxUses ? parseInt(editMaxUses, 10) : 0,
           expiresAt: editExpires || null,
+          isPublic: editIsPublic,
         }),
       });
       if (res.ok) {
@@ -270,6 +284,33 @@ export default function CouponsPage() {
             />
           </div>
         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5">Description (shown to customers if public)</label>
+            <input
+              type="text"
+              placeholder="e.g. Get 20% off your first order!"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className={inputClass}
+            />
+          </div>
+          <div className="flex items-end">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <button
+                type="button"
+                onClick={() => setIsPublic(!isPublic)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isPublic ? "bg-violet-600" : "bg-white/[0.06]"}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isPublic ? "translate-x-6" : "translate-x-1"}`} />
+              </button>
+              <span className="text-sm text-gray-400 group-hover:text-white transition-colors flex items-center gap-1.5">
+                {isPublic ? <Eye className="w-3.5 h-3.5 text-violet-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+                {isPublic ? "Visible on Homepage" : "Hidden (share code manually)"}
+              </span>
+            </label>
+          </div>
+        </div>
         <div className="flex justify-end">
           <button
             type="submit"
@@ -322,6 +363,9 @@ export default function CouponsPage() {
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Visibility
+                  </th>
                   <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
@@ -358,6 +402,17 @@ export default function CouponsPage() {
                         }`}
                       >
                         {coupon.active ? "Active" : "Inactive"}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                          coupon.isPublic
+                            ? "bg-violet-500/10 text-violet-400"
+                            : "bg-gray-500/10 text-gray-500"
+                        }`}
+                      >
+                        {coupon.isPublic ? <><Eye className="w-3 h-3" /> Public</> : <><EyeOff className="w-3 h-3" /> Hidden</>}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right">
@@ -437,6 +492,25 @@ export default function CouponsPage() {
                 <label className="block text-xs text-gray-500 mb-1.5">Expires At</label>
                 <input type="date" value={editExpires} onChange={(e) => setEditExpires(e.target.value)} className={inputClass} />
               </div>
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs text-gray-500 mb-1.5">Description (shown to customers if public)</label>
+              <input type="text" placeholder="e.g. Get 20% off your first order!" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className={inputClass} />
+            </div>
+            <div className="mb-6">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <button
+                  type="button"
+                  onClick={() => setEditIsPublic(!editIsPublic)}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${editIsPublic ? "bg-violet-600" : "bg-white/[0.06]"}`}
+                >
+                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${editIsPublic ? "translate-x-6" : "translate-x-1"}`} />
+                </button>
+                <span className="text-sm text-gray-400 group-hover:text-white transition-colors flex items-center gap-1.5">
+                  {editIsPublic ? <Eye className="w-3.5 h-3.5 text-violet-400" /> : <EyeOff className="w-3.5 h-3.5" />}
+                  {editIsPublic ? "Visible on Homepage" : "Hidden (share code manually)"}
+                </span>
+              </label>
             </div>
             <div className="flex justify-end gap-3">
               <button onClick={() => setEditingId(null)} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white border border-white/[0.06] hover:border-white/10 transition-colors">
