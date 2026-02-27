@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useSignIn, useSignUp, useClerk } from "@clerk/nextjs";
+import { useSignIn, useSignUp } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 export default function SSOCallbackPage() {
   const { signIn, setActive: setSignInActive } = useSignIn();
   const { signUp, setActive: setSignUpActive } = useSignUp();
-  const { handleRedirectCallback } = useClerk();
   const router = useRouter();
   const [error, setError] = useState("");
   const processed = useRef(false);
@@ -18,43 +17,62 @@ export default function SSOCallbackPage() {
     processed.current = true;
 
     async function completeOAuth() {
-      try {
-        await handleRedirectCallback({
-          afterSignInUrl: "/",
-          afterSignUpUrl: "/",
-          redirectUrl: "/sign-in/sso-callback",
-        });
-      } catch {
-        try {
-          if (!signIn || !signUp) return;
+      if (!signIn || !signUp) return;
 
-          if (signIn.status === "complete") {
-            await setSignInActive({ session: signIn.createdSessionId });
+      try {
+        // Case 1: Sign-in completed (existing user with OAuth)
+        if (signIn.status === "complete") {
+          await setSignInActive({ session: signIn.createdSessionId });
+          router.push("/");
+          return;
+        }
+
+        // Case 2: User doesn't have an account yet — transfer OAuth to sign-up
+        if (
+          signIn.firstFactorVerification?.status === "transferable" ||
+          signIn.status === "needs_first_factor"
+        ) {
+          // Create a new user from the OAuth data
+          const result = await signUp.create({ transfer: true });
+          if (result.status === "complete") {
+            await setSignUpActive({ session: result.createdSessionId });
             router.push("/");
             return;
           }
-
-          // User used sign-in OAuth but doesn't have an account — transfer to sign-up
-          if (signIn.firstFactorVerification?.status === "transferable") {
-            const result = await signUp.create({ transfer: true });
-            if (result.status === "complete") {
-              await setSignUpActive({ session: result.createdSessionId });
-              router.push("/");
-              return;
-            }
-          }
-
-          console.error("OAuth sign-in incomplete. Status:", signIn.status);
-          setError("Sign-in could not be completed. Please try again.");
-        } catch (innerErr) {
-          console.error("OAuth callback error:", innerErr);
-          setError("Something went wrong. Please try again.");
         }
+
+        // Case 3: Sign-up already had OAuth data (existing external account)
+        if (
+          signUp.status === "complete"
+        ) {
+          await setSignUpActive({ session: signUp.createdSessionId });
+          router.push("/");
+          return;
+        }
+
+        // Case 4: Sign-up has external account that already exists — transfer to sign-in
+        if (
+          signUp.verifications?.externalAccount?.status === "transferable" &&
+          signUp.verifications?.externalAccount?.error?.code === "external_account_exists"
+        ) {
+          const result = await signIn.create({ transfer: true });
+          if (result.status === "complete") {
+            await setSignInActive({ session: result.createdSessionId });
+            router.push("/");
+            return;
+          }
+        }
+
+        console.error("OAuth incomplete. signIn.status:", signIn.status, "signUp.status:", signUp.status, "signIn.firstFactorVerification:", signIn.firstFactorVerification, "signUp.verifications:", signUp.verifications);
+        setError("Authentication could not be completed. Please try again.");
+      } catch (err) {
+        console.error("OAuth callback error:", err);
+        setError("Something went wrong. Please try again.");
       }
     }
 
     completeOAuth();
-  }, [signIn, signUp, setSignInActive, setSignUpActive, handleRedirectCallback, router]);
+  }, [signIn, signUp, setSignInActive, setSignUpActive, router]);
 
   if (error) {
     return (
