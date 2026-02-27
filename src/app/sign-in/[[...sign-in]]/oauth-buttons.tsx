@@ -21,9 +21,10 @@ export function OAuthButtons({ mode }: OAuthButtonsProps) {
     setLoadingProvider(strategy);
 
     try {
+      const callbackUrl = mode === "sign-in" ? "/sign-in/sso-callback" : "/sign-up/sso-callback";
       await provider.authenticateWithRedirect({
         strategy,
-        redirectUrl: "/sign-in/sso-callback",
+        redirectUrl: callbackUrl,
         redirectUrlComplete: "/",
       });
     } catch (err) {
