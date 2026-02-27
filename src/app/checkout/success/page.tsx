@@ -9,18 +9,22 @@ import { useCart } from "@/components/providers/cart-provider";
 function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
+  const orderNumber = searchParams.get("order");
+  const paymentIntentParam = searchParams.get("payment_intent");
   const { clearCart } = useCart();
   const [cleared, setCleared] = useState(false);
 
+  const hasPayment = sessionId || orderNumber || paymentIntentParam;
+
   // Clear cart once on mount (payment already confirmed by Stripe redirect)
   useEffect(() => {
-    if (sessionId && !cleared) {
+    if (hasPayment && !cleared) {
       clearCart();
       setCleared(true);
     }
-  }, [sessionId, cleared, clearCart]);
+  }, [hasPayment, cleared, clearCart]);
 
-  if (!sessionId) {
+  if (!hasPayment) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center max-w-md mx-auto px-6">
@@ -41,6 +45,9 @@ function SuccessContent() {
         <h1 className="text-3xl font-bold text-heading mb-3">
           Order Confirmed!
         </h1>
+        {orderNumber && (
+          <p className="text-sm font-mono text-neon-violet mb-2">Order #{orderNumber}</p>
+        )}
         <p className="text-body mb-4 leading-relaxed">
           Thank you for your purchase. Your order is being processed and
           you&apos;ll receive updates via email.

@@ -4,9 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCart } from "@/components/providers/cart-provider";
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
 import Image from "next/image";
-import { useToast } from "@/components/ui/toast";
 
 export function CartDrawer() {
   const {
@@ -20,48 +18,15 @@ export function CartDrawer() {
     closeCart,
   } = useCart();
   const { user } = useUser();
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!user) {
       window.location.href = "/sign-in";
       return;
     }
 
-    setLoading(true);
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items: items.map((i) => ({
-            productId: i.id,
-            quantity: i.quantity,
-            color: i.color,
-            size: i.size,
-          })),
-          customerEmail: user.primaryEmailAddress?.emailAddress,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (data.url) {
-        // Validate Stripe URL before redirecting
-        if (typeof data.url === "string" && data.url.startsWith("https://checkout.stripe.com/")) {
-          window.location.href = data.url;
-        } else {
-          toast({ title: "Checkout failed", description: "Invalid checkout URL received.", variant: "error" });
-        }
-      } else {
-        toast({ title: "Checkout failed", description: data.error || "Please try again.", variant: "error" });
-      }
-    } catch {
-      toast({ title: "Something went wrong", description: "Please try again.", variant: "error" });
-    } finally {
-      setLoading(false);
-    }
+    closeCart();
+    window.location.href = "/checkout";
   };
 
   return (
@@ -188,12 +153,11 @@ export function CartDrawer() {
 
                 <button
                   onClick={handleCheckout}
-                  disabled={loading}
-                  className="magnetic-btn w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="magnetic-btn w-full"
                 >
                   <span className="flex items-center justify-center gap-2">
-                    {loading ? "Processing..." : "Checkout"}
-                    {!loading && <ArrowRight className="w-4 h-4" />}
+                    Checkout
+                    <ArrowRight className="w-4 h-4" />
                   </span>
                 </button>
 

@@ -186,6 +186,63 @@ export async function POST(req: NextRequest) {
       break;
     }
 
+    case "payment_intent.succeeded": {
+      const succeededPI = event.data.object as Stripe.PaymentIntent;
+
+      // Find the pending order created by create-payment-intent
+      const pendingOrder = await Order.findOneAndUpdate(
+        { paymentIntentId: succeededPI.id, paymentStatus: "pending" },
+        { status: "processing", paymentStatus: "paid" },
+        { new: true }
+      );
+
+      if (pendingOrder) {
+        console.log(`Payment succeeded — order ${pendingOrder.orderNumber} marked as processing`);
+
+        // Update customer stats
+        if (pendingOrder.clerkUserId) {
+          await Customer.findOneAndUpdate(
+            { clerkId: pendingOrder.clerkUserId },
+            {
+              $inc: {
+                orderCount: 1,
+                totalSpent: pendingOrder.total,
+              },
+            }
+          );
+        }
+
+        // Send order confirmation email
+        try {
+          await sendOrderConfirmation({
+            to: pendingOrder.customerEmail,
+            customerName: pendingOrder.customerName,
+            orderNumber: pendingOrder.orderNumber,
+            items: pendingOrder.items,
+            subtotal: pendingOrder.subtotal,
+            shipping: pendingOrder.shipping,
+            total: pendingOrder.total,
+            shippingAddress: pendingOrder.shippingAddress,
+          });
+          console.log(`Confirmation email sent to ${pendingOrder.customerEmail}`);
+        } catch (emailErr) {
+          console.error("Failed to send order confirmation email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
+        }
+
+        // Decrement inventory atomically
+        const piProductIdMap = succeededPI.metadata?.productIds
+          ? (JSON.parse(succeededPI.metadata.productIds) as Record<string, number>)
+          : {};
+        for (const [productId, qty] of Object.entries(piProductIdMap)) {
+          await Product.findByIdAndUpdate(productId, [
+            { $set: { inventory: { $max: [0, { $subtract: ["$inventory", qty as number] }] } } },
+            { $set: { inStock: { $gt: ["$inventory", 0] } } },
+          ]);
+        }
+      }
+      break;
+    }
+
     case "payment_intent.payment_failed": {
       const paymentIntent = event.data.object as Stripe.PaymentIntent;
       const failedOrder = await Order.findOneAndUpdate(

@@ -1,70 +1,616 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/providers/cart-provider";
-import { ShoppingBag } from "lucide-react";
+import { useUser } from "@clerk/nextjs";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import Image from "next/image";
 import Link from "next/link";
+import {
+  ShoppingBag,
+  ArrowLeft,
+  Loader2,
+  MapPin,
+  CreditCard,
+  Shield,
+  Tag,
+  X,
+  CheckCircle2,
+  Truck,
+} from "lucide-react";
+import { useToast } from "@/components/ui/toast";
 
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
+// ─── Types ───────────────────────────────────────────────────────────────────
+interface OrderSummary {
+  items: { productId: string; name: string; price: number; quantity: number; image: string; color?: string; size?: string }[];
+  subtotal: number;
+  discount: number;
+  shipping: number;
+  total: number;
+  freeShippingReason: string | null;
+  coupon: string | null;
+}
+
+// ─── Payment Form (inside Elements provider) ────────────────────────────────
+function PaymentForm({
+  orderNumber,
+  orderSummary,
+}: {
+  orderNumber: string;
+  orderSummary: OrderSummary;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const { clearCart } = useCart();
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setPaying(true);
+    setPayError("");
+
+    const baseUrl = window.location.origin;
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${baseUrl}/checkout/success?order=${orderNumber}`,
+      },
+    });
+
+    if (error) {
+      setPayError(error.message || "Payment failed. Please try again.");
+      setPaying(false);
+    } else {
+      clearCart();
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Card input */}
+      <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <CreditCard className="w-5 h-5 text-neon-violet" />
+          <h2 className="text-lg font-semibold text-white">Payment</h2>
+        </div>
+        <PaymentElement
+          options={{
+            layout: "tabs",
+          }}
+        />
+      </div>
+
+      {/* Error */}
+      {payError && (
+        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+          {payError}
+        </div>
+      )}
+
+      {/* Order total & pay button */}
+      <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
+        <div className="space-y-2 mb-4">
+          <div className="flex justify-between text-sm">
+            <span className="text-[var(--muted)]">Subtotal</span>
+            <span className="text-white">£{orderSummary.subtotal.toFixed(2)}</span>
+          </div>
+          {orderSummary.discount > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-emerald-400">Discount ({orderSummary.coupon})</span>
+              <span className="text-emerald-400">-£{orderSummary.discount.toFixed(2)}</span>
+            </div>
+          )}
+          <div className="flex justify-between text-sm">
+            <span className="text-[var(--muted)]">Shipping</span>
+            <span className="text-white">
+              {orderSummary.shipping === 0 ? (
+                <span className="text-emerald-400">Free</span>
+              ) : (
+                `£${orderSummary.shipping.toFixed(2)}`
+              )}
+            </span>
+          </div>
+          <div className="border-t border-[var(--border)] pt-2 flex justify-between">
+            <span className="font-semibold text-white">Total</span>
+            <span className="text-xl font-bold text-white">£{orderSummary.total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={paying || !stripe || !elements}
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white font-semibold hover:shadow-lg hover:shadow-neon-violet/25 focus:outline-none focus:ring-2 focus:ring-neon-violet/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base"
+        >
+          {paying ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Shield className="w-5 h-5" />
+              Pay £{orderSummary.total.toFixed(2)}
+            </>
+          )}
+        </button>
+
+        <div className="flex items-center justify-center gap-1.5 mt-3 text-[var(--dim)] text-xs">
+          <Shield className="w-3.5 h-3.5" />
+          256-bit TLS encrypted · Powered by Stripe
+        </div>
+      </div>
+    </form>
+  );
+}
+
+// ─── Main Checkout Page ──────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items } = useCart();
+  const { items, total: cartTotal, itemCount } = useCart();
+  const { user, isLoaded } = useUser();
+  const { toast } = useToast();
 
-  // If cart has items, we generally redirect via Stripe from the cart drawer.
-  // This page is a fallback for direct navigation.
+  // Form state
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [line1, setLine1] = useState("");
+  const [line2, setLine2] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+
+  // Checkout state
+  const [clientSecret, setClientSecret] = useState("");
+  const [orderNumber, setOrderNumber] = useState("");
+  const [orderSummary, setOrderSummary] = useState<OrderSummary | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [step, setStep] = useState<"details" | "payment">("details");
+
+  // Pre-fill user info
   useEffect(() => {
-    if (items.length === 0) return;
-    // If someone lands here with items, send them back to shop
-    // They should use the cart drawer checkout flow
-  }, [items, router]);
+    if (user) {
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setEmail(user.primaryEmailAddress?.emailAddress || "");
+    }
+  }, [user]);
 
-  if (items.length > 0) {
+  // Redirect if not logged in
+  useEffect(() => {
+    if (isLoaded && !user) {
+      router.push("/sign-in");
+    }
+  }, [isLoaded, user, router]);
+
+  // Suppress unused toast warning — used for future enhancements
+  void toast;
+
+  const handleProceedToPayment = useCallback(async () => {
+    if (!line1.trim() || !city.trim() || !postalCode.trim()) {
+      setError("Please fill in all required address fields.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: items.map((i) => ({
+            productId: i.id,
+            quantity: i.quantity,
+            color: i.color,
+            size: i.size,
+          })),
+          customerEmail: email,
+          customerName: `${firstName} ${lastName}`.trim(),
+          couponCode: couponCode.trim() || undefined,
+          shippingAddress: {
+            line1: line1.trim(),
+            line2: line2.trim() || undefined,
+            city: city.trim(),
+            postalCode: postalCode.trim(),
+            country: "GB",
+          },
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to create payment. Please try again.");
+        return;
+      }
+
+      setClientSecret(data.clientSecret);
+      setOrderNumber(data.orderNumber);
+      setOrderSummary(data.orderSummary);
+      setStep("payment");
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [items, email, firstName, lastName, couponCode, line1, line2, city, postalCode]);
+
+  // Empty cart
+  if (isLoaded && items.length === 0 && step === "details") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--bg-primary)] px-6">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-neon-violet/10 flex items-center justify-center">
-          <ShoppingBag className="w-8 h-8 text-neon-violet" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] px-6">
+        <div className="w-16 h-16 rounded-full bg-[var(--overlay)] flex items-center justify-center mb-6">
+          <ShoppingBag className="w-8 h-8 text-[var(--subtle)]" />
         </div>
-        <h1 className="text-2xl font-bold text-heading mb-2 text-center">
-          Processing Checkout
-        </h1>
-        <p className="text-body mb-6 max-w-md text-center">
-          Please use the cart to proceed to checkout. You&apos;ll be redirected to our secure payment page.
+        <h1 className="text-2xl font-bold text-white mb-2">Your Cart is Empty</h1>
+        <p className="text-[var(--muted)] mb-6 text-center max-w-md">
+          Add some products to your cart before checking out.
         </p>
-        <div className="flex gap-3">
-          <Link
-            href="/shop"
-            className="px-6 py-3 border border-[var(--border)] text-heading rounded-xl font-medium hover:bg-[var(--hover)] transition-colors"
-          >
-            Continue Shopping
-          </Link>
-          <button
-            onClick={() => router.back()}
-            className="px-6 py-3 bg-neon-violet text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
-          >
-            Go Back
-          </button>
-        </div>
+        <Link
+          href="/shop"
+          className="px-6 py-3 bg-gradient-to-r from-neon-violet to-neon-purple text-white rounded-xl font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all"
+        >
+          Browse Products
+        </Link>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--bg-primary)] px-6">
-      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[var(--overlay)] flex items-center justify-center">
-        <ShoppingBag className="w-8 h-8 text-subtle-fg" />
+    <div className="min-h-screen bg-[#050505] relative">
+      {/* Background effects */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-neon-violet/5 rounded-full blur-[150px]" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-neon-blue/5 rounded-full blur-[150px]" />
       </div>
-      <h1 className="text-2xl font-bold text-heading mb-2 text-center">
-        Your Cart is Empty
-      </h1>
-      <p className="text-body mb-6 max-w-md text-center">
-        Looks like you haven&apos;t added anything to your cart yet. Browse our collection to find something you love.
-      </p>
-      <Link
-        href="/shop"
-        className="px-6 py-3 bg-neon-violet text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
-      >
-        Browse Products
-      </Link>
+
+      <div className="relative z-10 max-w-6xl mx-auto px-4 py-8 sm:py-12">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <button
+            onClick={() => step === "payment" ? setStep("details") : router.back()}
+            className="p-2 rounded-lg border border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-[var(--muted)]" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-white">Checkout</h1>
+            <p className="text-sm text-[var(--muted)]">
+              {step === "details" ? "Shipping details" : "Complete payment"}
+            </p>
+          </div>
+        </div>
+
+        {/* Steps indicator */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${step === "details" ? "bg-neon-violet/10 text-neon-violet border border-neon-violet/20" : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"}`}>
+            {step === "payment" ? <CheckCircle2 className="w-4 h-4" /> : <MapPin className="w-4 h-4" />}
+            1. Shipping
+          </div>
+          <div className="w-8 h-px bg-[var(--border)]" />
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${step === "payment" ? "bg-neon-violet/10 text-neon-violet border border-neon-violet/20" : "bg-[var(--elevated)] text-[var(--dim)] border border-[var(--border)]"}`}>
+            <CreditCard className="w-4 h-4" />
+            2. Payment
+          </div>
+        </div>
+
+        <div className="grid lg:grid-cols-5 gap-8">
+          {/* Left column — Form */}
+          <div className="lg:col-span-3">
+            {step === "details" ? (
+              <div className="space-y-6">
+                {/* Contact info */}
+                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
+                  <h2 className="text-lg font-semibold text-white mb-4">Contact Information</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">First name *</label>
+                      <input
+                        type="text"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Last name *</label>
+                      <input
+                        type="text"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Email *</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Shipping address */}
+                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPin className="w-5 h-5 text-neon-violet" />
+                    <h2 className="text-lg font-semibold text-white">Shipping Address</h2>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Address line 1 *</label>
+                      <input
+                        type="text"
+                        value={line1}
+                        onChange={(e) => setLine1(e.target.value)}
+                        placeholder="123 High Street"
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Address line 2</label>
+                      <input
+                        type="text"
+                        value={line2}
+                        onChange={(e) => setLine2(e.target.value)}
+                        placeholder="Flat 4B (optional)"
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">City *</label>
+                        <input
+                          type="text"
+                          value={city}
+                          onChange={(e) => setCity(e.target.value)}
+                          placeholder="London"
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Postcode *</label>
+                        <input
+                          type="text"
+                          value={postalCode}
+                          onChange={(e) => setPostalCode(e.target.value)}
+                          placeholder="SW1A 1AA"
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Country</label>
+                      <div className="px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm flex items-center gap-2">
+                        <span>🇬🇧</span> United Kingdom
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Coupon */}
+                <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Tag className="w-5 h-5 text-neon-violet" />
+                    <h2 className="text-lg font-semibold text-white">Coupon Code</h2>
+                  </div>
+                  <div className="flex gap-3">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                      placeholder="Enter code"
+                      className="flex-1 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all uppercase tracking-wider"
+                    />
+                    {couponCode && (
+                      <button
+                        type="button"
+                        onClick={() => setCouponCode("")}
+                        className="p-3 rounded-xl border border-[var(--border)] hover:bg-[var(--hover)] transition-colors"
+                      >
+                        <X className="w-4 h-4 text-[var(--muted)]" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Error */}
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    {error}
+                  </div>
+                )}
+
+                {/* Continue to payment */}
+                <button
+                  onClick={handleProceedToPayment}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white font-semibold hover:shadow-lg hover:shadow-neon-violet/25 focus:outline-none focus:ring-2 focus:ring-neon-violet/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Setting up payment...
+                    </>
+                  ) : (
+                    <>
+                      Continue to Payment
+                      <CreditCard className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : clientSecret && orderSummary ? (
+              <Elements
+                stripe={stripePromise}
+                options={{
+                  clientSecret,
+                  appearance: {
+                    theme: "night",
+                    variables: {
+                      colorPrimary: "#8b5cf6",
+                      colorBackground: "#0a0a0f",
+                      colorText: "#e1e2e6",
+                      colorTextSecondary: "#71717a",
+                      colorDanger: "#ef4444",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      borderRadius: "0.75rem",
+                      spacingUnit: "4px",
+                    },
+                    rules: {
+                      ".Input": {
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        boxShadow: "none",
+                        padding: "12px 16px",
+                      },
+                      ".Input:focus": {
+                        border: "1px solid rgba(139,92,246,0.5)",
+                        boxShadow: "0 0 0 1px rgba(139,92,246,0.25)",
+                      },
+                      ".Tab": {
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        backgroundColor: "#0a0a0f",
+                      },
+                      ".Tab--selected": {
+                        border: "1px solid rgba(139,92,246,0.5)",
+                        backgroundColor: "rgba(139,92,246,0.1)",
+                      },
+                      ".Label": {
+                        fontSize: "0.75rem",
+                        fontWeight: "500",
+                      },
+                    },
+                  },
+                }}
+              >
+                <PaymentForm orderNumber={orderNumber} orderSummary={orderSummary} />
+              </Elements>
+            ) : null}
+          </div>
+
+          {/* Right column — Order summary */}
+          <div className="lg:col-span-2">
+            <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6 sticky top-8">
+              <h2 className="text-lg font-semibold text-white mb-4">
+                Order Summary ({itemCount} {itemCount === 1 ? "item" : "items"})
+              </h2>
+
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                {items.map((item) => (
+                  <div
+                    key={`${item.id}-${item.color || ""}-${item.size || ""}`}
+                    className="flex gap-3 p-3 rounded-xl bg-[var(--elevated)] border border-[var(--border)]"
+                  >
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        width={60}
+                        height={60}
+                        className="w-[60px] h-[60px] rounded-lg object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-[60px] h-[60px] rounded-lg bg-[var(--overlay)] flex items-center justify-center flex-shrink-0">
+                        <ShoppingBag className="w-6 h-6 text-[var(--dim)]" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                      {(item.color || item.size) && (
+                        <p className="text-xs text-[var(--muted)] mt-0.5">
+                          {[item.color, item.size].filter(Boolean).join(" · ")}
+                        </p>
+                      )}
+                      <div className="flex justify-between items-end mt-1">
+                        <span className="text-xs text-[var(--muted)]">Qty: {item.quantity}</span>
+                        <span className="text-sm font-semibold text-neon-violet">
+                          £{(item.price * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-[var(--border)] mt-4 pt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[var(--muted)]">Subtotal</span>
+                  <span className="text-white">£{cartTotal.toFixed(2)}</span>
+                </div>
+                {orderSummary?.discount && orderSummary.discount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-emerald-400">Discount</span>
+                    <span className="text-emerald-400">-£{orderSummary.discount.toFixed(2)}</span>
+                  </div>
+                )}
+                {orderSummary ? (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[var(--muted)]">Shipping</span>
+                    <span className="text-white">
+                      {orderSummary.shipping === 0 ? (
+                        <span className="text-emerald-400">Free</span>
+                      ) : (
+                        `£${orderSummary.shipping.toFixed(2)}`
+                      )}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-[var(--muted)]">Shipping</span>
+                    <span className="text-[var(--dim)]">Calculated next step</span>
+                  </div>
+                )}
+              </div>
+
+              {orderSummary?.freeShippingReason && (
+                <div className="mt-3 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2 text-xs text-emerald-400">
+                  <Truck className="w-4 h-4 flex-shrink-0" />
+                  {orderSummary.freeShippingReason}
+                </div>
+              )}
+
+              <div className="border-t border-[var(--border)] mt-4 pt-4 flex justify-between">
+                <span className="font-semibold text-white">Total</span>
+                <span className="text-xl font-bold text-white">
+                  £{(orderSummary?.total ?? cartTotal).toFixed(2)}
+                </span>
+              </div>
+
+              {/* Trust badges */}
+              <div className="mt-6 pt-4 border-t border-[var(--border)] space-y-2">
+                <div className="flex items-center gap-2 text-xs text-[var(--dim)]">
+                  <Shield className="w-3.5 h-3.5" />
+                  Secure 256-bit TLS encryption
+                </div>
+                <div className="flex items-center gap-2 text-xs text-[var(--dim)]">
+                  <Truck className="w-3.5 h-3.5" />
+                  UK delivery in 3-5 business days
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

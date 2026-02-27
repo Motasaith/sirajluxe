@@ -17,9 +17,11 @@ export interface IOrder extends Document {
   customerName: string;
   items: IOrderItem[];
   subtotal: number;
+  discount: number;
   tax: number;
   shipping: number;
   total: number;
+  couponCode: string;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   paymentStatus: "pending" | "paid" | "failed" | "refunded";
   shippingAddress: {
@@ -54,9 +56,11 @@ const OrderSchema = new Schema<IOrder>(
       },
     ],
     subtotal: { type: Number, default: 0 },
+    discount: { type: Number, default: 0 },
     tax: { type: Number, default: 0 },
     shipping: { type: Number, default: 0 },
     total: { type: Number, required: true },
+    couponCode: { type: String, default: "" },
     status: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
