@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
+import { useSignIn, useSignUp } from "@clerk/nextjs";
 import { OAuthStrategy } from "@clerk/types";
 import { Loader2 } from "lucide-react";
 
@@ -10,28 +10,38 @@ interface OAuthButtonsProps {
 }
 
 export function OAuthButtons({ mode }: OAuthButtonsProps) {
-  // Always use signIn for OAuth — Clerk handles auto-signup via transfer
   const { signIn } = useSignIn();
+  const { signUp } = useSignUp();
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
 
   const handleOAuth = async (strategy: OAuthStrategy) => {
-    if (!signIn) return;
-
     setLoadingProvider(strategy);
 
     try {
-      await signIn.authenticateWithRedirect({
-        strategy,
-        redirectUrl: "/sign-in/sso-callback",
-        redirectUrlComplete: "/",
-      });
+      // Use the correct Clerk resource for each mode.
+      // sign-in → signIn.authenticateWithRedirect  (existing user)
+      // sign-up → signUp.authenticateWithRedirect  (new user)
+      // AuthenticateWithRedirectCallback handles transfers in either direction.
+      if (mode === "sign-up") {
+        if (!signUp) return;
+        await signUp.authenticateWithRedirect({
+          strategy,
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete: "/",
+        });
+      } else {
+        if (!signIn) return;
+        await signIn.authenticateWithRedirect({
+          strategy,
+          redirectUrl: "/sso-callback",
+          redirectUrlComplete: "/",
+        });
+      }
     } catch (err) {
       console.error("OAuth error:", err);
       setLoadingProvider(null);
     }
   };
-
-  void mode; // used by parent for context, OAuth always goes through signIn
 
   return (
     <div className="space-y-3">
