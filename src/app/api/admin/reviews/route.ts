@@ -20,10 +20,10 @@ export async function GET() {
     return NextResponse.json({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reviews: reviews.map((r: any) => ({
-        id: r._id.toString(),
+        _id: r._id.toString(),
         product: r.product
           ? {
-              id: r.product._id.toString(),
+              _id: r.product._id.toString(),
               name: r.product.name,
               slug: r.product.slug,
               image: r.product.image,
