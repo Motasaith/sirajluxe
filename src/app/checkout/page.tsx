@@ -155,7 +155,7 @@ function PaymentForm({
 // ─── Main Checkout Page ──────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, total: cartTotal, itemCount } = useCart();
+  const { items, total: cartTotal, itemCount, clearCart } = useCart();
   const { user, isLoaded } = useUser();
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
@@ -280,6 +280,13 @@ export default function CheckoutPage() {
         return;
       }
 
+      // Free order (100% discount or total below Stripe minimum)
+      if (data.freeOrder) {
+        clearCart();
+        router.push(`/checkout/success?order=${data.orderNumber}`);
+        return;
+      }
+
       setClientSecret(data.clientSecret);
       setOrderNumber(data.orderNumber);
       setOrderSummary(data.orderSummary);
@@ -289,7 +296,7 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false);
     }
-  }, [items, email, firstName, lastName, couponCode, line1, line2, city, postalCode]);
+  }, [items, email, firstName, lastName, couponCode, line1, line2, city, postalCode, clearCart, router]);
 
   // Empty cart
   if (isLoaded && items.length === 0 && step === "details") {

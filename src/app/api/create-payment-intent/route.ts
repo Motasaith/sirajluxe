@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import { Customer, Product, Coupon, Settings, Order } from "@/lib/models";
 import { rateLimit, getIP } from "@/lib/rate-limit";
+import { sendOrderConfirmation } from "@/lib/email";
 
 interface CartItem {
   productId: string;
@@ -173,7 +174,102 @@ export async function POST(req: NextRequest) {
     // --- Create Order Number ---
     const orderNumber = `SL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
-    // --- Create PaymentIntent ---
+    // --- Shared address & summary helpers ---
+    const typedAddress = shippingAddress as ShippingAddress;
+    const STRIPE_GBP_MINIMUM = 30; // Stripe minimum charge: £0.30 (30 pence)
+
+    const orderSummary = {
+      items: orderItems,
+      subtotal: subtotalPence / 100,
+      discount: discountPence / 100,
+      shipping: shippingPence / 100,
+      total: totalPence / 100,
+      freeShippingReason: qualifiesForFreeShipping
+        ? isFirstOrder
+          ? "First order — free shipping!"
+          : "Free shipping applied"
+        : null,
+      coupon: appliedCouponCode,
+    };
+
+    const shippingAddr = {
+      line1: typedAddress.line1,
+      line2: typedAddress.line2 || "",
+      city: typedAddress.city,
+      state: typedAddress.state || "",
+      postalCode: typedAddress.postalCode,
+      country: typedAddress.country || "GB",
+    };
+
+    // --- FREE ORDER: total below Stripe minimum (e.g. 100% coupon) ---
+    if (totalPence < STRIPE_GBP_MINIMUM) {
+      // Create order directly as paid — no Stripe needed
+      await Order.create({
+        orderNumber,
+        stripeSessionId: "",
+        paymentIntentId: `free_${orderNumber}`,
+        clerkUserId: userId,
+        customerEmail: resolvedEmail,
+        customerName: customerName || "",
+        items: orderItems,
+        subtotal: subtotalPence / 100,
+        discount: discountPence / 100,
+        shipping: shippingPence / 100,
+        tax: 0,
+        total: totalPence / 100,
+        status: "processing",
+        paymentStatus: "paid",
+        shippingAddress: shippingAddr,
+        ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
+      });
+
+      // Decrement inventory atomically
+      for (const [productId, qty] of Object.entries(productIdMap)) {
+        await Product.findByIdAndUpdate(productId, [
+          { $set: { inventory: { $max: [0, { $subtract: ["$inventory", qty as number] }] } } },
+          { $set: { inStock: { $gt: ["$inventory", 0] } } },
+        ]);
+      }
+
+      // Update customer stats
+      if (userId) {
+        await Customer.findOneAndUpdate(
+          { clerkId: userId },
+          {
+            $inc: {
+              orderCount: 1,
+              totalSpent: totalPence / 100,
+            },
+          }
+        );
+      }
+
+      // Send confirmation email (non-blocking)
+      if (resolvedEmail) {
+        sendOrderConfirmation({
+          to: resolvedEmail,
+          customerName: customerName || "Customer",
+          orderNumber,
+          items: orderItems,
+          subtotal: subtotalPence / 100,
+          shipping: shippingPence / 100,
+          total: totalPence / 100,
+          shippingAddress: shippingAddr,
+        }).catch((err) =>
+          console.error("Free order email failed:", err instanceof Error ? err.message : "Unknown")
+        );
+      }
+
+      console.log(`Free order created: ${orderNumber} (total: £${(totalPence / 100).toFixed(2)})`);
+
+      return NextResponse.json({
+        freeOrder: true,
+        orderNumber,
+        orderSummary,
+      });
+    }
+
+    // --- Create PaymentIntent (normal paid orders) ---
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalPence,
       currency: "gbp",
@@ -189,7 +285,6 @@ export async function POST(req: NextRequest) {
     });
 
     // --- Create Pending Order ---
-    const typedAddress = shippingAddress as ShippingAddress;
     await Order.create({
       orderNumber,
       stripeSessionId: "",
@@ -205,33 +300,14 @@ export async function POST(req: NextRequest) {
       total: totalPence / 100,
       status: "pending",
       paymentStatus: "pending",
-      shippingAddress: {
-        line1: typedAddress.line1,
-        line2: typedAddress.line2 || "",
-        city: typedAddress.city,
-        state: typedAddress.state || "",
-        postalCode: typedAddress.postalCode,
-        country: typedAddress.country || "GB",
-      },
+      shippingAddress: shippingAddr,
       ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
     });
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
       orderNumber,
-      orderSummary: {
-        items: orderItems,
-        subtotal: subtotalPence / 100,
-        discount: discountPence / 100,
-        shipping: shippingPence / 100,
-        total: totalPence / 100,
-        freeShippingReason: qualifiesForFreeShipping
-          ? isFirstOrder
-            ? "First order — free shipping!"
-            : "Free shipping applied"
-          : null,
-        coupon: appliedCouponCode,
-      },
+      orderSummary,
     });
   } catch (error) {
     console.error("POST /api/create-payment-intent error:", error instanceof Error ? error.message : "Unknown error");
