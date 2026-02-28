@@ -212,7 +212,7 @@ export default function CouponsPage() {
         onSubmit={handleCreate}
         className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6 mb-8"
       >
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
           <div>
             <label className="block text-xs text-gray-500 mb-1.5">Code</label>
             <input
@@ -351,19 +351,19 @@ export default function CouponsPage() {
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Value
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Min Order
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Uses
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                     Expires
                   </th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                     Visibility
                   </th>
                   <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -383,14 +383,14 @@ export default function CouponsPage() {
                         ? `${coupon.value}%`
                         : `£${coupon.value.toFixed(2)}`}
                     </td>
-                    <td className="px-5 py-3 text-sm text-gray-400">
+                    <td className="px-5 py-3 text-sm text-gray-400 hidden md:table-cell">
                       {coupon.minOrderAmount > 0 ? `£${coupon.minOrderAmount.toFixed(2)}` : "—"}
                     </td>
-                    <td className="px-5 py-3 text-sm text-gray-400">
+                    <td className="px-5 py-3 text-sm text-gray-400 hidden lg:table-cell">
                       {coupon.usedCount}
                       {coupon.maxUses > 0 ? ` / ${coupon.maxUses}` : " / ∞"}
                     </td>
-                    <td className="px-5 py-3 text-sm text-gray-400">
+                    <td className="px-5 py-3 text-sm text-gray-400 hidden lg:table-cell">
                       {formatDate(coupon.expiresAt)}
                     </td>
                     <td className="px-5 py-3">
@@ -404,7 +404,7 @@ export default function CouponsPage() {
                         {coupon.active ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 hidden md:table-cell">
                       <span
                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                           coupon.isPublic
@@ -464,7 +464,7 @@ export default function CouponsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6 w-full max-w-lg mx-4">
             <h3 className="text-lg font-semibold text-white mb-4">Edit Coupon</h3>
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-xs text-gray-500 mb-1.5">Code</label>
                 <input type="text" value={editCode} onChange={(e) => setEditCode(e.target.value.toUpperCase())} className={inputClass} required />

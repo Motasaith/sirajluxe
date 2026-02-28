@@ -199,14 +199,15 @@ export default function AdminDashboard() {
         {recentOrders.length === 0 ? (
           <div className="p-8 text-center text-gray-500 text-sm">No orders yet</div>
         ) : (
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.04]">
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Customer</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Date</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
@@ -214,19 +215,21 @@ export default function AdminDashboard() {
                 <tr key={order._id} className="hover:bg-white/[0.02] transition-colors cursor-pointer">
                   <td className="px-5 py-3 text-sm text-violet-400 font-mono">
                     <Link href={`/admin/orders/${order._id}`} className="hover:underline">{order.orderNumber}</Link>
+                    <p className="text-xs text-gray-500 md:hidden truncate max-w-[180px]">{order.customerEmail}</p>
                   </td>
-                  <td className="px-5 py-3 text-sm text-gray-300">{order.customerEmail}</td>
+                  <td className="px-5 py-3 text-sm text-gray-300 hidden md:table-cell">{order.customerEmail}</td>
                   <td className="px-5 py-3 text-sm text-white font-medium">£{order.total.toFixed(2)}</td>
                   <td className="px-5 py-3">
                     <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${statusColors[order.status] || statusColors.pending}`}>
                       {order.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="px-5 py-3 text-sm text-gray-500 hidden sm:table-cell">{new Date(order.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

@@ -175,7 +175,7 @@ export default function AdminReviewsPage() {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <span className="font-medium text-white text-sm">
                       {review.userName}
                     </span>

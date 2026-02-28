@@ -120,7 +120,7 @@ export default function CategoriesPage() {
 
       {/* Create Form */}
       <form onSubmit={handleCreate} className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6 mb-8">
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <input type="text" placeholder="Category name" value={name} onChange={(e) => setName(e.target.value)} className={inputClass} required />
           </div>
@@ -130,7 +130,7 @@ export default function CategoriesPage() {
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 transition-colors disabled:opacity-50"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 transition-colors disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             Add
@@ -149,12 +149,13 @@ export default function CategoriesPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.04]">
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Slug</th>
-                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Description</th>
                 <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -167,7 +168,7 @@ export default function CategoriesPage() {
                     ) : cat.name}
                   </td>
                   <td className="px-5 py-3 text-sm text-gray-500 font-mono hidden sm:table-cell">{cat.slug}</td>
-                  <td className="px-5 py-3 text-sm text-gray-400">
+                  <td className="px-5 py-3 text-sm text-gray-400 hidden sm:table-cell">
                     {editingId === cat._id ? (
                       <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className={inputClass} />
                     ) : (cat.description || "—")}
@@ -203,6 +204,7 @@ export default function CategoriesPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

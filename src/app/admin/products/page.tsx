@@ -202,6 +202,7 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.04]">
@@ -298,6 +299,7 @@ export default function ProductsPage() {
               })}
             </tbody>
           </table>
+          </div>
           <Pagination page={page} pages={pages} total={total} onPageChange={setPage} />
         </div>
       )}

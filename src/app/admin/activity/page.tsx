@@ -83,12 +83,12 @@ export default function ActivityPage() {
       {/* Filter */}
       <div className="flex items-center gap-2 mb-6">
         <Filter className="w-4 h-4 text-gray-500" />
-        <div className="flex gap-1 p-0.5 rounded-lg bg-[#0d0d12] border border-white/[0.06]">
+        <div className="flex gap-1 p-0.5 rounded-lg bg-[#0d0d12] border border-white/[0.06] overflow-x-auto">
           {entities.map((e) => (
             <button
               key={e}
               onClick={() => { setEntityFilter(e); setPage(1); }}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize ${
+              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors capitalize whitespace-nowrap ${
                 entityFilter === e
                   ? "bg-violet-600 text-white"
                   : "text-gray-400 hover:text-white"

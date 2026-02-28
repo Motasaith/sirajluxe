@@ -163,6 +163,7 @@ export default function AdminBlogPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-white/[0.06] overflow-hidden">
+          <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-white/[0.06] bg-white/[0.02]">
@@ -248,6 +249,7 @@ export default function AdminBlogPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

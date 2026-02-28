@@ -147,7 +147,7 @@ export default function OrdersPage() {
           <h1 className="text-2xl font-bold text-white">Orders</h1>
           <p className="text-sm text-gray-500 mt-1">{total} orders</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button onClick={exportCSV} className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/[0.06] text-gray-400 text-sm hover:text-white hover:bg-white/[0.03] transition-colors">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>

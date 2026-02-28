@@ -95,7 +95,7 @@ function OrderTimeline({ status }: { status: string }) {
           <div key={step} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 transition-all ${
                   isCompleted
                     ? "bg-violet-500 border-violet-500"
                     : isCancelled && i === 0
@@ -302,13 +302,13 @@ export default function AdminOrderDetailPage() {
             {formatDate(order.createdAt)}
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <button
             onClick={() => window.print()}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/[0.06] text-gray-400 hover:text-white hover:border-white/10 text-xs transition-colors print:hidden"
           >
             <Printer className="w-3.5 h-3.5" />
-            Print Invoice
+            <span className="hidden sm:inline">Print Invoice</span>
           </button>
           {order.paymentStatus === "paid" && (
             <button
