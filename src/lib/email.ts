@@ -393,3 +393,81 @@ export async function sendReturnRequest({
     html: baseTemplate("Return Request", body),
   });
 }
+
+// ──────────────────────────────────────────────
+// 7. Return Approved Email (to Customer)
+// ──────────────────────────────────────────────
+export async function sendReturnApproved({
+  to,
+  customerName,
+  orderNumber,
+  total,
+}: {
+  to: string;
+  customerName: string;
+  orderNumber: string;
+  total: number;
+}) {
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Approved ✓</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
+      Hi ${escapeHtml(customerName) || "there"}, great news — your return request for order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been approved.
+    </p>
+
+    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
+      <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
+        💳 A refund of <strong style="color:#e1e2e6;">${currency(total)}</strong> will be processed within <strong style="color:#c4c4d0;">5–10 business days</strong>.<br/><br/>
+        📦 If you need to return the item, please ensure it is in its original packaging and post it within 7 days.
+      </p>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View Your Orders</a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `Return Approved — ${orderNumber} | Siraj Luxe`,
+    html: baseTemplate("Return Approved", body),
+  });
+}
+
+// ──────────────────────────────────────────────
+// 8. Return Denied Email (to Customer)
+// ──────────────────────────────────────────────
+export async function sendReturnDenied({
+  to,
+  customerName,
+  orderNumber,
+}: {
+  to: string;
+  customerName: string;
+  orderNumber: string;
+}) {
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Request Update</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
+      Hi ${escapeHtml(customerName) || "there"}, unfortunately your return request for order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been declined.
+    </p>
+
+    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
+      <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
+        This may be because the return request didn&rsquo;t meet our <a href="${SITE_URL}/returns" style="color:#8b5cf6;text-decoration:underline;">return policy</a> requirements.<br/><br/>
+        If you believe this was an error, please <a href="${SITE_URL}/contact" style="color:#8b5cf6;text-decoration:underline;">contact our support team</a> and we&rsquo;ll be happy to help.
+      </p>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="${SITE_URL}/contact" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Contact Support</a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `Return Request Update — ${orderNumber} | Siraj Luxe`,
+    html: baseTemplate("Return Request Update", body),
+  });
+}

@@ -102,6 +102,13 @@ function ShopContent() {
   const sortRef = useRef<HTMLDivElement>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
+  // Advanced filter state
+  const [selectedColor, setSelectedColor] = useState(() => searchParams.get("color") || "");
+  const [selectedSize, setSelectedSize] = useState(() => searchParams.get("size") || "");
+  const [minRating, setMinRating] = useState(() => searchParams.get("minRating") || "");
+  const [availableColors, setAvailableColors] = useState<string[]>([]);
+  const [availableSizes, setAvailableSizes] = useState<string[]>([]);
+
   // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 400);
@@ -112,7 +119,7 @@ function ShopContent() {
   useEffect(() => {
     if (!mountedRef.current) return;
     setCurrentPage(1);
-  }, [activeFilter, debouncedSearch, sortBy, minPrice, maxPrice]);
+  }, [activeFilter, debouncedSearch, sortBy, minPrice, maxPrice, selectedColor, selectedSize, minRating]);
 
   // Sync filters to URL (skip initial mount)
   useEffect(() => {
@@ -124,9 +131,12 @@ function ShopContent() {
     if (currentPage > 1) params.set("page", currentPage.toString());
     if (minPrice) params.set("minPrice", minPrice);
     if (maxPrice) params.set("maxPrice", maxPrice);
+    if (selectedColor) params.set("color", selectedColor);
+    if (selectedSize) params.set("size", selectedSize);
+    if (minRating) params.set("minRating", minRating);
     const newUrl = params.toString() ? `/shop?${params}` : "/shop";
     router.replace(newUrl, { scroll: false });
-  }, [activeFilter, debouncedSearch, sortBy, currentPage, minPrice, maxPrice, router]);
+  }, [activeFilter, debouncedSearch, sortBy, currentPage, minPrice, maxPrice, selectedColor, selectedSize, minRating, router]);
 
   // Mark component as mounted (must be AFTER the guard effects above)
   useEffect(() => {
@@ -174,18 +184,23 @@ function ShopContent() {
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (minPrice) params.set("minPrice", minPrice);
       if (maxPrice) params.set("maxPrice", maxPrice);
+      if (selectedColor) params.set("color", selectedColor);
+      if (selectedSize) params.set("size", selectedSize);
+      if (minRating) params.set("minRating", minRating);
 
       const res = await fetch(`/api/products?${params.toString()}`);
       const data = await res.json();
       setProducts(data.docs || []);
       setTotalPages(data.totalPages || 1);
       setTotalProducts(data.total || 0);
+      if (data.availableColors) setAvailableColors(data.availableColors);
+      if (data.availableSizes) setAvailableSizes(data.availableSizes);
     } catch (e) {
       console.error("Failed to fetch products:", e);
     } finally {
       setLoading(false);
     }
-  }, [activeFilter, debouncedSearch, sortBy, minPrice, maxPrice, currentPage]);
+  }, [activeFilter, debouncedSearch, sortBy, minPrice, maxPrice, selectedColor, selectedSize, minRating, currentPage]);
 
   useEffect(() => {
     fetchProducts();
@@ -225,6 +240,9 @@ function ShopContent() {
     setSortBy("newest");
     setMinPrice("");
     setMaxPrice("");
+    setSelectedColor("");
+    setSelectedSize("");
+    setMinRating("");
     setCurrentPage(1);
   };
 
@@ -233,6 +251,9 @@ function ShopContent() {
     debouncedSearch ||
     minPrice ||
     maxPrice ||
+    selectedColor ||
+    selectedSize ||
+    minRating ||
     sortBy !== "newest";
 
   return (
@@ -406,36 +427,121 @@ function ShopContent() {
                 className="overflow-hidden mb-8"
               >
                 <div className="glass-card p-6">
-                  <h3 className="text-sm font-semibold text-heading mb-4">
-                    Price Range
-                  </h3>
-                  <div className="flex items-center gap-4 max-w-md">
-                    <div className="flex-1">
-                      <label className="text-xs text-muted-fg mb-1 block">
-                        Min (£)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={minPrice}
-                        onChange={(e) => setMinPrice(e.target.value)}
-                        placeholder="0"
-                        className="w-full px-3 py-2 rounded-xl bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet"
-                      />
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* Price Range */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-heading mb-3">
+                        Price Range
+                      </h3>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <label className="text-xs text-muted-fg mb-1 block">
+                            Min (£)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                            placeholder="0"
+                            className="w-full px-3 py-2 rounded-xl bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet"
+                          />
+                        </div>
+                        <span className="text-muted-fg mt-5">—</span>
+                        <div className="flex-1">
+                          <label className="text-xs text-muted-fg mb-1 block">
+                            Max (£)
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                            placeholder="Any"
+                            className="w-full px-3 py-2 rounded-xl bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-muted-fg mt-5">—</span>
-                    <div className="flex-1">
-                      <label className="text-xs text-muted-fg mb-1 block">
-                        Max (£)
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={maxPrice}
-                        onChange={(e) => setMaxPrice(e.target.value)}
-                        placeholder="Any"
-                        className="w-full px-3 py-2 rounded-xl bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet"
-                      />
+
+                    {/* Color Filter */}
+                    {availableColors.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-heading mb-3">
+                          Color
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {availableColors.map((color) => (
+                            <button
+                              key={color}
+                              onClick={() => setSelectedColor(selectedColor === color ? "" : color)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                selectedColor === color
+                                  ? "bg-neon-violet text-white"
+                                  : "bg-[var(--overlay)] border border-[var(--border)] text-body hover:text-heading hover:border-neon-violet/30"
+                              }`}
+                            >
+                              {color}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Size Filter */}
+                    {availableSizes.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold text-heading mb-3">
+                          Size
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {availableSizes.map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => setSelectedSize(selectedSize === size ? "" : size)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                                selectedSize === size
+                                  ? "bg-neon-violet text-white"
+                                  : "bg-[var(--overlay)] border border-[var(--border)] text-body hover:text-heading hover:border-neon-violet/30"
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rating Filter */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-heading mb-3">
+                        Minimum Rating
+                      </h3>
+                      <div className="flex flex-col gap-1.5">
+                        {[4, 3, 2, 1].map((rating) => (
+                          <button
+                            key={rating}
+                            onClick={() => setMinRating(minRating === String(rating) ? "" : String(rating))}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-all ${
+                              minRating === String(rating)
+                                ? "bg-neon-violet/10 text-neon-violet border border-neon-violet/20"
+                                : "text-body hover:text-heading hover:bg-[var(--overlay)]"
+                            }`}
+                          >
+                            <div className="flex items-center gap-0.5">
+                              {[...Array(5)].map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`w-3 h-3 ${
+                                    i < rating ? "fill-amber-400 text-amber-400" : "text-subtle-fg"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-xs">& up</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 

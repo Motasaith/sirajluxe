@@ -25,6 +25,7 @@ import {
   AlertTriangle,
   Clock,
   X,
+  FileText,
 } from "lucide-react";
 
 interface OrderItem {
@@ -299,6 +300,17 @@ export default function OrderDetailPage() {
                   >
                     {order.paymentStatus}
                   </span>
+                  {order.paymentStatus === "paid" && (
+                    <Link
+                      href={`/orders/${order._id}/invoice`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border border-[var(--border)] text-heading hover:bg-[var(--hover)] hover:border-neon-violet/30 transition-all"
+                      title="View Invoice"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Invoice
+                    </Link>
+                  )}
                 </div>
               </div>
 

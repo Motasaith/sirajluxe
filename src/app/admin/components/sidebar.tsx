@@ -19,6 +19,7 @@ import {
   Menu,
   X,
   ClipboardList,
+  MessageCircleQuestion,
 } from "lucide-react";
 
 const navItems = [
@@ -29,6 +30,7 @@ const navItems = [
   { label: "Coupons", href: "/admin/coupons", icon: Ticket },
   { label: "Customers", href: "/admin/customers", icon: Users },
   { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
+  { label: "Q&A", href: "/admin/questions", icon: MessageCircleQuestion },
   { label: "Site Editor", href: "/admin/site-editor", icon: PenTool },
   { label: "Blog", href: "/admin/blog", icon: FileText },
   { label: "Media", href: "/admin/media", icon: ImageIcon },

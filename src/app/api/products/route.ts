@@ -20,6 +20,9 @@ export async function GET(req: NextRequest) {
     const sort = searchParams.get("sort") || "newest";
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
+    const color = searchParams.get("color") || "";
+    const size = searchParams.get("size") || "";
+    const minRating = searchParams.get("minRating");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: any = {};
@@ -32,6 +35,9 @@ export async function GET(req: NextRequest) {
       if (minPrice) filter.price.$gte = parseFloat(minPrice);
       if (maxPrice) filter.price.$lte = parseFloat(maxPrice);
     }
+    if (color) filter.colors = color;
+    if (size) filter.sizes = size;
+    if (minRating) filter.rating = { $gte: parseFloat(minRating) };
 
     // Sort options
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,9 +52,11 @@ export async function GET(req: NextRequest) {
     }
 
     const skip = (page - 1) * limit;
-    const [products, total] = await Promise.all([
+    const [products, total, allColors, allSizes] = await Promise.all([
       Product.find(filter).sort(sortQuery).skip(skip).limit(limit).lean(),
       Product.countDocuments(filter),
+      Product.distinct("colors"),
+      Product.distinct("sizes"),
     ]);
 
     return NextResponse.json({
@@ -63,6 +71,8 @@ export async function GET(req: NextRequest) {
       total,
       page,
       totalPages: Math.ceil(total / limit),
+      availableColors: allColors.filter(Boolean).sort(),
+      availableSizes: allSizes.filter(Boolean),
     });
   } catch (error) {
     console.error("GET /api/products error:", error instanceof Error ? error.message : "Unknown error");

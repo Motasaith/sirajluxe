@@ -8,7 +8,7 @@ export { Order } from "./order";
 export type { IOrder, IOrderItem } from "./order";
 
 export { Customer } from "./customer";
-export type { ICustomer } from "./customer";
+export type { ICustomer, IAddress } from "./customer";
 
 export { Media } from "./media";
 export type { IMedia } from "./media";
@@ -36,3 +36,6 @@ export type { ISettings } from "./settings";
 
 export { ActivityLog } from "./activity-log";
 export type { IActivityLog } from "./activity-log";
+
+export { Question } from "./question";
+export type { IQuestion } from "./question";

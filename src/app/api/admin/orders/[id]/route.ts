@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Order } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
-import { sendOrderShipped, sendOrderDelivered } from "@/lib/email";
+import { sendOrderShipped, sendOrderDelivered, sendReturnApproved, sendReturnDenied } from "@/lib/email";
 import { validateEnum, ORDER_STATUSES, ensureString } from "@/lib/validation";
 import { logActivity } from "@/lib/activity-logger";
 
@@ -99,6 +99,30 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
       } catch (emailErr) {
         console.error("Failed to send status email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
+      }
+    }
+
+    // Send return status emails
+    if (prev && prev.returnStatus !== updated.returnStatus && updated.customerEmail) {
+      try {
+        if (updated.returnStatus === "approved") {
+          await sendReturnApproved({
+            to: updated.customerEmail,
+            customerName: updated.customerName || "",
+            orderNumber: updated.orderNumber,
+            total: updated.total,
+          });
+          console.log(`Return approved email sent for ${updated.orderNumber}`);
+        } else if (updated.returnStatus === "denied") {
+          await sendReturnDenied({
+            to: updated.customerEmail,
+            customerName: updated.customerName || "",
+            orderNumber: updated.orderNumber,
+          });
+          console.log(`Return denied email sent for ${updated.orderNumber}`);
+        }
+      } catch (emailErr) {
+        console.error("Failed to send return email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
       }
     }
 

@@ -28,6 +28,7 @@ import {
   Copy,
   CheckCircle2,
   AlertCircle,
+  MessageCircleQuestion,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -169,6 +170,14 @@ export default function ProductDetailPage() {
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Q&A
+  const [questions, setQuestions] = useState<{ id: string; userName: string; question: string; answer: string | null; answeredAt: string | null; createdAt: string }[]>([]);
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [questionText, setQuestionText] = useState("");
+  const [questionSubmitting, setQuestionSubmitting] = useState(false);
+  const [questionError, setQuestionError] = useState("");
+  const [questionSuccess, setQuestionSuccess] = useState(false);
+
   // All images for gallery
   const allImages = product
     ? [product.image, ...(product.images?.map((img) => img.url) || [])].filter(
@@ -193,6 +202,7 @@ export default function ProductDetailPage() {
           addToRecentlyViewed(match);
           fetchRelated(match.category, match.id);
           fetchReviews(match.id);
+          fetchQuestions(match.id);
         }
       } catch (e) {
         console.error("Failed to load product:", e);
@@ -234,6 +244,43 @@ export default function ProductDetailPage() {
       );
     } catch {
       /* ignore */
+    }
+  };
+
+  const fetchQuestions = async (productId: string) => {
+    try {
+      const res = await fetch(`/api/questions?productId=${productId}`);
+      const data = await res.json();
+      setQuestions(data.questions || []);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleAskQuestion = async () => {
+    if (!product || !questionText.trim()) return;
+    setQuestionSubmitting(true);
+    setQuestionError("");
+    setQuestionSuccess(false);
+    try {
+      const res = await fetch("/api/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id, question: questionText.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setQuestionError(data.error || "Failed to submit question");
+        return;
+      }
+      setQuestionSuccess(true);
+      setQuestionText("");
+      setShowQuestionForm(false);
+      fetchQuestions(product.id);
+    } catch {
+      setQuestionError("Something went wrong. Please try again.");
+    } finally {
+      setQuestionSubmitting(false);
     }
   };
 
@@ -1204,6 +1251,118 @@ export default function ProductDetailPage() {
                   )}
                 </AnimatePresence>
               </div>
+
+              {/* ─── Q&A Section ─── */}
+              <section className="mt-24">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold text-heading flex items-center gap-3">
+                    <MessageCircleQuestion className="w-6 h-6 text-neon-violet" />
+                    Questions & Answers
+                    {questions.length > 0 && (
+                      <span className="text-base font-normal text-muted-fg">({questions.length})</span>
+                    )}
+                  </h2>
+                  {isSignedIn && (
+                    <button
+                      onClick={() => { setShowQuestionForm(!showQuestionForm); setQuestionError(""); setQuestionSuccess(false); }}
+                      className="px-4 py-2 rounded-xl text-sm font-medium border border-[var(--border)] text-heading hover:bg-[var(--hover)] transition-all"
+                    >
+                      Ask a Question
+                    </button>
+                  )}
+                </div>
+
+                {/* Ask form */}
+                <AnimatePresence>
+                  {showQuestionForm && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden mb-6"
+                    >
+                      <div className="rounded-2xl border border-[var(--border)] bg-[var(--overlay)] p-6 space-y-4">
+                        {questionError && (
+                          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4 shrink-0" />
+                            {questionError}
+                          </div>
+                        )}
+                        <textarea
+                          value={questionText}
+                          onChange={(e) => setQuestionText(e.target.value)}
+                          maxLength={500}
+                          rows={3}
+                          placeholder="What would you like to know about this product?"
+                          className="w-full px-4 py-3 rounded-xl bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet/50 focus:ring-2 focus:ring-neon-violet/20 transition-all resize-none placeholder:text-subtle-fg"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-subtle-fg">{questionText.length}/500</span>
+                          <button
+                            onClick={handleAskQuestion}
+                            disabled={questionSubmitting || questionText.trim().length < 5}
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50 flex items-center gap-2"
+                          >
+                            {questionSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                            Submit Question
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {questionSuccess && (
+                  <div className="mb-6 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-400 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    Your question has been submitted! We&apos;ll respond soon.
+                  </div>
+                )}
+
+                {!isSignedIn && (
+                  <div className="mb-6 text-sm text-muted-fg">
+                    <Link href="/sign-in" className="text-neon-violet hover:underline">Sign in</Link> to ask a question about this product.
+                  </div>
+                )}
+
+                {/* Questions list */}
+                {questions.length > 0 ? (
+                  <div className="space-y-4">
+                    {questions.map((q) => (
+                      <div key={q.id} className="rounded-2xl border border-[var(--border)] bg-[var(--overlay)] p-5">
+                        <div className="flex items-start gap-3 mb-2">
+                          <span className="text-neon-violet font-bold text-sm mt-0.5">Q:</span>
+                          <div className="flex-1">
+                            <p className="text-sm text-heading font-medium">{q.question}</p>
+                            <p className="text-xs text-subtle-fg mt-1">
+                              Asked by {q.userName} · {new Date(q.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                            </p>
+                          </div>
+                        </div>
+                        {q.answer && (
+                          <div className="flex items-start gap-3 mt-3 pt-3 border-t border-[var(--border)]">
+                            <span className="text-emerald-400 font-bold text-sm mt-0.5">A:</span>
+                            <div className="flex-1">
+                              <p className="text-sm text-body">{q.answer}</p>
+                              <p className="text-xs text-subtle-fg mt-1 flex items-center gap-1">
+                                <Shield className="w-3 h-3" />
+                                Siraj Luxe · {q.answeredAt ? new Date(q.answeredAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : ""}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {!q.answer && (
+                          <p className="text-xs text-subtle-fg mt-2 ml-6 italic">Awaiting response from Siraj Luxe</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-fg text-sm">
+                    No questions yet. Be the first to ask!
+                  </div>
+                )}
+              </section>
 
               {/* ─── Related Products ─── */}
               {relatedProducts.length > 0 && (
