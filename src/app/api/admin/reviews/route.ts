@@ -92,9 +92,16 @@ export async function DELETE(req: NextRequest) {
 
   try {
     await connectDB();
-    const { reviewId } = await req.json();
 
-    if (!isValidObjectId(reviewId)) {
+    // Support both query param and JSON body for reviewId
+    const url = new URL(req.url);
+    let reviewId = url.searchParams.get("reviewId");
+    if (!reviewId) {
+      const body = await req.json().catch(() => ({}));
+      reviewId = body.reviewId || null;
+    }
+
+    if (!reviewId || !isValidObjectId(reviewId)) {
       return NextResponse.json({ error: "Valid reviewId required" }, { status: 400 });
     }
 
