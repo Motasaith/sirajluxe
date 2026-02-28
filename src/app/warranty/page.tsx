@@ -54,8 +54,8 @@ export default function WarrantyPage() {
               <ol className="list-decimal pl-5 space-y-2">
                 <li>
                   Email us at{" "}
-                  <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">
-                    support@sirajluxe.com
+                  <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">
+                    binacodesecommercestore@gmail.com
                   </a>{" "}
                   with your order number and a description of the defect.
                 </li>
@@ -94,8 +94,8 @@ export default function WarrantyPage() {
               <h2 className="text-xl font-bold text-heading mb-3">Contact</h2>
               <p>
                 For warranty enquiries, email us at{" "}
-                <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">
-                  support@sirajluxe.com
+                <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">
+                  binacodesecommercestore@gmail.com
                 </a>
                 .
               </p>

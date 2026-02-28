@@ -60,7 +60,7 @@ export default function ShippingPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">Issues with Delivery?</h2>
-              <p>If your order hasn&apos;t arrived within the estimated timeframe, please contact us at <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
+              <p>If your order hasn&apos;t arrived within the estimated timeframe, please contact us at <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">binacodesecommercestore@gmail.com</a>.</p>
             </section>
           </div>
         </div>

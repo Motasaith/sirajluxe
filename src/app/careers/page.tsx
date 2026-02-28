@@ -81,7 +81,7 @@ export default function CareersPage() {
                 We don&apos;t have any open roles at the moment, but we&apos;re always interested in hearing from talented people. Send us your CV and a short note about why you&apos;d be a great fit.
               </p>
               <a
-                href="mailto:support@sirajluxe.com?subject=Career%20Enquiry"
+                href="mailto:binacodesecommercestore@gmail.com?subject=Career%20Enquiry"
                 className="inline-flex px-6 py-2.5 rounded-xl bg-neon-violet text-white text-sm font-medium hover:shadow-neon transition-all"
               >
                 Send Your CV

@@ -22,8 +22,8 @@ export default function ContactPage() {
               <Mail className="w-8 h-8 text-neon-violet mx-auto mb-4" />
               <h2 className="text-lg font-semibold text-heading mb-2">Email</h2>
               <p className="text-body mb-4">For orders, returns, and general enquiries</p>
-              <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline font-medium">
-                support@sirajluxe.com
+              <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline font-medium">
+                binacodesecommercestore@gmail.com
               </a>
             </div>
 

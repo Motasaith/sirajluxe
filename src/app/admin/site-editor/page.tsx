@@ -277,7 +277,7 @@ const SECTION_GROUPS: GroupConfig[] = [
         fields: [
           { key: "title", label: "Page Title", type: "text", placeholder: "Contact Us" },
           { key: "subtitle", label: "Subtitle", type: "textarea", placeholder: "Have a question or need help? We'd love to hear from you." },
-          { key: "email", label: "Email Address", type: "text", placeholder: "support@sirajluxe.com" },
+          { key: "email", label: "Email Address", type: "text", placeholder: "binacodesecommercestore@gmail.com" },
           { key: "emailDescription", label: "Email Description", type: "text", placeholder: "Send us an email and we'll get back to you." },
           { key: "responseTime", label: "Response Time", type: "text", placeholder: "24 hours" },
           { key: "responseHours", label: "Working Hours", type: "text", placeholder: "Mon–Fri, 9am–5pm GMT" },
@@ -289,7 +289,7 @@ const SECTION_GROUPS: GroupConfig[] = [
         description: "Frequently asked questions",
         fields: [
           { key: "title", label: "Page Title", type: "text", placeholder: "Frequently Asked Questions" },
-          { key: "subtitle", label: "Subtitle", type: "textarea", placeholder: "Can't find what you're looking for? Email us at support@sirajluxe.com" },
+          { key: "subtitle", label: "Subtitle", type: "textarea", placeholder: "Can't find what you're looking for? Email us at binacodesecommercestore@gmail.com" },
           {
             key: "items",
             label: "FAQ Items",

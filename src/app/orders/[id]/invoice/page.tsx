@@ -220,7 +220,7 @@ export default function InvoicePage() {
         {/* Footer */}
         <div className="mt-12 pt-8 border-t border-gray-200 text-center">
           <p className="text-xs text-gray-400">
-            Thank you for shopping with Siraj Luxe. For questions about this invoice, contact us at support@sirajluxe.com
+            Thank you for shopping with Siraj Luxe. For questions about this invoice, contact us at binacodesecommercestore@gmail.com
           </p>
           <p className="text-xs text-gray-400 mt-1">
             sirajluxe.com &middot; UK Premium E-Commerce

@@ -69,7 +69,7 @@ const defaultFaqs = [
   {
     question: "My order hasn't arrived. What should I do?",
     answer:
-      "If your order hasn't arrived within 5 business days of dispatch, please email us at support@sirajluxe.com with your order number and we'll investigate immediately.",
+      "If your order hasn't arrived within 5 business days of dispatch, please email us at binacodesecommercestore@gmail.com with your order number and we'll investigate immediately.",
   },
   {
     question: "Do I need an account to place an order?",
@@ -79,7 +79,7 @@ const defaultFaqs = [
   {
     question: "How do I delete my account?",
     answer:
-      "To request account deletion, email us at support@sirajluxe.com. We'll process your request in line with UK GDPR regulations.",
+      "To request account deletion, email us at binacodesecommercestore@gmail.com. We'll process your request in line with UK GDPR regulations.",
   },
   {
     question: "Do your products come with a warranty?",
@@ -94,7 +94,7 @@ const defaultFaqs = [
   {
     question: "How do I contact customer support?",
     answer:
-      "Email us at support@sirajluxe.com or use the live chat on our website. Our support team is available Monday–Friday, 9am–5pm GMT, and typically responds within 24 hours.",
+      "Email us at binacodesecommercestore@gmail.com or use the live chat on our website. Our support team is available Monday–Friday, 9am–5pm GMT, and typically responds within 24 hours.",
   },
   {
     question: "Do you have a loyalty or rewards programme?",
@@ -141,10 +141,10 @@ export default async function FAQPage() {
           <p className="text-muted-fg mb-12">
             {pageSubtitle || <>Can&apos;t find what you&apos;re looking for? Contact us at{" "}
             <a
-              href="mailto:support@sirajluxe.com"
+              href="mailto:binacodesecommercestore@gmail.com"
               className="text-neon-violet hover:underline"
             >
-              support@sirajluxe.com
+              binacodesecommercestore@gmail.com
             </a></>}
           </p>
 

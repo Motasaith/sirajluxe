@@ -37,7 +37,7 @@ export default function CookiesPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">Contact</h2>
-              <p>Questions? Email <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
+              <p>Questions? Email <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">binacodesecommercestore@gmail.com</a>.</p>
             </section>
           </div>
         </div>

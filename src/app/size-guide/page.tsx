@@ -131,8 +131,8 @@ export default function SizeGuidePage() {
             <section>
               <p className="text-muted-fg text-sm">
                 Need help choosing the right size? Email us at{" "}
-                <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">
-                  support@sirajluxe.com
+                <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">
+                  binacodesecommercestore@gmail.com
                 </a>{" "}
                 with the product name and your measurements, and we&apos;ll recommend the best size for you.
               </p>

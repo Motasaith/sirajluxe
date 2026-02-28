@@ -84,8 +84,8 @@ export default function AccessibilityPage() {
               <ul className="list-disc pl-5 space-y-2">
                 <li>
                   Email:{" "}
-                  <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">
-                    support@sirajluxe.com
+                  <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">
+                    binacodesecommercestore@gmail.com
                   </a>
                 </li>
                 <li>Subject line: &quot;Accessibility Feedback&quot;</li>

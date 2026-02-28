@@ -71,8 +71,8 @@ export default function PressPage() {
                 <Newspaper className="w-6 h-6 text-neon-violet flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="text-heading font-medium">Press Contact</p>
-                  <a href="mailto:support@sirajluxe.com?subject=Media%20Enquiry" className="text-neon-violet hover:underline text-sm">
-                    support@sirajluxe.com
+                  <a href="mailto:binacodesecommercestore@gmail.com?subject=Media%20Enquiry" className="text-neon-violet hover:underline text-sm">
+                    binacodesecommercestore@gmail.com
                   </a>
                   <p className="text-xs text-muted-fg mt-1">
                     Please include &quot;Media Enquiry&quot; in the subject line. We respond within 48 hours.
@@ -101,7 +101,7 @@ export default function PressPage() {
                   No press mentions yet. Be the first to feature Siraj Luxe!
                 </p>
                 <a
-                  href="mailto:support@sirajluxe.com?subject=Media%20Enquiry"
+                  href="mailto:binacodesecommercestore@gmail.com?subject=Media%20Enquiry"
                   className="inline-flex items-center gap-2 mt-4 px-6 py-2.5 rounded-xl bg-neon-violet text-white text-sm font-medium hover:shadow-neon transition-all"
                 >
                   <ExternalLink className="w-4 h-4" />

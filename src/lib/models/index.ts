@@ -39,3 +39,6 @@ export type { IActivityLog } from "./activity-log";
 
 export { Question } from "./question";
 export type { IQuestion } from "./question";
+
+export { Subscriber } from "./subscriber";
+export type { ISubscriber } from "./subscriber";

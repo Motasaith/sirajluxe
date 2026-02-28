@@ -63,7 +63,7 @@ export default function TermsPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">9. Contact</h2>
-              <p>If you have any questions about these terms, email us at <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
+              <p>If you have any questions about these terms, email us at <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">binacodesecommercestore@gmail.com</a>.</p>
             </section>
           </div>
         </div>

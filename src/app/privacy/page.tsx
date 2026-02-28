@@ -66,7 +66,7 @@ export default function PrivacyPage() {
                 <li>Object to processing</li>
                 <li>Data portability</li>
               </ul>
-              <p className="mt-3">To exercise any of these rights, contact us at support@sirajluxe.com.</p>
+              <p className="mt-3">To exercise any of these rights, contact us at binacodesecommercestore@gmail.com.</p>
             </section>
 
             <section>
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">6. Contact</h2>
-              <p>For any privacy-related queries, email us at <a href="mailto:support@sirajluxe.com" className="text-neon-violet hover:underline">support@sirajluxe.com</a>.</p>
+              <p>For any privacy-related queries, email us at <a href="mailto:binacodesecommercestore@gmail.com" className="text-neon-violet hover:underline">binacodesecommercestore@gmail.com</a>.</p>
             </section>
           </div>
         </div>

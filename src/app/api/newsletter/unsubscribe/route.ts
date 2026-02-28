@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit, getIP } from "@/lib/rate-limit";
+import connectDB from "@/lib/mongodb";
+import { Subscriber } from "@/lib/models/subscriber";
 
 /**
  * GET /api/newsletter/unsubscribe?email=...
  * GDPR-compliant one-click unsubscribe.
- * Removes the contact from the Brevo newsletter list.
+ * Marks the subscriber as unsubscribed in local DB and removes from Brevo.
  */
 export async function GET(req: NextRequest) {
   const ip = getIP(req);
@@ -23,33 +25,39 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  const BREVO_API_KEY = process.env.BREVO_API_KEY;
-  const listId = parseInt(process.env.BREVO_LIST_ID || "2");
-
-  if (!BREVO_API_KEY) {
-    console.log("Newsletter unsubscribe (no Brevo key):", email);
-    return new NextResponse(unsubPage("You have been unsubscribed.", true), {
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  }
-
   try {
-    // Remove contact from the newsletter list via Brevo API
-    const res = await fetch(
-      `https://api.brevo.com/v3/contacts/lists/${listId}/contacts/remove`,
-      {
-        method: "POST",
-        headers: {
-          "api-key": BREVO_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ emails: [email] }),
-      }
+    // Mark as unsubscribed in local DB
+    await connectDB();
+    await Subscriber.findOneAndUpdate(
+      { email: email.toLowerCase() },
+      { status: "unsubscribed", unsubscribedAt: new Date() }
     );
 
-    if (!res.ok && res.status !== 404) {
-      const data = await res.json().catch(() => ({}));
-      console.error("Brevo unsubscribe error:", typeof data === "object" ? JSON.stringify(data).slice(0, 200) : "Unknown");
+    // Also remove from Brevo if API key is set
+    const BREVO_API_KEY = process.env.BREVO_API_KEY;
+    const listId = parseInt(process.env.BREVO_LIST_ID || "2");
+
+    if (BREVO_API_KEY) {
+      try {
+        const res = await fetch(
+          `https://api.brevo.com/v3/contacts/lists/${listId}/contacts/remove`,
+          {
+            method: "POST",
+            headers: {
+              "api-key": BREVO_API_KEY,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ emails: [email] }),
+          }
+        );
+
+        if (!res.ok && res.status !== 404) {
+          const data = await res.json().catch(() => ({}));
+          console.error("Brevo unsubscribe error:", typeof data === "object" ? JSON.stringify(data).slice(0, 200) : "Unknown");
+        }
+      } catch (brevoErr) {
+        console.error("Brevo unsubscribe sync failed:", brevoErr instanceof Error ? brevoErr.message : "Unknown");
+      }
     }
 
     return new NextResponse(unsubPage("You have been unsubscribed successfully.", true), {

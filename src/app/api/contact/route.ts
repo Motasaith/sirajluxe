@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const FROM = `"${process.env.EMAIL_FROM_NAME || "Siraj Luxe"}" <${process.env.EMAIL_FROM || "noreply@sirajluxe.com"}>`;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "support@sirajluxe.com";
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "binacodesecommercestore@gmail.com";
 
 function escapeHtml(str: string): string {
   if (!str) return "";
