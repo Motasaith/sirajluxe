@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
           : {},
       });
 
-      // Update customer stats
+      // Update or create customer
       if (session.metadata?.clerkUserId) {
         await Customer.findOneAndUpdate(
           { clerkId: session.metadata.clerkUserId },
@@ -104,7 +104,14 @@ export async function POST(req: NextRequest) {
               orderCount: 1,
               totalSpent: (session.amount_total || 0) / 100,
             },
-          }
+            $setOnInsert: {
+              clerkId: session.metadata.clerkUserId,
+              email: customerDetails?.email || session.customer_email || "",
+              firstName: (customerDetails?.name || "").split(" ")[0] || "",
+              lastName: (customerDetails?.name || "").split(" ").slice(1).join(" ") || "",
+            },
+          },
+          { upsert: true }
         );
       }
 
@@ -199,7 +206,7 @@ export async function POST(req: NextRequest) {
       if (pendingOrder) {
         console.log(`Payment succeeded — order ${pendingOrder.orderNumber} marked as processing`);
 
-        // Update customer stats
+        // Update or create customer
         if (pendingOrder.clerkUserId) {
           await Customer.findOneAndUpdate(
             { clerkId: pendingOrder.clerkUserId },
@@ -208,7 +215,14 @@ export async function POST(req: NextRequest) {
                 orderCount: 1,
                 totalSpent: pendingOrder.total,
               },
-            }
+              $setOnInsert: {
+                clerkId: pendingOrder.clerkUserId,
+                email: pendingOrder.customerEmail || "",
+                firstName: (pendingOrder.customerName || "").split(" ")[0] || "",
+                lastName: (pendingOrder.customerName || "").split(" ").slice(1).join(" ") || "",
+              },
+            },
+            { upsert: true }
           );
         }
 

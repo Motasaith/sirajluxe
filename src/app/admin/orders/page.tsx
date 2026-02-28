@@ -30,11 +30,13 @@ const statusColors: Record<string, string> = {
 };
 
 const statusOptions = ["pending", "processing", "shipped", "delivered", "cancelled"];
+const paymentStatusOptions = ["pending", "paid", "failed", "refunded"];
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
+  const [paymentFilter, setPaymentFilter] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
@@ -51,6 +53,7 @@ export default function OrdersPage() {
     try {
       let url = `/api/admin/orders?page=${page}&limit=${limit}`;
       if (filter) url += `&status=${filter}`;
+      if (paymentFilter) url += `&paymentStatus=${paymentFilter}`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
       const res = await fetch(url);
       const data = await res.json();
@@ -62,14 +65,14 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, search, page]);
+  }, [filter, paymentFilter, search, page]);
 
   useEffect(() => {
     const timer = setTimeout(fetchOrders, 300);
     return () => clearTimeout(timer);
   }, [fetchOrders]);
 
-  useEffect(() => { setPage(1); }, [search, filter]);
+  useEffect(() => { setPage(1); }, [search, filter, paymentFilter]);
 
   const updateStatus = async (id: string, status: string) => {
     setUpdating(id);
@@ -150,6 +153,16 @@ export default function OrdersPage() {
             <span className="hidden sm:inline">Export</span>
           </button>
           <select
+            value={paymentFilter}
+            onChange={(e) => setPaymentFilter(e.target.value)}
+            className="px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-white text-sm focus:outline-none focus:border-violet-500/50"
+          >
+            <option value="">All Payments</option>
+            {paymentStatusOptions.map((s) => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+          <select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
             className="px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-white text-sm focus:outline-none focus:border-violet-500/50"
@@ -207,7 +220,7 @@ export default function OrdersPage() {
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Items</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden sm:table-cell">Payment</th>
+                  <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   <th className="px-5 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Date</th>
                 </tr>
@@ -231,7 +244,7 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-5 py-3 text-sm text-gray-400 hidden md:table-cell">{order.items?.length || 0} items</td>
                     <td className="px-5 py-3 text-sm text-white font-medium">£{order.total?.toFixed(2)}</td>
-                    <td className="px-5 py-3 hidden sm:table-cell">
+                    <td className="px-5 py-3">
                       <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${statusColors[order.paymentStatus] || statusColors.pending}`}>
                         {order.paymentStatus}
                       </span>

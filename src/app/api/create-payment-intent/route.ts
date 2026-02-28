@@ -101,45 +101,67 @@ export async function POST(req: NextRequest) {
     let appliedCouponCode: string | null = null;
 
     if (couponCode && typeof couponCode === "string") {
-      const coupon = await Coupon.findOneAndUpdate(
-        {
-          code: couponCode.toUpperCase(),
-          active: true,
-          $or: [{ expiresAt: null }, { expiresAt: { $gt: new Date() } }],
-          $expr: {
+      // First find the coupon to validate it
+      const foundCoupon = await Coupon.findOne({
+        code: couponCode.toUpperCase(),
+        active: true,
+        $or: [
+          { expiresAt: null },
+          { expiresAt: { $exists: false } },
+          { expiresAt: { $gt: new Date() } },
+        ],
+      });
+
+      // Validate maxUses in JS and atomically increment
+      if (foundCoupon && (foundCoupon.maxUses === 0 || foundCoupon.usedCount < foundCoupon.maxUses)) {
+        const coupon = await Coupon.findOneAndUpdate(
+          {
+            _id: foundCoupon._id,
             $or: [
-              { $eq: ["$maxUses", 0] },
-              { $lt: ["$usedCount", "$maxUses"] },
+              { maxUses: 0 },
+              { $expr: { $lt: ["$usedCount", "$maxUses"] } },
             ],
           },
-        },
-        { $inc: { usedCount: 1 } },
-        { new: true }
-      );
+          { $inc: { usedCount: 1 } },
+          { new: true }
+        );
 
-      if (coupon) {
-        const subtotalPounds = subtotalPence / 100;
-        if (subtotalPounds >= coupon.minOrderAmount) {
-          if (coupon.type === "percentage") {
-            discountPence = Math.round(subtotalPence * (coupon.value / 100));
-          } else {
-            discountPence = Math.round(coupon.value * 100);
-          }
-          discountPence = Math.min(discountPence, subtotalPence);
+        if (coupon) {
+          const subtotalPounds = subtotalPence / 100;
+          if (subtotalPounds >= coupon.minOrderAmount) {
+            if (coupon.type === "percentage") {
+              discountPence = Math.round(subtotalPence * (coupon.value / 100));
+            } else {
+              discountPence = Math.round(coupon.value * 100);
+            }
+            discountPence = Math.min(discountPence, subtotalPence);
 
-          if (discountPence > 0) {
-            appliedCouponCode = coupon.code;
+            if (discountPence > 0) {
+              appliedCouponCode = coupon.code;
+            } else {
+              await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: -1 } });
+            }
           } else {
             await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: -1 } });
           }
-        } else {
-          await Coupon.findByIdAndUpdate(coupon._id, { $inc: { usedCount: -1 } });
         }
       }
     }
 
     // --- Shipping ---
-    const customer = await Customer.findOne({ clerkId: userId });
+    // Ensure customer record exists (upsert)
+    const customer = await Customer.findOneAndUpdate(
+      { clerkId: userId },
+      {
+        $setOnInsert: {
+          clerkId: userId,
+          email: customerEmail || "",
+          firstName: customerName?.split(" ")[0] || "",
+          lastName: customerName?.split(" ").slice(1).join(" ") || "",
+        },
+      },
+      { upsert: true, new: true }
+    );
     const isFirstOrder = !customer || customer.orderCount === 0;
     const qualifiesForFreeShipping = isFirstOrder || subtotalPence >= FREE_SHIPPING_THRESHOLD;
     const shippingPence = qualifiesForFreeShipping ? 0 : STANDARD_SHIPPING_RATE;

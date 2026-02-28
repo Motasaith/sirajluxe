@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     const page = capInt(searchParams.get("page"), 1, 1, 1000);
     const limit = capInt(searchParams.get("limit"), 20, 1, 100);
     const statusRaw = searchParams.get("status") || "";
+    const paymentStatusRaw = searchParams.get("paymentStatus") || "";
     const search = searchParams.get("search") || "";
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -27,6 +28,15 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Invalid status filter" }, { status: 400 });
       }
       filter.status = validStatus;
+    }
+
+    const PAYMENT_STATUSES = ["pending", "paid", "failed", "refunded"] as const;
+    if (paymentStatusRaw) {
+      const validPayment = validateEnum(paymentStatusRaw, PAYMENT_STATUSES);
+      if (!validPayment) {
+        return NextResponse.json({ error: "Invalid payment status filter" }, { status: 400 });
+      }
+      filter.paymentStatus = validPayment;
     }
 
     if (search) {

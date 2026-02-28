@@ -37,6 +37,8 @@ interface Order {
   clerkUserId: string;
   items: OrderItem[];
   subtotal: number;
+  discount: number;
+  couponCode: string;
   tax: number;
   shipping: number;
   total: number;
@@ -452,6 +454,12 @@ export default function AdminOrderDetailPage() {
               <span>Subtotal</span>
               <span>{formatCurrency(order.subtotal)}</span>
             </div>
+            {order.discount > 0 && (
+              <div className="flex justify-between text-emerald-400">
+                <span>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</span>
+                <span>-{formatCurrency(order.discount)}</span>
+              </div>
+            )}
             <div className="flex justify-between text-gray-400">
               <span>Tax</span>
               <span>{formatCurrency(order.tax)}</span>
