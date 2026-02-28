@@ -14,20 +14,33 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+          background: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)",
           borderRadius: "36px",
         }}
       >
-        <span
-          style={{
-            fontSize: 110,
-            fontWeight: 800,
-            color: "white",
-            letterSpacing: "-0.02em",
-          }}
+        <svg
+          width="120"
+          height="120"
+          viewBox="0 0 64 64"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          S
-        </span>
+          <path
+            d="M20 18c0-2 1.6-4 4.5-4 4 0 7 2.4 7 5.6 0 3.6-3.2 5-6.6 6.2-3.8 1.5-7.4 3.2-7.4 7.8 0 4.5 3.6 7 7.6 7 3.2 0 5.4-1.3 6.4-2.8"
+            stroke="white"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <path
+            d="M38 16v24h9"
+            stroke="white"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+          />
+        </svg>
       </div>
     ),
     { ...size }

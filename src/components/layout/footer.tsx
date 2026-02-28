@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { useToast } from "@/components/ui/toast";
+import { LogoMark } from "@/components/ui/logo";
 
 const defaultFooterLinks: Record<string, { label: string; href: string }[]> = {
   Shop: [
@@ -158,7 +159,7 @@ export function Footer() {
         </div>
 
         {/* Links Grid */}
-        <div className="py-16 grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-16">
+        <div className="py-12 grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-10">
           {Object.entries(footerLinks).map(([category, links], i) => (
             <motion.div
               key={category}
@@ -190,10 +191,8 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="py-8 border-t border-[var(--border)] flex flex-col items-center gap-6">
           <div className="w-full flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center">
-                <span className="text-white font-bold text-sm">{cms?.logoLetter || "S"}</span>
-              </div>
+            <div className="flex items-center gap-2.5">
+              <LogoMark size={28} />
               <span className="text-sm text-subtle-fg">
                 {cms?.copyright || "© 2026 Siraj Luxe. All rights reserved."}
               </span>

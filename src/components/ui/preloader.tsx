@@ -71,50 +71,71 @@ export function Preloader({ onComplete }: { onComplete: () => void }) {
             <svg
               width="56"
               height="56"
-              viewBox="0 0 56 56"
+              viewBox="0 0 64 64"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* Outer ring */}
-              <motion.circle
-                cx="28"
-                cy="28"
-                r="26"
-                stroke="url(#preloader-grad)"
-                strokeWidth="2"
-                fill="none"
-                strokeDasharray="163.36"
-                strokeDashoffset="163.36"
-                animate={{ strokeDashoffset: 0 }}
-                transition={{ duration: 1.2, ease: "easeInOut", delay: 0.3 }}
-              />
-              {/* Inner B */}
-              <motion.text
-                x="28"
-                y="35"
-                textAnchor="middle"
-                fill="url(#preloader-grad)"
-                fontSize="26"
-                fontWeight="700"
-                fontFamily="Inter, sans-serif"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6, duration: 0.5 }}
-              >
-                B
-              </motion.text>
               <defs>
                 <linearGradient
                   id="preloader-grad"
                   x1="0"
                   y1="0"
-                  x2="56"
-                  y2="56"
+                  x2="64"
+                  y2="64"
                 >
                   <stop stopColor="#8b5cf6" />
-                  <stop offset="1" stopColor="#c084fc" />
+                  <stop offset="0.5" stopColor="#7c3aed" />
+                  <stop offset="1" stopColor="#6d28d9" />
                 </linearGradient>
               </defs>
+
+              {/* Rounded shield / gem shape */}
+              <motion.rect
+                x="2"
+                y="2"
+                width="60"
+                height="60"
+                rx="16"
+                fill="url(#preloader-grad)"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              />
+
+              {/* "S" letter */}
+              <motion.path
+                d="M24.5 20.5c0-1.5 1.2-3 3.5-3 3.2 0 5.5 1.8 5.5 4.2 0 2.8-2.5 3.8-5.2 4.8-3 1.2-5.8 2.5-5.8 6 0 3.5 2.8 5.5 6 5.5 2.5 0 4.2-1 5-2.2"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 1, delay: 0.3, ease: "easeInOut" }}
+              />
+
+              {/* "L" letter */}
+              <motion.path
+                d="M37 19v18.5h7"
+                stroke="white"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 0.8, delay: 0.5, ease: "easeInOut" }}
+              />
+
+              {/* Diamond accent */}
+              <motion.path
+                d="M49 46l2.5-3 2.5 3-2.5 3z"
+                fill="rgba(255,255,255,0.5)"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 1, duration: 0.4 }}
+              />
             </svg>
           </motion.div>
 

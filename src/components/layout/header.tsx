@@ -22,6 +22,7 @@ import { useSiteContent } from "@/components/providers/site-content-provider";
 import { AnnouncementBar } from "@/components/ui/announcement-bar";
 import { PromoBanner } from "@/components/ui/promo-banner";
 import { SearchDrawer } from "@/components/ui/search-drawer";
+import { LogoMark } from "@/components/ui/logo";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
 const defaultNavLinks = [
@@ -99,13 +100,11 @@ export function Header() {
           {/* Logo */}
           <Link href="/" className="relative z-10 group">
             <motion.div
-              className="flex items-center gap-3"
+              className="flex items-center gap-2.5"
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center shadow-neon">
-                <span className="text-white font-bold text-lg">{cms?.logoLetter || "S"}</span>
-              </div>
+              <LogoMark size={40} className="shadow-neon" />
               <span className="text-xl font-semibold tracking-tight text-heading hidden sm:block">
                 {cms?.logoText || "SIRAJ"}<span className="neon-text">{cms?.logoAccent || " LUXE"}</span>
               </span>
