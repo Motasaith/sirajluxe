@@ -125,11 +125,15 @@ export async function POST(req: NextRequest) {
 
     // Update product's aggregate rating
     const allReviews = await Review.find({ product: productId, approved: true });
-    const avg = allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length;
-    await Product.findByIdAndUpdate(productId, {
-      rating: Math.round(avg * 10) / 10,
-      reviews: allReviews.length,
-    });
+    if (allReviews.length > 0) {
+      const avg = allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length;
+      await Product.findByIdAndUpdate(productId, {
+        rating: Math.round(avg * 10) / 10,
+        reviews: allReviews.length,
+      });
+    } else {
+      await Product.findByIdAndUpdate(productId, { rating: 0, reviews: 0 });
+    }
 
     return NextResponse.json({
       id: review._id.toString(),
