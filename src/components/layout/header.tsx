@@ -276,7 +276,24 @@ export function Header() {
                   </motion.div>
                 ))}
               </div>
-              <div className="mt-8 pt-8 border-t border-[var(--border)] flex items-center gap-4">
+              {/* Account Links */}
+              <div className="mt-6 pt-6 border-t border-[var(--border)] flex flex-col gap-1">
+                <Link
+                  href="/orders"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-3 px-4 text-lg font-medium text-body hover:text-heading hover:bg-[var(--hover)] rounded-xl transition-all duration-300"
+                >
+                  My Orders
+                </Link>
+                <Link
+                  href="/my-reviews"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-3 px-4 text-lg font-medium text-body hover:text-heading hover:bg-[var(--hover)] rounded-xl transition-all duration-300"
+                >
+                  My Reviews
+                </Link>
+              </div>
+              <div className="mt-4 pt-4 border-t border-[var(--border)] flex items-center gap-4">
                 {mounted && (
                   <button
                     onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
