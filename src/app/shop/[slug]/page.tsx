@@ -474,7 +474,7 @@ export default function ProductDetailPage() {
                   {/* Main Image with Zoom */}
                   <div
                     ref={imageRef}
-                    className="glass-card overflow-hidden aspect-square relative cursor-zoom-in group"
+                    className="glass-card overflow-hidden aspect-[3/4] relative cursor-zoom-in group bg-black/20"
                     onMouseMove={handleMouseMove}
                     onMouseEnter={() => setShowZoom(true)}
                     onMouseLeave={() => setShowZoom(false)}
@@ -486,24 +486,13 @@ export default function ProductDetailPage() {
                           src={allImages[selectedImageIndex]}
                           alt={product.name}
                           fill
-                          className="object-cover"
+                          className={`object-contain transition-transform duration-200 ${showZoom ? "scale-[2]" : "scale-100"}`}
+                          style={showZoom ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : undefined}
                           sizes="(max-width: 1024px) 100vw, 50vw"
                           priority
                           placeholder="blur"
                           blurDataURL={blurDataURL}
                         />
-                        {/* Zoom lens overlay */}
-                        {showZoom && (
-                          <div
-                            className="absolute inset-0 pointer-events-none z-10"
-                            style={{
-                              backgroundImage: `url(${allImages[selectedImageIndex]})`,
-                              backgroundSize: "200%",
-                              backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
-                              opacity: 1,
-                            }}
-                          />
-                        )}
                         <div className="absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                           <span className="px-3 py-1.5 rounded-full glass text-xs text-muted-fg flex items-center gap-1.5">
                             <ZoomIn className="w-3.5 h-3.5" /> Hover to zoom
