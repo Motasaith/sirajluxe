@@ -25,7 +25,7 @@ const sections = [
     title: "Orders",
     description: "Track orders, order confirmation, order issues",
     links: [
-      { label: "Track my order", href: "/orders" },
+      { label: "Track my order", href: "/track" },
       { label: "I didn't receive my confirmation email", href: "/faq" },
       { label: "Cancel or change my order", href: "/contact" },
     ],
@@ -140,19 +140,19 @@ export default function HelpCentrePage() {
               Popular Resources
             </h2>
             <div className="grid md:grid-cols-2 gap-4">
-              <Link href="/faq" className="flex items-center gap-3 p-4 rounded-lg hover:bg-white/[0.02] transition-colors group">
+              <Link href="/faq" className="flex items-center gap-3 p-4 rounded-lg hover:bg-[var(--hover)] transition-colors group">
                 <span className="text-neon-violet font-bold">FAQ</span>
                 <span className="text-sm text-muted-fg group-hover:text-body transition-colors">Frequently asked questions</span>
               </Link>
-              <Link href="/size-guide" className="flex items-center gap-3 p-4 rounded-lg hover:bg-white/[0.02] transition-colors group">
+              <Link href="/size-guide" className="flex items-center gap-3 p-4 rounded-lg hover:bg-[var(--hover)] transition-colors group">
                 <span className="text-neon-violet font-bold">Size Guide</span>
                 <span className="text-sm text-muted-fg group-hover:text-body transition-colors">Find your perfect fit</span>
               </Link>
-              <Link href="/warranty" className="flex items-center gap-3 p-4 rounded-lg hover:bg-white/[0.02] transition-colors group">
+              <Link href="/warranty" className="flex items-center gap-3 p-4 rounded-lg hover:bg-[var(--hover)] transition-colors group">
                 <span className="text-neon-violet font-bold">Warranty</span>
                 <span className="text-sm text-muted-fg group-hover:text-body transition-colors">2-year warranty details</span>
               </Link>
-              <Link href="/shipping" className="flex items-center gap-3 p-4 rounded-lg hover:bg-white/[0.02] transition-colors group">
+              <Link href="/shipping" className="flex items-center gap-3 p-4 rounded-lg hover:bg-[var(--hover)] transition-colors group">
                 <span className="text-neon-violet font-bold">Shipping</span>
                 <span className="text-sm text-muted-fg group-hover:text-body transition-colors">Delivery info & free shipping</span>
               </Link>

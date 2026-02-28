@@ -154,7 +154,7 @@ export default async function FAQPage() {
                 key={i}
                 className="group rounded-xl border border-[var(--border)] bg-[var(--overlay)] overflow-hidden"
               >
-                <summary className="flex items-center justify-between cursor-pointer px-6 py-5 text-heading font-medium hover:bg-white/[0.02] transition-colors">
+                <summary className="flex items-center justify-between cursor-pointer px-6 py-5 text-heading font-medium hover:bg-[var(--hover)] transition-colors">
                   <span>{faq.question}</span>
                   <span className="ml-4 text-muted-fg group-open:rotate-45 transition-transform text-xl leading-none">
                     +

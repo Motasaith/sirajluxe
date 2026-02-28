@@ -19,7 +19,7 @@ export default function WarrantyPage() {
           </h1>
           <p className="text-sm text-muted-fg mb-10">Last updated: February 2026</p>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-8 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-8 text-body">
             <section>
               <h2 className="text-xl font-bold text-heading mb-3">2-Year Warranty</h2>
               <p>

@@ -928,7 +928,7 @@ export default function ProductDetailPage() {
                       className="py-8"
                     >
                       <div
-                        className="prose prose-invert prose-sm max-w-none prose-p:text-body prose-strong:text-heading prose-li:text-body prose-a:text-neon-violet"
+                        className="prose dark:prose-invert prose-sm max-w-none prose-p:text-body prose-strong:text-heading prose-li:text-body prose-a:text-neon-violet"
                         dangerouslySetInnerHTML={{
                           __html: sanitizeHtml(product.description),
                         }}

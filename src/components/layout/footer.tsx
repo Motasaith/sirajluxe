@@ -22,6 +22,7 @@ const defaultFooterLinks: Record<string, { label: string; href: string }[]> = {
   ],
   Support: [
     { label: "Help Centre", href: "/help" },
+    { label: "Track Order", href: "/track" },
     { label: "FAQ", href: "/faq" },
     { label: "Size Guide", href: "/size-guide" },
     { label: "Shipping", href: "/shipping" },

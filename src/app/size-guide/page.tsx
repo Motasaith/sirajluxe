@@ -19,14 +19,14 @@ export default function SizeGuidePage() {
             Use the charts below to find your perfect fit. If you&apos;re between sizes, we recommend sizing up for comfort.
           </p>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-10 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-10 text-body">
             {/* Clothing */}
             <section>
               <h2 className="text-xl font-bold text-heading mb-4">Clothing</h2>
               <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-white/[0.02] border-b border-[var(--border)]">
+                    <tr className="bg-[var(--overlay)] border-b border-[var(--border)]">
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">Size</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">Chest (in)</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">Waist (in)</th>
@@ -60,7 +60,7 @@ export default function SizeGuidePage() {
               <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-white/[0.02] border-b border-[var(--border)]">
+                    <tr className="bg-[var(--overlay)] border-b border-[var(--border)]">
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">UK Size</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">EU Size</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">US Size</th>
@@ -95,7 +95,7 @@ export default function SizeGuidePage() {
               <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-white/[0.02] border-b border-[var(--border)]">
+                    <tr className="bg-[var(--overlay)] border-b border-[var(--border)]">
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">Size</th>
                       <th className="px-4 py-3 text-left text-xs font-medium text-muted-fg uppercase">Wrist Circumference</th>
                     </tr>

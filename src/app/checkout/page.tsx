@@ -21,6 +21,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useToast } from "@/components/ui/toast";
+import { useTheme } from "next-themes";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -79,7 +80,7 @@ function PaymentForm({
       <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <CreditCard className="w-5 h-5 text-neon-violet" />
-          <h2 className="text-lg font-semibold text-white">Payment</h2>
+          <h2 className="text-lg font-semibold text-heading">Payment</h2>
         </div>
         <PaymentElement
           options={{
@@ -100,7 +101,7 @@ function PaymentForm({
         <div className="space-y-2 mb-4">
           <div className="flex justify-between text-sm">
             <span className="text-[var(--muted)]">Subtotal</span>
-            <span className="text-white">£{orderSummary.subtotal.toFixed(2)}</span>
+            <span className="text-heading">£{orderSummary.subtotal.toFixed(2)}</span>
           </div>
           {orderSummary.discount > 0 && (
             <div className="flex justify-between text-sm">
@@ -110,7 +111,7 @@ function PaymentForm({
           )}
           <div className="flex justify-between text-sm">
             <span className="text-[var(--muted)]">Shipping</span>
-            <span className="text-white">
+            <span className="text-heading">
               {orderSummary.shipping === 0 ? (
                 <span className="text-emerald-400">Free</span>
               ) : (
@@ -119,8 +120,8 @@ function PaymentForm({
             </span>
           </div>
           <div className="border-t border-[var(--border)] pt-2 flex justify-between">
-            <span className="font-semibold text-white">Total</span>
-            <span className="text-xl font-bold text-white">£{orderSummary.total.toFixed(2)}</span>
+            <span className="font-semibold text-heading">Total</span>
+            <span className="text-xl font-bold text-heading">£{orderSummary.total.toFixed(2)}</span>
           </div>
         </div>
 
@@ -157,6 +158,7 @@ export default function CheckoutPage() {
   const { items, total: cartTotal, itemCount } = useCart();
   const { user, isLoaded } = useUser();
   const { toast } = useToast();
+  const { resolvedTheme } = useTheme();
 
   // Form state
   const [firstName, setFirstName] = useState("");
@@ -292,11 +294,11 @@ export default function CheckoutPage() {
   // Empty cart
   if (isLoaded && items.length === 0 && step === "details") {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#050505] px-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-6">
         <div className="w-16 h-16 rounded-full bg-[var(--overlay)] flex items-center justify-center mb-6">
           <ShoppingBag className="w-8 h-8 text-[var(--subtle)]" />
         </div>
-        <h1 className="text-2xl font-bold text-white mb-2">Your Cart is Empty</h1>
+        <h1 className="text-2xl font-bold text-heading mb-2">Your Cart is Empty</h1>
         <p className="text-[var(--muted)] mb-6 text-center max-w-md">
           Add some products to your cart before checking out.
         </p>
@@ -311,7 +313,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] relative">
+    <div className="min-h-screen bg-background relative">
       {/* Background effects */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-neon-violet/5 rounded-full blur-[150px]" />
@@ -328,7 +330,7 @@ export default function CheckoutPage() {
             <ArrowLeft className="w-5 h-5 text-[var(--muted)]" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-white">Checkout</h1>
+            <h1 className="text-2xl font-bold text-heading">Checkout</h1>
             <p className="text-sm text-[var(--muted)]">
               {step === "details" ? "Shipping details" : "Complete payment"}
             </p>
@@ -355,26 +357,30 @@ export default function CheckoutPage() {
               <div className="space-y-6">
                 {/* Contact info */}
                 <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
-                  <h2 className="text-lg font-semibold text-white mb-4">Contact Information</h2>
+                  <h2 className="text-lg font-semibold text-heading mb-4">Contact Information</h2>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">First name *</label>
                       <input
                         type="text"
+                        name="given-name"
+                        autoComplete="given-name"
                         value={firstName}
                         onChange={(e) => setFirstName(e.target.value)}
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Last name *</label>
                       <input
                         type="text"
+                        name="family-name"
+                        autoComplete="family-name"
                         value={lastName}
                         onChange={(e) => setLastName(e.target.value)}
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
                       />
                     </div>
                   </div>
@@ -382,10 +388,12 @@ export default function CheckoutPage() {
                     <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Email *</label>
                     <input
                       type="email"
+                      name="email"
+                      autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
-                      className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                      className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
                     />
                   </div>
                 </div>
@@ -394,28 +402,32 @@ export default function CheckoutPage() {
                 <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <MapPin className="w-5 h-5 text-neon-violet" />
-                    <h2 className="text-lg font-semibold text-white">Shipping Address</h2>
+                    <h2 className="text-lg font-semibold text-heading">Shipping Address</h2>
                   </div>
                   <div className="space-y-4">
                     <div>
                       <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Address line 1 *</label>
                       <input
                         type="text"
+                        name="address-line1"
+                        autoComplete="address-line1"
                         value={line1}
                         onChange={(e) => setLine1(e.target.value)}
                         placeholder="123 High Street"
                         required
-                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Address line 2</label>
                       <input
                         type="text"
+                        name="address-line2"
+                        autoComplete="address-line2"
                         value={line2}
                         onChange={(e) => setLine2(e.target.value)}
                         placeholder="Flat 4B (optional)"
-                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -423,28 +435,32 @@ export default function CheckoutPage() {
                         <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">City *</label>
                         <input
                           type="text"
+                          name="address-level2"
+                          autoComplete="address-level2"
                           value={city}
                           onChange={(e) => setCity(e.target.value)}
                           placeholder="London"
                           required
-                          className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                          className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
                         />
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Postcode *</label>
                         <input
                           type="text"
+                          name="postal-code"
+                          autoComplete="postal-code"
                           value={postalCode}
                           onChange={(e) => setPostalCode(e.target.value)}
                           placeholder="SW1A 1AA"
                           required
-                          className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                          className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
                         />
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Country</label>
-                      <div className="px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm flex items-center gap-2">
+                      <div className="px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm flex items-center gap-2">
                         <span>🇬🇧</span> United Kingdom
                       </div>
                     </div>
@@ -455,7 +471,7 @@ export default function CheckoutPage() {
                 <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6">
                   <div className="flex items-center gap-2 mb-4">
                     <Tag className="w-5 h-5 text-neon-violet" />
-                    <h2 className="text-lg font-semibold text-white">Coupon Code</h2>
+                    <h2 className="text-lg font-semibold text-heading">Coupon Code</h2>
                   </div>
 
                   {couponApplied ? (
@@ -483,7 +499,7 @@ export default function CheckoutPage() {
                           value={couponCode}
                           onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
                           placeholder="Enter code"
-                          className="flex-1 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-white text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all uppercase tracking-wider"
+                          className="flex-1 px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all uppercase tracking-wider"
                           onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
                         />
                         <button
@@ -533,7 +549,42 @@ export default function CheckoutPage() {
                 stripe={stripePromise}
                 options={{
                   clientSecret,
-                  appearance: {
+                  appearance: resolvedTheme === "light" ? {
+                    theme: "stripe",
+                    variables: {
+                      colorPrimary: "#8b5cf6",
+                      colorBackground: "#ffffff",
+                      colorText: "#1a1a1f",
+                      colorTextSecondary: "#5f616e",
+                      colorDanger: "#ef4444",
+                      fontFamily: "Inter, system-ui, sans-serif",
+                      borderRadius: "0.75rem",
+                      spacingUnit: "4px",
+                    },
+                    rules: {
+                      ".Input": {
+                        border: "1px solid rgba(0,0,0,0.08)",
+                        boxShadow: "none",
+                        padding: "12px 16px",
+                      },
+                      ".Input:focus": {
+                        border: "1px solid rgba(139,92,246,0.5)",
+                        boxShadow: "0 0 0 1px rgba(139,92,246,0.25)",
+                      },
+                      ".Tab": {
+                        border: "1px solid rgba(0,0,0,0.08)",
+                        backgroundColor: "#ffffff",
+                      },
+                      ".Tab--selected": {
+                        border: "1px solid rgba(139,92,246,0.5)",
+                        backgroundColor: "rgba(139,92,246,0.1)",
+                      },
+                      ".Label": {
+                        fontSize: "0.75rem",
+                        fontWeight: "500",
+                      },
+                    },
+                  } : {
                     theme: "night",
                     variables: {
                       colorPrimary: "#8b5cf6",
@@ -579,7 +630,7 @@ export default function CheckoutPage() {
           {/* Right column — Order summary */}
           <div className="lg:col-span-2">
             <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--glass-bg)] backdrop-blur-xl p-6 sticky top-8">
-              <h2 className="text-lg font-semibold text-white mb-4">
+              <h2 className="text-lg font-semibold text-heading mb-4">
                 Order Summary ({itemCount} {itemCount === 1 ? "item" : "items"})
               </h2>
 
@@ -603,7 +654,7 @@ export default function CheckoutPage() {
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                      <p className="text-sm font-medium text-heading truncate">{item.name}</p>
                       {(item.color || item.size) && (
                         <p className="text-xs text-[var(--muted)] mt-0.5">
                           {[item.color, item.size].filter(Boolean).join(" · ")}
@@ -623,7 +674,7 @@ export default function CheckoutPage() {
               <div className="border-t border-[var(--border)] mt-4 pt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-[var(--muted)]">Subtotal</span>
-                  <span className="text-white">£{cartTotal.toFixed(2)}</span>
+                  <span className="text-heading">£{cartTotal.toFixed(2)}</span>
                 </div>
                 {couponApplied && !orderSummary && (
                   <div className="flex justify-between text-sm">
@@ -640,7 +691,7 @@ export default function CheckoutPage() {
                 {orderSummary ? (
                   <div className="flex justify-between text-sm">
                     <span className="text-[var(--muted)]">Shipping</span>
-                    <span className="text-white">
+                    <span className="text-heading">
                       {orderSummary.shipping === 0 ? (
                         <span className="text-emerald-400">Free</span>
                       ) : (
@@ -664,10 +715,10 @@ export default function CheckoutPage() {
               )}
 
               <div className="border-t border-[var(--border)] mt-4 pt-4 flex justify-between">
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-heading">
                   {orderSummary ? "Total" : "Estimated Total"}
                 </span>
-                <span className="text-xl font-bold text-white">
+                <span className="text-xl font-bold text-heading">
                   £{(orderSummary?.total ?? (couponApplied ? Math.max(0, cartTotal - couponApplied.discount) : cartTotal)).toFixed(2)}
                 </span>
               </div>

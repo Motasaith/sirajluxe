@@ -171,7 +171,7 @@ export default function BlogPage() {
                         {post.tags.slice(0, 3).map((tag) => (
                           <span
                             key={tag}
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/[0.04] text-[10px] text-muted-fg"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[var(--overlay)] text-[10px] text-muted-fg"
                           >
                             <Tag className="w-2.5 h-2.5" />
                             {tag}

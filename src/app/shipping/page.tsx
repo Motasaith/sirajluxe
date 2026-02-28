@@ -14,7 +14,7 @@ export default function ShippingPage() {
         <div className="ultra-wide-padding max-w-3xl mx-auto">
           <h1 className="text-4xl font-bold text-heading mb-8">Shipping Information</h1>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-6 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-6 text-body">
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">Delivery Areas</h2>
               <p>We currently deliver exclusively to UK addresses. International shipping is not yet available.</p>

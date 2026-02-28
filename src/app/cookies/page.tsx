@@ -15,7 +15,7 @@ export default function CookiesPage() {
           <h1 className="text-4xl font-bold text-heading mb-8">Cookie Policy</h1>
           <p className="text-sm text-subtle-fg mb-8">Last updated: February 2026</p>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-6 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-6 text-body">
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">What Are Cookies?</h2>
               <p>Cookies are small text files stored on your device when you visit a website. They help the site remember your preferences and improve your experience.</p>

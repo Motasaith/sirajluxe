@@ -29,7 +29,7 @@ export default function PressPage() {
             </p>
           </div>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-10 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-10 text-body">
             {/* About */}
             <section>
               <h2 className="text-xl font-bold text-heading mb-3">About Siraj Luxe</h2>

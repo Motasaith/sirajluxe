@@ -15,7 +15,7 @@ export default function TermsPage() {
           <h1 className="text-4xl font-bold text-heading mb-8">Terms of Service</h1>
           <p className="text-sm text-subtle-fg mb-8">Last updated: February 2026</p>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-6 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-6 text-body">
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">1. General</h2>
               <p>By using Siraj Luxe (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;), you agree to these terms of service. If you do not agree, please do not use our website or services.</p>

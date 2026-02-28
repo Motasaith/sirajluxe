@@ -15,7 +15,7 @@ export default function PrivacyPage() {
           <h1 className="text-4xl font-bold text-heading mb-8">Privacy Policy</h1>
           <p className="text-sm text-subtle-fg mb-8">Last updated: February 2026</p>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-6 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-6 text-body">
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">1. Information We Collect</h2>
               <p>When you use Siraj Luxe, we collect information you provide directly:</p>

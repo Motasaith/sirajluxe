@@ -151,7 +151,7 @@ export default function BlogPostPage() {
 
               {/* Content */}
               <div
-                className="prose prose-invert prose-sm max-w-none prose-p:text-body prose-strong:text-heading prose-li:text-body prose-a:text-neon-violet prose-headings:text-heading prose-img:rounded-xl"
+                className="prose dark:prose-invert prose-sm max-w-none prose-p:text-body prose-strong:text-heading prose-li:text-body prose-a:text-neon-violet prose-headings:text-heading prose-img:rounded-xl"
                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content) }}
               />
 
@@ -162,7 +162,7 @@ export default function BlogPostPage() {
                   {post.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1 rounded-full bg-white/[0.04] border border-[var(--border)] text-xs text-muted-fg"
+                      className="px-3 py-1 rounded-full bg-[var(--overlay)] border border-[var(--border)] text-xs text-muted-fg"
                     >
                       {tag}
                     </span>

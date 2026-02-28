@@ -20,6 +20,7 @@ import {
   Truck,
   Copy,
   CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 
 interface OrderItem {
@@ -309,10 +310,53 @@ export default function OrderDetailPage() {
                   )}
                   {order.trackingNumber && (
                     <div className="mt-4 pt-4 border-t border-[var(--border)]">
-                      <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-2 text-sm mb-3">
                         <Truck className="w-4 h-4 text-neon-violet" />
-                        <span className="text-muted-fg">Tracking:</span>
-                        <span className="text-heading font-mono">{order.trackingNumber}</span>
+                        <span className="text-muted-fg">Tracking Number:</span>
+                        <span className="text-heading font-mono font-medium">{order.trackingNumber}</span>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(order.trackingNumber!);
+                          }}
+                          className="p-1 rounded hover:bg-[var(--hover)] transition-colors"
+                          title="Copy tracking number"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-subtle-fg" />
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        <a
+                          href={`https://www.royalmail.com/track-your-item#/tracking-results/${order.trackingNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
+                        >
+                          Royal Mail <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <a
+                          href={`https://www.dhl.com/gb-en/home/tracking/tracking-parcel.html?submit=1&tracking-id=${order.trackingNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
+                        >
+                          DHL <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <a
+                          href={`https://www.evri.com/track-a-parcel/${order.trackingNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
+                        >
+                          Evri <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <a
+                          href={`https://www.dpd.co.uk/tracking/quicktrack?search=${order.trackingNumber}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
+                        >
+                          DPD <ExternalLink className="w-3 h-3" />
+                        </a>
                       </div>
                     </div>
                   )}

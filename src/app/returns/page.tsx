@@ -15,7 +15,7 @@ export default function ReturnsPage() {
           <h1 className="text-4xl font-bold text-heading mb-8">Returns &amp; Refunds</h1>
           <p className="text-sm text-subtle-fg mb-8">Last updated: February 2026</p>
 
-          <div className="prose prose-invert prose-sm max-w-none space-y-6 text-body">
+          <div className="prose dark:prose-invert prose-sm max-w-none space-y-6 text-body">
             <section>
               <h2 className="text-xl font-semibold text-heading mb-3">30-Day Returns</h2>
               <p>We offer a 30-day return policy on all items. If you&apos;re not completely satisfied with your purchase, you can return it within 30 days of delivery for a full refund.</p>
