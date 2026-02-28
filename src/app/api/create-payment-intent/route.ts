@@ -124,7 +124,7 @@ export async function POST(req: NextRequest) {
             ],
           },
           { $inc: { usedCount: 1 } },
-          { new: true }
+          { returnDocument: 'after' }
         );
 
         if (coupon) {
@@ -161,7 +161,7 @@ export async function POST(req: NextRequest) {
           lastName: customerName?.split(" ").slice(1).join(" ") || "",
         },
       },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
     const isFirstOrder = !customer || customer.orderCount === 0;
     const qualifiesForFreeShipping = isFirstOrder || subtotalPence >= FREE_SHIPPING_THRESHOLD;
@@ -225,10 +225,13 @@ export async function POST(req: NextRequest) {
 
       // Decrement inventory atomically
       for (const [productId, qty] of Object.entries(productIdMap)) {
-        await Product.findByIdAndUpdate(productId, [
-          { $set: { inventory: { $max: [0, { $subtract: ["$inventory", qty as number] }] } } },
-          { $set: { inStock: { $gt: ["$inventory", 0] } } },
-        ]);
+        const updated = await Product.findByIdAndUpdate(productId, {
+          $inc: { inventory: -(qty as number) },
+        }, { returnDocument: 'after' });
+        if (updated) {
+          updated.inStock = updated.inventory > 0;
+          await updated.save();
+        }
       }
 
       // Update customer stats

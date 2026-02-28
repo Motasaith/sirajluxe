@@ -86,7 +86,7 @@ export async function PUT(req: NextRequest) {
     if (body.active !== undefined) allowed.active = body.active;
     if (body.isPublic !== undefined) allowed.isPublic = body.isPublic;
 
-    const updated = await Coupon.findByIdAndUpdate(body.id, allowed, { new: true });
+    const updated = await Coupon.findByIdAndUpdate(body.id, allowed, { returnDocument: 'after' });
     if (!updated) {
       return NextResponse.json({ error: "Coupon not found" }, { status: 404 });
     }

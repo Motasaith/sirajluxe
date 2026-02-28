@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
           lastName: last_name || "",
           avatarUrl: image_url || "",
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
 
       // Send welcome email only for new users

@@ -69,7 +69,7 @@ export async function PUT(req: NextRequest) {
     const updated = await Category.findByIdAndUpdate(
       id,
       { name, description },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!updated) {
       return NextResponse.json({ error: "Category not found" }, { status: 404 });

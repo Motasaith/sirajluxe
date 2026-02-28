@@ -43,18 +43,25 @@ export async function POST(req: NextRequest) {
       isDefault: Boolean(isDefault),
     };
 
-    // If setting as default, unset other defaults
+    // If setting as default, unset other defaults (only if addresses exist)
     if (address.isDefault) {
       await Customer.updateOne(
-        { clerkId: userId },
+        { clerkId: userId, "addresses.0": { $exists: true } },
         { $set: { "addresses.$[].isDefault": false } }
       );
     }
 
+    // Ensure customer has addresses array, then push
+    await Customer.findOneAndUpdate(
+      { clerkId: userId },
+      { $setOnInsert: { clerkId: userId, addresses: [] } },
+      { upsert: true }
+    );
+
     const customer = await Customer.findOneAndUpdate(
       { clerkId: userId },
       { $push: { addresses: address } },
-      { new: true, upsert: true }
+      { returnDocument: 'after' }
     ).lean();
 
     // Max 10 addresses
@@ -89,7 +96,7 @@ export async function DELETE(req: NextRequest) {
     const customer = await Customer.findOneAndUpdate(
       { clerkId: userId },
       { $pull: { addresses: { _id: addressId } } },
-      { new: true }
+      { returnDocument: 'after' }
     ).lean();
 
     return NextResponse.json({

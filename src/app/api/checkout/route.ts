@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
           },
         },
         { $inc: { usedCount: 1 } },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       if (coupon) {

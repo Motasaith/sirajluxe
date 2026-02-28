@@ -46,7 +46,7 @@ export async function PUT(req: NextRequest) {
     const section = await SiteContent.findOneAndUpdate(
       { key },
       { data, enabled: enabled !== false },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     // Purge all caches so visitors see the update immediately

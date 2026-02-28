@@ -62,7 +62,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
     // Get the order BEFORE update to compare status
     const previousOrder = await Order.findById(params.id).lean();
-    const order = await Order.findByIdAndUpdate(params.id, updateFields, { new: true, runValidators: true }).lean();
+    const order = await Order.findByIdAndUpdate(params.id, updateFields, { returnDocument: 'after', runValidators: true }).lean();
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
     // Log activity

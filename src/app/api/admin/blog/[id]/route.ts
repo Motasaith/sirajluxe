@@ -43,7 +43,7 @@ export async function PUT(
     await connectDB();
     const body = await req.json();
     const post = await BlogPost.findByIdAndUpdate(params.id, pickBlogFields(body), {
-      new: true,
+      returnDocument: 'after',
     });
     if (!post)
       return NextResponse.json({ error: "Post not found" }, { status: 404 });

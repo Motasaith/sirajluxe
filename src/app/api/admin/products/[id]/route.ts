@@ -26,7 +26,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     const body = await req.json();
     const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, metaTitle, metaDescription } = body;
     const product = await Product.findByIdAndUpdate(params.id, { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, metaTitle, metaDescription }, {
-      new: true,
+      returnDocument: 'after',
       runValidators: true,
     }).lean();
     if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });

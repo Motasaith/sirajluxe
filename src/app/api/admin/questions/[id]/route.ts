@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       updateFields.isPublished = Boolean(body.isPublished);
     }
 
-    const question = await Question.findByIdAndUpdate(id, updateFields, { new: true }).lean();
+    const question = await Question.findByIdAndUpdate(id, updateFields, { returnDocument: 'after' }).lean();
     if (!question) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
     }

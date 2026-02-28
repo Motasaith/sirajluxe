@@ -140,10 +140,13 @@ export async function POST(req: NextRequest) {
         : {};
       for (const [productId, qty] of Object.entries(productIdMap)) {
         // Single atomic pipeline update: decrement inventory and update inStock flag
-        await Product.findByIdAndUpdate(productId, [
-          { $set: { inventory: { $max: [0, { $subtract: ["$inventory", qty as number] }] } } },
-          { $set: { inStock: { $gt: ["$inventory", 0] } } },
-        ]);
+        const updated = await Product.findByIdAndUpdate(productId, {
+          $inc: { inventory: -(qty as number) },
+        }, { returnDocument: 'after' });
+        if (updated) {
+          updated.inStock = updated.inventory > 0;
+          await updated.save();
+        }
       }
 
       break;
@@ -173,7 +176,7 @@ export async function POST(req: NextRequest) {
         const refundedOrder = await Order.findOneAndUpdate(
           { paymentIntentId },
           { paymentStatus: "refunded", status: "cancelled" },
-          { new: true }
+          { returnDocument: 'after' }
         );
         // Send cancellation email to customer
         if (refundedOrder?.customerEmail) {
@@ -200,7 +203,7 @@ export async function POST(req: NextRequest) {
       const pendingOrder = await Order.findOneAndUpdate(
         { paymentIntentId: succeededPI.id, paymentStatus: "pending" },
         { status: "processing", paymentStatus: "paid" },
-        { new: true }
+        { returnDocument: 'after' }
       );
 
       if (pendingOrder) {
@@ -248,10 +251,13 @@ export async function POST(req: NextRequest) {
           ? (JSON.parse(succeededPI.metadata.productIds) as Record<string, number>)
           : {};
         for (const [productId, qty] of Object.entries(piProductIdMap)) {
-          await Product.findByIdAndUpdate(productId, [
-            { $set: { inventory: { $max: [0, { $subtract: ["$inventory", qty as number] }] } } },
-            { $set: { inStock: { $gt: ["$inventory", 0] } } },
-          ]);
+          const updated = await Product.findByIdAndUpdate(productId, {
+            $inc: { inventory: -(qty as number) },
+          }, { returnDocument: 'after' });
+          if (updated) {
+            updated.inStock = updated.inventory > 0;
+            await updated.save();
+          }
         }
       }
       break;
@@ -262,7 +268,7 @@ export async function POST(req: NextRequest) {
       const failedOrder = await Order.findOneAndUpdate(
         { paymentIntentId: paymentIntent.id },
         { paymentStatus: "failed" },
-        { new: true }
+        { returnDocument: 'after' }
       );
       if (failedOrder) {
         console.log(`Payment failed for order ${failedOrder.orderNumber}: ${paymentIntent.last_payment_error?.message || "Unknown error"}`);

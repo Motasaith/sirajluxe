@@ -61,7 +61,7 @@ export async function PATCH(req: NextRequest) {
     const review = await Review.findByIdAndUpdate(
       reviewId,
       { approved: !!approved },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!review) {

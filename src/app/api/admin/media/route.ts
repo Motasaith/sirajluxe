@@ -103,7 +103,7 @@ export async function PUT(req: NextRequest) {
     await connectDB();
     const { id, alt } = await req.json();
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
-    const doc = await Media.findByIdAndUpdate(id, { alt: alt || "" }, { new: true });
+    const doc = await Media.findByIdAndUpdate(id, { alt: alt || "" }, { returnDocument: 'after' });
     if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(doc);
   } catch (error) {
