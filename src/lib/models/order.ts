@@ -15,6 +15,7 @@ export interface IOrder extends Document {
   clerkUserId: string;
   customerEmail: string;
   customerName: string;
+  customerPhone: string;
   items: IOrderItem[];
   subtotal: number;
   discount: number;
@@ -49,6 +50,7 @@ const OrderSchema = new Schema<IOrder>(
     clerkUserId: { type: String, required: true, index: true },
     customerEmail: { type: String, required: true },
     customerName: { type: String, default: "" },
+    customerPhone: { type: String, default: "" },
     items: [
       {
         productId: { type: String, required: true },

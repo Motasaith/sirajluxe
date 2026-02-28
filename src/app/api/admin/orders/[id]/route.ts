@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Order } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
-import { sendOrderShipped, sendOrderDelivered, sendReturnApproved, sendReturnDenied } from "@/lib/email";
+import { sendOrderShipped, sendOrderDelivered, sendReturnApproved, sendReturnDenied, sendTrackingUpdate } from "@/lib/email";
 import { validateEnum, ORDER_STATUSES, ensureString } from "@/lib/validation";
 import { logActivity } from "@/lib/activity-logger";
 
@@ -123,6 +123,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
       } catch (emailErr) {
         console.error("Failed to send return email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
+      }
+    }
+
+    // Send tracking update email (explicit request from admin)
+    if (body.sendTrackingEmail && updated.trackingNumber && updated.customerEmail) {
+      try {
+        await sendTrackingUpdate({
+          to: updated.customerEmail,
+          customerName: updated.customerName || "",
+          orderNumber: updated.orderNumber,
+          trackingNumber: updated.trackingNumber,
+        });
+        console.log(`Tracking update email sent for ${updated.orderNumber}`);
+      } catch (emailErr) {
+        console.error("Failed to send tracking email:", emailErr instanceof Error ? emailErr.message : "Unknown error");
       }
     }
 

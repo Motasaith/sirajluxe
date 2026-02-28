@@ -20,6 +20,9 @@ import {
   RotateCcw,
   CheckCircle2,
   XCircle,
+  Phone,
+  Copy,
+  Send,
 } from "lucide-react";
 import { toast } from "../../components/toast";
 import { ConfirmDialog } from "../../components/confirm-dialog";
@@ -37,6 +40,7 @@ interface Order {
   orderNumber: string;
   customerEmail: string;
   customerName: string;
+  customerPhone: string;
   clerkUserId: string;
   items: OrderItem[];
   subtotal: number;
@@ -139,6 +143,8 @@ export default function AdminOrderDetailPage() {
   const [message, setMessage] = useState("");
   const [refunding, setRefunding] = useState(false);
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
+  const [sendingTracking, setSendingTracking] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState(false);
 
   const handleRefund = async () => {
     if (!order) return;
@@ -206,6 +212,39 @@ export default function AdminOrderDetailPage() {
       toast("Network error", "error");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSendTracking = async () => {
+    if (!order || !trackingNumber.trim()) {
+      toast("Please enter a tracking number first", "error");
+      return;
+    }
+    setSendingTracking(true);
+    try {
+      // Save first to persist tracking number
+      const saveRes = await fetch(`/api/admin/orders/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: newStatus,
+          trackingNumber,
+          adminNotes,
+          sendTrackingEmail: true,
+        }),
+      });
+      if (saveRes.ok) {
+        const updated = await saveRes.json();
+        setOrder(updated);
+        toast("Tracking notification sent to customer", "success");
+      } else {
+        const data = await saveRes.json().catch(() => ({}));
+        toast(data.error || "Failed to send tracking email", "error");
+      }
+    } catch {
+      toast("Network error", "error");
+    } finally {
+      setSendingTracking(false);
     }
   };
 
@@ -348,6 +387,18 @@ export default function AdminOrderDetailPage() {
             )}
             Save Changes
           </button>
+          <button
+            onClick={handleSendTracking}
+            disabled={sendingTracking || !trackingNumber.trim()}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            {sendingTracking ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
+            Send Tracking
+          </button>
           {message && (
             <span className={`text-sm ${message.includes("success") ? "text-emerald-400" : "text-red-400"}`}>
               {message}
@@ -452,12 +503,14 @@ export default function AdminOrderDetailPage() {
         <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6">
           <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
             <User className="w-4 h-4 text-violet-400" />
-            Customer
+            Customer Details
           </h3>
           <div className="space-y-3 text-sm">
-            <div className="flex items-center gap-2 text-gray-300">
-              <User className="w-3.5 h-3.5 text-gray-500" />
-              <span>{order.customerName || "—"}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-300">
+                <User className="w-3.5 h-3.5 text-gray-500" />
+                <span className="font-medium text-white">{order.customerName || "—"}</span>
+              </div>
             </div>
             <div className="flex items-center gap-2 text-gray-300">
               <Mail className="w-3.5 h-3.5 text-gray-500" />
@@ -465,27 +518,53 @@ export default function AdminOrderDetailPage() {
                 {order.customerEmail}
               </a>
             </div>
-            <div className="flex items-center gap-2 text-gray-400 text-xs">
-              <span className="font-mono">ID: {order.clerkUserId}</span>
+            {order.customerPhone && (
+              <div className="flex items-center gap-2 text-gray-300">
+                <Phone className="w-3.5 h-3.5 text-gray-500" />
+                <a href={`tel:${order.customerPhone}`} className="hover:text-violet-400 transition-colors">
+                  {order.customerPhone}
+                </a>
+              </div>
+            )}
+            <div className="pt-2 border-t border-white/[0.04]">
+              <span className="text-xs font-mono text-gray-600">Clerk ID: {order.clerkUserId}</span>
             </div>
           </div>
         </div>
 
         <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6">
-          <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-violet-400" />
-            Shipping Address
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-violet-400" />
+              Shipping Address
+            </h3>
+            {order.shippingAddress?.line1 && (
+              <button
+                onClick={() => {
+                  const addr = [order.customerName, order.shippingAddress.line1, order.shippingAddress.line2, `${order.shippingAddress.city} ${order.shippingAddress.postalCode}`, order.shippingAddress.country].filter(Boolean).join("\n");
+                  navigator.clipboard.writeText(addr);
+                  setCopiedAddress(true);
+                  setTimeout(() => setCopiedAddress(false), 2000);
+                }}
+                className="flex items-center gap-1 px-2 py-1 rounded-md text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                {copiedAddress ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                {copiedAddress ? "Copied" : "Copy"}
+              </button>
+            )}
+          </div>
           {order.shippingAddress?.line1 ? (
             <div className="text-sm text-gray-300 space-y-1">
+              <p className="font-medium text-white">{order.customerName}</p>
               <p>{order.shippingAddress.line1}</p>
               {order.shippingAddress.line2 && <p>{order.shippingAddress.line2}</p>}
               <p>
                 {order.shippingAddress.city}
                 {order.shippingAddress.state && `, ${order.shippingAddress.state}`}{" "}
-                {order.shippingAddress.postalCode}
+                <span className="font-medium text-white">{order.shippingAddress.postalCode}</span>
               </p>
-              <p>{order.shippingAddress.country}</p>
+              <p>{order.shippingAddress.country === "GB" ? "United Kingdom" : order.shippingAddress.country}</p>
+              {order.customerPhone && <p className="pt-1 text-gray-400">Tel: {order.customerPhone}</p>}
             </div>
           ) : (
             <p className="text-sm text-gray-600">No address provided</p>

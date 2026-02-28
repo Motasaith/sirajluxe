@@ -169,6 +169,7 @@ export default function CheckoutPage() {
   const [line1, setLine1] = useState("");
   const [line2, setLine2] = useState("");
   const [city, setCity] = useState("");
+  const [phone, setPhone] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [couponCode, setCouponCode] = useState("");
 
@@ -323,6 +324,7 @@ export default function CheckoutPage() {
           })),
           customerEmail: email,
           customerName: `${firstName} ${lastName}`.trim(),
+          customerPhone: phone.trim(),
           couponCode: couponCode.trim() || undefined,
           shippingAddress: {
             line1: line1.trim(),
@@ -357,7 +359,7 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false);
     }
-  }, [items, email, firstName, lastName, couponCode, line1, line2, city, postalCode, clearCart, router]);
+  }, [items, email, firstName, lastName, phone, couponCode, line1, line2, city, postalCode, clearCart, router]);
 
   // Empty cart
   if (isLoaded && items.length === 0 && step === "details") {
@@ -452,17 +454,31 @@ export default function CheckoutPage() {
                       />
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Email *</label>
-                    <input
-                      type="email"
-                      name="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
-                    />
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Email *</label>
+                      <input
+                        type="email"
+                        name="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[var(--muted)] mb-1.5">Phone</label>
+                      <input
+                        type="tel"
+                        name="tel"
+                        autoComplete="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+44 7XXX XXXXXX"
+                        className="w-full px-4 py-3 rounded-xl border border-[var(--border)] bg-[var(--elevated)] text-heading text-sm placeholder-[var(--dim)] focus:outline-none focus:border-neon-violet/50 focus:ring-1 focus:ring-neon-violet/25 transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
 

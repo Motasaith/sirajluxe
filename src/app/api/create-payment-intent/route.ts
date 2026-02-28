@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { items, customerEmail, customerName, couponCode, shippingAddress } = await req.json();
+    const { items, customerEmail, customerName, customerPhone, couponCode, shippingAddress } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -211,6 +211,7 @@ export async function POST(req: NextRequest) {
         clerkUserId: userId,
         customerEmail: resolvedEmail,
         customerName: customerName || "",
+        customerPhone: customerPhone || "",
         items: orderItems,
         subtotal: subtotalPence / 100,
         discount: discountPence / 100,
@@ -295,6 +296,7 @@ export async function POST(req: NextRequest) {
       clerkUserId: userId,
       customerEmail: resolvedEmail,
       customerName: customerName || "",
+      customerPhone: customerPhone || "",
       items: orderItems,
       subtotal: subtotalPence / 100,
       discount: discountPence / 100,
