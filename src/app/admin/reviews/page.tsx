@@ -58,9 +58,14 @@ export default function AdminReviewsPage() {
     setActionLoading(reviewId);
     try {
       if (action === "delete") {
-        await fetch(`/api/admin/reviews?reviewId=${reviewId}`, {
+        const res = await fetch(`/api/admin/reviews?reviewId=${reviewId}`, {
           method: "DELETE",
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          console.error("Delete failed:", data.error || res.statusText);
+          return;
+        }
         setReviews((prev) => prev.filter((r) => r._id !== reviewId));
       } else {
         const res = await fetch("/api/admin/reviews", {
@@ -278,9 +283,9 @@ export default function AdminReviewsPage() {
         confirmLabel="Delete"
         variant="danger"
         loading={actionLoading === deleteTarget}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (deleteTarget) {
-            handleAction(deleteTarget, "delete");
+            await handleAction(deleteTarget, "delete");
             setDeleteTarget(null);
           }
         }}
