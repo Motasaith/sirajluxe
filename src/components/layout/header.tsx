@@ -18,6 +18,7 @@ import { useCart } from "@/components/providers/cart-provider";
 import { useWishlist } from "@/components/providers/wishlist-provider";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { AnnouncementBar } from "@/components/ui/announcement-bar";
+import { PromoBanner } from "@/components/ui/promo-banner";
 import { SearchDrawer } from "@/components/ui/search-drawer";
 import { useKeyboardShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
@@ -231,6 +232,9 @@ export function Header() {
             </button>
           </div>
         </div>
+
+        {/* Promo Banner */}
+        <PromoBanner />
       </motion.header>
 
       {/* Mobile Menu */}

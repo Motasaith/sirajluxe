@@ -76,7 +76,7 @@ export function PromoBanner() {
       : `Use code ${coupon.code} for ${discount}`);
 
   return (
-    <div className="relative z-40">
+    <div className="relative">
       <motion.div
         initial={{ height: 0, opacity: 0 }}
         animate={{ height: "auto", opacity: 1 }}

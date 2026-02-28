@@ -41,7 +41,7 @@ export function HeroSection() {
       </div>
 
       {/* Main content — two-column layout */}
-      <div className="relative z-10 ultra-wide-padding w-full pt-28 pb-16 md:pt-32 md:pb-20">
+      <div className="relative z-10 ultra-wide-padding w-full pt-36 pb-16 md:pt-40 md:pb-20">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
           {/* ── Left: Text content ── */}
           <div className="max-w-2xl">
