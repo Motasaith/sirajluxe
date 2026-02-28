@@ -34,6 +34,9 @@ export interface IOrder extends Document {
   };
   trackingNumber: string;
   adminNotes: string;
+  returnStatus: "none" | "requested" | "approved" | "denied";
+  returnReason: string;
+  returnRequestedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -81,6 +84,13 @@ const OrderSchema = new Schema<IOrder>(
     },
     trackingNumber: { type: String, default: "" },
     adminNotes: { type: String, default: "" },
+    returnStatus: {
+      type: String,
+      enum: ["none", "requested", "approved", "denied"],
+      default: "none",
+    },
+    returnReason: { type: String, default: "" },
+    returnRequestedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

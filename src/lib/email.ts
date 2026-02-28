@@ -346,3 +346,50 @@ export async function sendOrderCancelled({
     html: baseTemplate("Order Cancelled", body),
   });
 }
+
+// ──────────────────────────────────────────────
+// 6. Return Request Notification (to Admin)
+// ──────────────────────────────────────────────
+export async function sendReturnRequest({
+  orderNumber,
+  customerName,
+  customerEmail,
+  reason,
+  total,
+}: {
+  orderNumber: string;
+  customerName: string;
+  customerEmail: string;
+  reason: string;
+  total: number;
+}) {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "noreply@sirajluxe.com";
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Request Received</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
+      A customer has requested a return for order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong>.
+    </p>
+
+    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
+      <table style="width:100%;font-size:14px;color:#9090a0;line-height:1.8;">
+        <tr><td style="padding:4px 8px;font-weight:600;color:#c4c4d0;">Customer</td><td style="padding:4px 8px;">${escapeHtml(customerName)}</td></tr>
+        <tr><td style="padding:4px 8px;font-weight:600;color:#c4c4d0;">Email</td><td style="padding:4px 8px;">${escapeHtml(customerEmail)}</td></tr>
+        <tr><td style="padding:4px 8px;font-weight:600;color:#c4c4d0;">Order Total</td><td style="padding:4px 8px;">${currency(total)}</td></tr>
+        <tr><td style="padding:4px 8px;font-weight:600;color:#c4c4d0;">Reason</td><td style="padding:4px 8px;">${escapeHtml(reason)}</td></tr>
+      </table>
+    </div>
+
+    <div style="text-align:center;">
+      <a href="${SITE_URL}/admin/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View in Admin</a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM,
+    to: adminEmail,
+    replyTo: customerEmail,
+    subject: `Return Request — ${orderNumber} | Siraj Luxe`,
+    html: baseTemplate("Return Request", body),
+  });
+}

@@ -17,6 +17,9 @@ import {
   Save,
   Printer,
   StickyNote,
+  RotateCcw,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 import { toast } from "../../components/toast";
 import { ConfirmDialog } from "../../components/confirm-dialog";
@@ -54,6 +57,9 @@ interface Order {
   };
   trackingNumber: string;
   adminNotes: string;
+  returnStatus?: string;
+  returnReason?: string;
+  returnRequestedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -365,6 +371,81 @@ export default function AdminOrderDetailPage() {
         />
         <p className="text-[10px] text-gray-600 mt-1">Notes are saved when you click &quot;Save Changes&quot; above.</p>
       </div>
+
+      {/* Return Request */}
+      {order.returnStatus && order.returnStatus !== "none" && (
+        <div className={`rounded-xl border p-6 ${
+          order.returnStatus === "requested" ? "border-amber-500/30 bg-amber-500/5" :
+          order.returnStatus === "approved" ? "border-emerald-500/30 bg-emerald-500/5" :
+          "border-red-500/30 bg-red-500/5"
+        }`}>
+          <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+            <RotateCcw className="w-4 h-4 text-violet-400" />
+            Return Request
+            <span className={`ml-auto inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${
+              order.returnStatus === "requested" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+              order.returnStatus === "approved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+              "bg-red-500/10 text-red-400 border-red-500/20"
+            }`}>
+              {order.returnStatus}
+            </span>
+          </h3>
+          <div className="space-y-2 text-sm text-gray-300 mb-4">
+            <p><strong className="text-white">Reason:</strong> {order.returnReason}</p>
+            {order.returnRequestedAt && (
+              <p><strong className="text-white">Requested:</strong> {new Date(order.returnRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+            )}
+          </div>
+          {order.returnStatus === "requested" && (
+            <div className="flex gap-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(`/api/admin/orders/${id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ returnStatus: "approved" }),
+                    });
+                    if (res.ok) {
+                      const updated = await res.json();
+                      setOrder(updated);
+                      toast("Return approved", "success");
+                    } else {
+                      toast("Failed to approve", "error");
+                    }
+                  } catch { toast("Network error", "error"); }
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Approve Return
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(`/api/admin/orders/${id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ returnStatus: "denied" }),
+                    });
+                    if (res.ok) {
+                      const updated = await res.json();
+                      setOrder(updated);
+                      toast("Return denied", "success");
+                    } else {
+                      toast("Failed to deny", "error");
+                    }
+                  } catch { toast("Network error", "error"); }
+                }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm font-medium hover:bg-red-500/20 transition-colors"
+              >
+                <XCircle className="w-4 h-4" />
+                Deny Return
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Customer + Address */}
       <div className="grid md:grid-cols-2 gap-6">

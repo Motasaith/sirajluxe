@@ -52,6 +52,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       updateFields.adminNotes = safeNotes || "";
     }
 
+    if (body.returnStatus !== undefined) {
+      const validReturnStatuses = ["none", "requested", "approved", "denied"];
+      if (!validReturnStatuses.includes(body.returnStatus)) {
+        return NextResponse.json({ error: "Invalid return status" }, { status: 400 });
+      }
+      updateFields.returnStatus = body.returnStatus;
+    }
+
     // Get the order BEFORE update to compare status
     const previousOrder = await Order.findById(params.id).lean();
     const order = await Order.findByIdAndUpdate(params.id, updateFields, { new: true, runValidators: true }).lean();

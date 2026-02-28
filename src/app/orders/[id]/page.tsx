@@ -21,6 +21,10 @@ import {
   Copy,
   CheckCircle2,
   ExternalLink,
+  RotateCcw,
+  AlertTriangle,
+  Clock,
+  X,
 } from "lucide-react";
 
 interface OrderItem {
@@ -50,6 +54,9 @@ interface Order {
     country: string;
   };
   trackingNumber?: string;
+  returnStatus?: string;
+  returnReason?: string;
+  returnRequestedAt?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -128,6 +135,14 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
+  // Return request state
+  const [showReturnForm, setShowReturnForm] = useState(false);
+  const [returnReason, setReturnReason] = useState("");
+  const [returnDetails, setReturnDetails] = useState("");
+  const [submittingReturn, setSubmittingReturn] = useState(false);
+  const [returnError, setReturnError] = useState("");
+  const [returnSuccess, setReturnSuccess] = useState("");
+
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
@@ -161,6 +176,49 @@ export default function OrderDetailPage() {
     navigator.clipboard.writeText(order.orderNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Check if order is eligible for return (delivered, paid, within 7 days, no existing request)
+  const isReturnEligible = order
+    && order.status === "delivered"
+    && order.paymentStatus === "paid"
+    && (!order.returnStatus || order.returnStatus === "none")
+    && (() => {
+      const delivered = new Date(order.updatedAt);
+      const daysSince = Math.floor((Date.now() - delivered.getTime()) / (1000 * 60 * 60 * 24));
+      return daysSince <= 7;
+    })();
+
+  const daysLeftForReturn = order ? (() => {
+    const delivered = new Date(order.updatedAt);
+    const daysSince = Math.floor((Date.now() - delivered.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, 7 - daysSince);
+  })() : 0;
+
+  const handleReturnSubmit = async () => {
+    if (!order || !returnReason) return;
+    setSubmittingReturn(true);
+    setReturnError("");
+    setReturnSuccess("");
+    try {
+      const res = await fetch(`/api/orders/${order._id}/return`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: returnReason, details: returnDetails.trim() }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setReturnSuccess(data.message);
+        setOrder((prev) => prev ? { ...prev, returnStatus: "requested", returnReason: returnDetails ? `${returnReason}: ${returnDetails}` : returnReason, returnRequestedAt: new Date().toISOString() } : prev);
+        setShowReturnForm(false);
+      } else {
+        setReturnError(data.error || "Failed to submit return request");
+      }
+    } catch {
+      setReturnError("Something went wrong. Please try again.");
+    } finally {
+      setSubmittingReturn(false);
+    }
   };
 
   return (
@@ -389,12 +447,152 @@ export default function OrderDetailPage() {
                 </div>
               </div>
 
+              {/* Return Request Section */}
+              {order.returnStatus && order.returnStatus !== "none" && (
+                <div className={`rounded-2xl border p-6 ${
+                  order.returnStatus === "requested" ? "border-amber-500/20 bg-amber-500/5" :
+                  order.returnStatus === "approved" ? "border-emerald-500/20 bg-emerald-500/5" :
+                  "border-red-500/20 bg-red-500/5"
+                }`}>
+                  <h3 className="text-sm font-semibold text-heading mb-3 flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-neon-violet" />
+                    Return Request
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border capitalize ${
+                      order.returnStatus === "requested" ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                      order.returnStatus === "approved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                      "bg-red-500/10 text-red-400 border-red-500/20"
+                    }`}>
+                      {order.returnStatus === "requested" ? "Under Review" : order.returnStatus}
+                    </span>
+                  </h3>
+                  <p className="text-sm text-muted-fg">{order.returnReason}</p>
+                  {order.returnRequestedAt && (
+                    <p className="text-xs text-subtle-fg mt-2">
+                      Requested on {new Date(order.returnRequestedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
+                    </p>
+                  )}
+                  {order.returnStatus === "requested" && (
+                    <p className="text-xs text-amber-400 mt-2 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      We&apos;ll review your request within 1-2 business days.
+                    </p>
+                  )}
+                  {order.returnStatus === "approved" && (
+                    <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Your return has been approved. A refund will be processed shortly.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {returnSuccess && (
+                <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                  <p className="text-sm text-emerald-400">{returnSuccess}</p>
+                </div>
+              )}
+
+              {/* Return Request Button & Form */}
+              {isReturnEligible && !returnSuccess && (
+                <div className="rounded-2xl border border-[var(--border)] bg-[var(--overlay)] p-6">
+                  {!showReturnForm ? (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-sm font-semibold text-heading flex items-center gap-2">
+                          <RotateCcw className="w-4 h-4 text-neon-violet" />
+                          Need to Return This Order?
+                        </h3>
+                        <p className="text-xs text-muted-fg mt-1">
+                          You have <strong className="text-heading">{daysLeftForReturn} day{daysLeftForReturn !== 1 ? "s" : ""}</strong> left to request a return for damage or loss.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setShowReturnForm(true)}
+                        className="px-4 py-2 rounded-xl border border-[var(--border)] text-sm font-medium text-heading hover:bg-[var(--hover)] transition-all flex items-center gap-2"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        Request Return
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-heading flex items-center gap-2">
+                          <RotateCcw className="w-4 h-4 text-neon-violet" />
+                          Request a Return
+                        </h3>
+                        <button onClick={() => { setShowReturnForm(false); setReturnError(""); }} className="p-1.5 rounded-lg hover:bg-[var(--hover)] transition-colors">
+                          <X className="w-4 h-4 text-subtle-fg" />
+                        </button>
+                      </div>
+
+                      {returnError && (
+                        <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center gap-2">
+                          <AlertTriangle className="w-4 h-4 shrink-0" />
+                          {returnError}
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-xs font-medium text-muted-fg block mb-2">Reason for return *</label>
+                        <div className="space-y-2">
+                          {["Damaged on arrival", "Item lost in transit", "Wrong item received", "Item defective", "Other"].map((reason) => (
+                            <label key={reason} onClick={() => setReturnReason(reason)} className="flex items-center gap-3 cursor-pointer group">
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors ${
+                                returnReason === reason ? "border-neon-violet bg-neon-violet" : "border-[var(--border)] group-hover:border-neon-violet/50"
+                              }`}>
+                                {returnReason === reason && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                              </div>
+                              <span className="text-sm text-body">{reason}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-medium text-muted-fg block mb-1">Additional details (optional)</label>
+                        <textarea
+                          value={returnDetails}
+                          onChange={(e) => setReturnDetails(e.target.value)}
+                          maxLength={500}
+                          rows={3}
+                          placeholder="Please describe the issue..."
+                          className="w-full px-3 py-2 rounded-lg bg-[var(--overlay)] border border-[var(--border)] text-heading text-sm focus:outline-none focus:border-neon-violet/50 focus:ring-2 focus:ring-neon-violet/20 transition-all resize-none placeholder:text-subtle-fg"
+                        />
+                      </div>
+
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleReturnSubmit}
+                          disabled={!returnReason || submittingReturn}
+                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {submittingReturn ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
+                          Submit Request
+                        </button>
+                        <button
+                          onClick={() => { setShowReturnForm(false); setReturnError(""); }}
+                          className="px-5 py-2.5 rounded-xl border border-[var(--border)] text-sm text-muted-fg hover:text-heading hover:bg-[var(--hover)] transition-all"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Help */}
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--overlay)] p-6 text-center">
                 <p className="text-sm text-muted-fg">
                   Need help with this order?{" "}
                   <Link href="/contact" className="text-neon-violet hover:underline">
                     Contact Support
+                  </Link>
+                  {" · "}
+                  <Link href="/returns" className="text-neon-violet hover:underline">
+                    Returns Policy
                   </Link>
                 </p>
               </div>

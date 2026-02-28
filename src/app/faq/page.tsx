@@ -34,12 +34,12 @@ const defaultFaqs = [
   {
     question: "What is your return policy?",
     answer:
-      "We offer a 30-day return policy on all items, including sale items. Items must be unused, undamaged, and in their original packaging. Email support@sirajluxe.com with your order number to start a return.",
+      "We offer a 7-day return policy from the date of delivery for damaged, defective, lost, or wrong items. You can request a return directly from your order page — go to My Orders, open the order, and click 'Request Return'.",
   },
   {
     question: "How long do refunds take?",
     answer:
-      "Once we receive and inspect your return, refunds are processed within 5–10 business days. The refund goes back to your original payment method.",
+      "Once your return is approved, refunds are processed within 5–10 business days. The refund goes back to your original payment method.",
   },
   {
     question: "Can I exchange an item?",
@@ -89,7 +89,7 @@ const defaultFaqs = [
   {
     question: "I received a damaged or wrong item. What do I do?",
     answer:
-      "We're sorry about that! Email us at support@sirajluxe.com with your order number and a photo of the issue. We'll arrange a return and full refund, including shipping costs.",
+      "Go to My Orders, open the affected order, and click 'Request Return'. Select the reason (damaged, wrong item, etc.) and add any details. Our team will review within 1-2 business days and process a full refund if approved.",
   },
   {
     question: "How do I contact customer support?",

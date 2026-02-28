@@ -11,6 +11,8 @@ import {
   Sun,
   Moon,
   Heart,
+  Package,
+  Star,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
@@ -185,7 +187,13 @@ export function Header() {
                       avatarBox: "w-9 h-9",
                     },
                   }}
-                />
+                >
+                  <UserButton.MenuItems>
+                    <UserButton.Link label="My Orders" labelIcon={<Package className="w-4 h-4" />} href="/orders" />
+                    <UserButton.Link label="My Reviews" labelIcon={<Star className="w-4 h-4" />} href="/my-reviews" />
+                    <UserButton.Link label="Wishlist" labelIcon={<Heart className="w-4 h-4" />} href="/wishlist" />
+                  </UserButton.MenuItems>
+                </UserButton>
               </div>
             </SignedIn>
             <SignedOut>
