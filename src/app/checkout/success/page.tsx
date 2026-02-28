@@ -13,6 +13,7 @@ function SuccessContent() {
   const paymentIntentParam = searchParams.get("payment_intent");
   const { clearCart } = useCart();
   const [cleared, setCleared] = useState(false);
+  const [verified, setVerified] = useState(false);
 
   const hasPayment = sessionId || orderNumber || paymentIntentParam;
 
@@ -23,6 +24,20 @@ function SuccessContent() {
       setCleared(true);
     }
   }, [hasPayment, cleared, clearCart]);
+
+  // Verify payment & trigger confirmation email (fallback when webhooks aren't configured)
+  useEffect(() => {
+    if (paymentIntentParam && !verified) {
+      setVerified(true);
+      fetch("/api/orders/verify-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentIntentId: paymentIntentParam }),
+      }).catch(() => {
+        // Silent — webhook may handle it instead
+      });
+    }
+  }, [paymentIntentParam, verified]);
 
   if (!hasPayment) {
     return (
