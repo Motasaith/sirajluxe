@@ -595,6 +595,64 @@ export default function OrderDetailPage() {
                 </div>
               )}
 
+              {/* What Happens Next — shown when order is not yet delivered and no tracking */}
+              {(order.status === "pending" || order.status === "processing" || (order.status === "shipped" && !order.trackingNumber)) && (
+                <div className="rounded-2xl border border-neon-violet/10 bg-gradient-to-br from-neon-violet/[0.03] to-transparent p-6">
+                  <h3 className="text-sm font-semibold text-heading mb-4 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-neon-violet" />
+                    What Happens Next?
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="flex gap-3">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                        order.status === "pending" ? "bg-neon-violet text-white" : "bg-emerald-500/10 text-emerald-400"
+                      }`}>
+                        {order.status !== "pending" ? <Check className="w-3.5 h-3.5" /> : "1"}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-heading">Order Received</p>
+                        <p className="text-xs text-muted-fg mt-0.5">We&apos;ve received your order and payment has been confirmed.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold ${
+                        order.status === "processing" ? "bg-neon-violet text-white" : order.status === "shipped" ? "bg-emerald-500/10 text-emerald-400" : "bg-[var(--overlay)] border border-[var(--border)] text-subtle-fg"
+                      }`}>
+                        {order.status === "shipped" ? <Check className="w-3.5 h-3.5" /> : "2"}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-heading">Processing &amp; Packing</p>
+                        <p className="text-xs text-muted-fg mt-0.5">Our team is carefully preparing your items for dispatch. This usually takes 1–2 business days.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-[var(--overlay)] border border-[var(--border)] text-subtle-fg">
+                        3
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-heading">Tracking ID Assigned</p>
+                        <p className="text-xs text-muted-fg mt-0.5">Once shipped, you&apos;ll receive an email with your tracking number. It will also appear here so you can track your parcel in real time.</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-[var(--overlay)] border border-[var(--border)] text-subtle-fg">
+                        4
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-heading">Delivered</p>
+                        <p className="text-xs text-muted-fg mt-0.5">Estimated delivery is 3–5 business days. After delivery, you have 7 days to request a return if needed.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-5 pt-4 border-t border-[var(--border)]">
+                    <p className="text-xs text-subtle-fg flex items-center gap-1.5">
+                      <AlertTriangle className="w-3 h-3" />
+                      We&apos;ll send email updates at every step. Check your inbox (and spam folder) for notifications from Siraj Luxe.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Help */}
               <div className="rounded-2xl border border-[var(--border)] bg-[var(--overlay)] p-6 text-center">
                 <p className="text-sm text-muted-fg">

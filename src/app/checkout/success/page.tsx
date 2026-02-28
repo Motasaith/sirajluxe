@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, ArrowRight, ShoppingBag, Loader2 } from "lucide-react";
+import { CheckCircle2, ArrowRight, ShoppingBag, Loader2, Package, Truck, Bell, Clock } from "lucide-react";
 import Link from "next/link";
 import { useCart } from "@/components/providers/cart-provider";
 
@@ -48,13 +48,52 @@ function SuccessContent() {
         {orderNumber && (
           <p className="text-sm font-mono text-neon-violet mb-2">Order #{orderNumber}</p>
         )}
-        <p className="text-body mb-4 leading-relaxed">
-          Thank you for your purchase. Your order is being processed and
-          you&apos;ll receive updates via email.
+        <p className="text-body mb-8 leading-relaxed">
+          Thank you for your purchase! We&apos;ve sent a confirmation email with your order details.
         </p>
-        <p className="text-sm text-subtle-fg mb-8">
-          Your order will appear in your order history shortly.
-        </p>
+
+        {/* What Happens Next */}
+        <div className="text-left bg-[var(--overlay)] border border-[var(--border)] rounded-2xl p-5 mb-8">
+          <h3 className="text-sm font-semibold text-heading mb-4">What Happens Next?</h3>
+          <div className="space-y-4">
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
+                <Package className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-heading">Processing</p>
+                <p className="text-xs text-muted-fg">We&apos;re preparing your order. Takes 1–2 business days.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                <Truck className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-heading">Tracking ID</p>
+                <p className="text-xs text-muted-fg">You&apos;ll receive an email with your tracking number once shipped.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
+                <Bell className="w-4 h-4 text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-heading">Email Updates</p>
+                <p className="text-xs text-muted-fg">We&apos;ll notify you at every step — shipped, out for delivery, and delivered.</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 rounded-full bg-neon-violet/10 flex items-center justify-center shrink-0">
+                <Clock className="w-4 h-4 text-neon-violet" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-heading">Delivery</p>
+                <p className="text-xs text-muted-fg">Estimated 3–5 business days. Track your order anytime from your orders page.</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link href="/shop" className="magnetic-btn">

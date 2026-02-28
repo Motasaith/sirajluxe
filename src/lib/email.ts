@@ -182,7 +182,40 @@ export async function sendOrderConfirmation({
 
     ${addressHtml}
 
-    <div style="margin-top:28px;text-align:center;">
+    <div style="margin-top:28px;padding:20px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;">
+      <p style="margin:0 0 16px;font-size:13px;color:#8b5cf6;font-weight:700;text-transform:uppercase;letter-spacing:1px;">What Happens Next</p>
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="padding:8px 12px 8px 0;vertical-align:top;width:24px;">
+            <div style="width:22px;height:22px;border-radius:50%;background:#8b5cf620;text-align:center;line-height:22px;color:#8b5cf6;font-size:11px;font-weight:700;">1</div>
+          </td>
+          <td style="padding:8px 0;">
+            <p style="margin:0;color:#c4c4d0;font-size:13px;"><strong>Processing</strong> — We're preparing your items (1–2 business days)</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px 8px 0;vertical-align:top;">
+            <div style="width:22px;height:22px;border-radius:50%;background:#3b82f620;text-align:center;line-height:22px;color:#3b82f6;font-size:11px;font-weight:700;">2</div>
+          </td>
+          <td style="padding:8px 0;">
+            <p style="margin:0;color:#c4c4d0;font-size:13px;"><strong>Tracking ID</strong> — You'll receive a tracking number by email once shipped</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:8px 12px 8px 0;vertical-align:top;">
+            <div style="width:22px;height:22px;border-radius:50%;background:#10b98120;text-align:center;line-height:22px;color:#10b981;font-size:11px;font-weight:700;">3</div>
+          </td>
+          <td style="padding:8px 0;">
+            <p style="margin:0;color:#c4c4d0;font-size:13px;"><strong>Delivery</strong> — Estimated 3–5 business days to your door</p>
+          </td>
+        </tr>
+      </table>
+      <p style="margin:12px 0 0;font-size:12px;color:#6b6b80;line-height:1.5;">
+        💡 You can check your order status anytime from your <a href="${SITE_URL}/orders" style="color:#8b5cf6;text-decoration:underline;">Orders page</a>. Your tracking number will appear there once assigned.
+      </p>
+    </div>
+
+    <div style="margin-top:24px;text-align:center;">
       <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View Your Orders</a>
     </div>
   `;
