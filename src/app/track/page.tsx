@@ -25,6 +25,8 @@ interface TrackingResult {
   status: string;
   paymentStatus: string;
   trackingNumber: string | null;
+  trackingCarrier: string | null;
+  trackingUrl: string | null;
   itemCount: number;
   total: number;
   shipping: number;
@@ -313,6 +315,9 @@ export default function TrackOrderPage() {
                     <Truck className="w-4 h-4 text-neon-violet" />
                     Tracking Information
                   </h3>
+                  {result.trackingCarrier && (
+                    <p className="text-sm font-semibold text-heading mb-2">{result.trackingCarrier}</p>
+                  )}
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-[var(--elevated)] border border-[var(--border)]">
                     <span className="text-heading font-mono font-medium tracking-wider flex-1">
                       {result.trackingNumber}
@@ -332,40 +337,16 @@ export default function TrackOrderPage() {
                   <p className="text-xs text-muted-fg mt-3">
                     Use this tracking number on your carrier&apos;s website to see detailed delivery updates.
                   </p>
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  {result.trackingUrl && (
                     <a
-                      href={`https://www.royalmail.com/track-your-item#/tracking-results/${result.trackingNumber}`}
+                      href={result.trackingUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
+                      className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-lg bg-neon-violet/10 border border-neon-violet/20 text-sm text-neon-violet font-medium hover:bg-neon-violet/20 transition-colors"
                     >
-                      Royal Mail <ExternalLink className="w-3 h-3" />
+                      Track on {result.trackingCarrier || "carrier website"} <ExternalLink className="w-3.5 h-3.5" />
                     </a>
-                    <a
-                      href={`https://www.dhl.com/gb-en/home/tracking/tracking-parcel.html?submit=1&tracking-id=${result.trackingNumber}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
-                    >
-                      DHL <ExternalLink className="w-3 h-3" />
-                    </a>
-                    <a
-                      href={`https://www.evri.com/track-a-parcel/${result.trackingNumber}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
-                    >
-                      Evri <ExternalLink className="w-3 h-3" />
-                    </a>
-                    <a
-                      href={`https://www.dpd.co.uk/tracking/quicktrack?search=${result.trackingNumber}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
-                    >
-                      DPD <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
+                  )}
                 </div>
               )}
 

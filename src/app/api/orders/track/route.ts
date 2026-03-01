@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       orderNumber: orderNumber.trim().toUpperCase(),
       customerEmail: email.trim().toLowerCase(),
     }).select(
-      "orderNumber status paymentStatus trackingNumber items customerName shippingAddress shipping total createdAt updatedAt"
+      "orderNumber status paymentStatus trackingNumber trackingCarrier trackingUrl items customerName shippingAddress shipping total createdAt updatedAt"
     );
 
     if (!order) {
@@ -39,6 +39,8 @@ export async function POST(req: NextRequest) {
       status: order.status,
       paymentStatus: order.paymentStatus,
       trackingNumber: order.trackingNumber || null,
+      trackingCarrier: order.trackingCarrier || null,
+      trackingUrl: order.trackingUrl || null,
       itemCount: order.items.length,
       total: order.total,
       shipping: order.shipping,

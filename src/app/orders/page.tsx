@@ -43,6 +43,8 @@ interface Order {
     country: string;
   };
   trackingNumber?: string;
+  trackingCarrier?: string;
+  trackingUrl?: string;
   createdAt: string;
 }
 
@@ -339,7 +341,7 @@ export default function OrdersPage() {
                           )}
                           {order.trackingNumber && (
                             <p className="text-sm text-neon-violet mt-2">
-                              Tracking: {order.trackingNumber}
+                              {order.trackingCarrier ? `${order.trackingCarrier}: ` : "Tracking: "}{order.trackingNumber}
                             </p>
                           )}
                         </div>

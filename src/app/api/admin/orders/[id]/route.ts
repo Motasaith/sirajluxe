@@ -28,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const body = await req.json();
 
     // Only allow updating status and trackingNumber — validate types
-    const { status, trackingNumber } = body;
+    const { status, trackingNumber, trackingCarrier, trackingUrl } = body;
     const updateFields: Record<string, unknown> = {};
 
     if (status) {
@@ -45,6 +45,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         return NextResponse.json({ error: "Invalid tracking number" }, { status: 400 });
       }
       updateFields.trackingNumber = safeTracking || "";
+    }
+
+    if (trackingCarrier !== undefined) {
+      updateFields.trackingCarrier = ensureString(trackingCarrier) || "";
+    }
+
+    if (trackingUrl !== undefined) {
+      updateFields.trackingUrl = ensureString(trackingUrl) || "";
     }
 
     if (body.adminNotes !== undefined) {
@@ -87,6 +95,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             customerName: updated.customerName || "",
             orderNumber: updated.orderNumber,
             trackingNumber,
+            trackingCarrier: updated.trackingCarrier || "",
+            trackingUrl: updated.trackingUrl || "",
           });
           console.log(`Shipped email sent for ${updated.orderNumber}`);
         } else if (updated.status === "delivered") {
@@ -134,6 +144,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
           customerName: updated.customerName || "",
           orderNumber: updated.orderNumber,
           trackingNumber: updated.trackingNumber,
+          trackingCarrier: updated.trackingCarrier || "",
+          trackingUrl: updated.trackingUrl || "",
         });
         console.log(`Tracking update email sent for ${updated.orderNumber}`);
       } catch (emailErr) {

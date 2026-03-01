@@ -34,6 +34,8 @@ export interface IOrder extends Document {
     country: string;
   };
   trackingNumber: string;
+  trackingCarrier: string;
+  trackingUrl: string;
   adminNotes: string;
   returnStatus: "none" | "requested" | "approved" | "denied";
   returnReason: string;
@@ -85,6 +87,8 @@ const OrderSchema = new Schema<IOrder>(
       country: { type: String, default: "" },
     },
     trackingNumber: { type: String, default: "" },
+    trackingCarrier: { type: String, default: "" },
+    trackingUrl: { type: String, default: "" },
     adminNotes: { type: String, default: "" },
     returnStatus: {
       type: String,

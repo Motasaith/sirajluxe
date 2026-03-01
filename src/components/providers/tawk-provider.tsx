@@ -1,34 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
-
-declare global {
-  interface Window {
-    Tawk_API: Record<string, unknown>;
-    Tawk_LoadStart: Date;
-  }
-}
+import Script from "next/script";
 
 export function TawkProvider() {
-  useEffect(() => {
-    const tawkId = process.env.NEXT_PUBLIC_TAWK_PROPERTY_ID;
-    const widgetId = process.env.NEXT_PUBLIC_TAWK_WIDGET_ID;
-    if (!tawkId || !widgetId) return;
-
-    window.Tawk_API = window.Tawk_API || {};
-    window.Tawk_LoadStart = new Date();
-
-    const script = document.createElement("script");
-    script.src = `https://embed.tawk.to/${tawkId}/${widgetId}`;
-    script.async = true;
-    script.charset = "UTF-8";
-    script.setAttribute("crossorigin", "*");
-    document.head.appendChild(script);
-
-    return () => {
-      script.remove();
-    };
-  }, []);
-
-  return null;
+  return (
+    <Script id="tawk-to" strategy="afterInteractive">
+      {`
+        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+        (function(){
+          var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+          s1.async=true;
+          s1.src='https://embed.tawk.to/69a45e51a705f91c36464794/1jil10rpu';
+          s1.charset='UTF-8';
+          s1.setAttribute('crossorigin','*');
+          s0.parentNode.insertBefore(s1,s0);
+        })();
+      `}
+    </Script>
+  );
 }

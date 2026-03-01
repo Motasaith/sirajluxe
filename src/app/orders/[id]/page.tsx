@@ -55,6 +55,8 @@ interface Order {
     country: string;
   };
   trackingNumber?: string;
+  trackingCarrier?: string;
+  trackingUrl?: string;
   returnStatus?: string;
   returnReason?: string;
   returnRequestedAt?: string;
@@ -380,9 +382,15 @@ export default function OrderDetailPage() {
                   )}
                   {order.trackingNumber && (
                     <div className="mt-4 pt-4 border-t border-[var(--border)]">
-                      <div className="flex items-center gap-2 text-sm mb-3">
+                      <div className="flex items-center gap-2 text-sm mb-1">
                         <Truck className="w-4 h-4 text-neon-violet" />
-                        <span className="text-muted-fg">Tracking Number:</span>
+                        {order.trackingCarrier ? (
+                          <span className="text-heading font-semibold">{order.trackingCarrier}</span>
+                        ) : (
+                          <span className="text-muted-fg">Tracking Number:</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm mb-3">
                         <span className="text-heading font-mono font-medium">{order.trackingNumber}</span>
                         <button
                           onClick={() => {
@@ -394,40 +402,16 @@ export default function OrderDetailPage() {
                           <Copy className="w-3.5 h-3.5 text-subtle-fg" />
                         </button>
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      {order.trackingUrl && (
                         <a
-                          href={`https://www.royalmail.com/track-your-item#/tracking-results/${order.trackingNumber}`}
+                          href={order.trackingUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-neon-violet/10 border border-neon-violet/20 text-sm text-neon-violet font-medium hover:bg-neon-violet/20 transition-colors"
                         >
-                          Royal Mail <ExternalLink className="w-3 h-3" />
+                          Track on {order.trackingCarrier || "carrier website"} <ExternalLink className="w-3.5 h-3.5" />
                         </a>
-                        <a
-                          href={`https://www.dhl.com/gb-en/home/tracking/tracking-parcel.html?submit=1&tracking-id=${order.trackingNumber}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
-                        >
-                          DHL <ExternalLink className="w-3 h-3" />
-                        </a>
-                        <a
-                          href={`https://www.evri.com/track-a-parcel/${order.trackingNumber}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
-                        >
-                          Evri <ExternalLink className="w-3 h-3" />
-                        </a>
-                        <a
-                          href={`https://www.dpd.co.uk/tracking/quicktrack?search=${order.trackingNumber}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--hover)] border border-[var(--border)] text-xs text-heading font-medium hover:border-neon-violet/30 transition-colors"
-                        >
-                          DPD <ExternalLink className="w-3 h-3" />
-                        </a>
-                      </div>
+                      )}
                     </div>
                   )}
                 </div>

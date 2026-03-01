@@ -60,6 +60,8 @@ interface Order {
     country: string;
   };
   trackingNumber: string;
+  trackingCarrier: string;
+  trackingUrl: string;
   adminNotes: string;
   returnStatus?: string;
   returnReason?: string;
@@ -139,6 +141,8 @@ export default function AdminOrderDetailPage() {
   const [saving, setSaving] = useState(false);
   const [newStatus, setNewStatus] = useState("");
   const [trackingNumber, setTrackingNumber] = useState("");
+  const [trackingCarrier, setTrackingCarrier] = useState("");
+  const [trackingUrl, setTrackingUrl] = useState("");
   const [adminNotes, setAdminNotes] = useState("");
   const [message, setMessage] = useState("");
   const [refunding, setRefunding] = useState(false);
@@ -180,6 +184,8 @@ export default function AdminOrderDetailPage() {
         setOrder(data);
         setNewStatus(data.status);
         setTrackingNumber(data.trackingNumber || "");
+        setTrackingCarrier(data.trackingCarrier || "");
+        setTrackingUrl(data.trackingUrl || "");
         setAdminNotes(data.adminNotes || "");
       })
       .catch(() => setOrder(null))
@@ -197,6 +203,8 @@ export default function AdminOrderDetailPage() {
         body: JSON.stringify({
           status: newStatus,
           trackingNumber,
+          trackingCarrier,
+          trackingUrl,
           adminNotes,
         }),
       });
@@ -229,6 +237,8 @@ export default function AdminOrderDetailPage() {
         body: JSON.stringify({
           status: newStatus,
           trackingNumber,
+          trackingCarrier,
+          trackingUrl,
           adminNotes,
           sendTrackingEmail: true,
         }),
@@ -368,10 +378,30 @@ export default function AdminOrderDetailPage() {
                 type="text"
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
-                placeholder="Enter tracking number"
+                placeholder="e.g. 300013468629"
                 className="w-full pl-10 pr-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#111118] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-violet-500/50"
               />
             </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">Carrier / Service Name</label>
+            <input
+              type="text"
+              value={trackingCarrier}
+              onChange={(e) => setTrackingCarrier(e.target.value)}
+              placeholder="e.g. TCS Express, Royal Mail, DHL"
+              className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#111118] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-violet-500/50"
+            />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">Carrier Tracking URL</label>
+            <input
+              type="url"
+              value={trackingUrl}
+              onChange={(e) => setTrackingUrl(e.target.value)}
+              placeholder="e.g. https://www.tcsexpress.com/track/"
+              className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#111118] text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-violet-500/50"
+            />
           </div>
         </div>
         <div className="flex items-center gap-4 mt-4">

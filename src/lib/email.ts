@@ -236,15 +236,29 @@ export async function sendOrderShipped({
   customerName,
   orderNumber,
   trackingNumber,
+  trackingCarrier,
+  trackingUrl,
 }: {
   to: string;
   customerName: string;
   orderNumber: string;
   trackingNumber?: string;
+  trackingCarrier?: string;
+  trackingUrl?: string;
 }) {
-  const trackingHtml = trackingNumber
-    ? `<p style="margin:0 0 24px;font-size:14px;color:#9090a0;">Tracking number: <strong style="color:#e1e2e6;">${escapeHtml(trackingNumber)}</strong></p>`
-    : "";
+  const carrierName = trackingCarrier ? escapeHtml(trackingCarrier) : "your delivery carrier";
+
+  let trackingHtml = "";
+  if (trackingNumber) {
+    trackingHtml = `
+    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:16px;">
+      <p style="margin:0 0 8px;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your Tracking ID</p>
+      <p style="margin:0;font-size:18px;font-weight:700;color:#e1e2e6;letter-spacing:0.5px;">${escapeHtml(trackingNumber)}</p>
+    </div>
+    <p style="margin:0 0 16px;font-size:14px;color:#9090a0;line-height:1.6;">
+      Please track your parcel on <strong style="color:#e1e2e6;">${carrierName}</strong>${trackingUrl ? `: <a href="${encodeURI(trackingUrl)}" style="color:#8b5cf6;text-decoration:underline;">${escapeHtml(trackingUrl)}</a>` : ""}
+    </p>`;
+  }
 
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Your Order is On Its Way! 📦</h1>
@@ -255,11 +269,11 @@ export async function sendOrderShipped({
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
       <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
         📍 Estimated delivery: <strong style="color:#c4c4d0;">3–5 business days</strong><br/>
-        📬 Shipping to the UK via standard delivery
+        📬 Shipping via <strong style="color:#c4c4d0;">${carrierName}</strong>
       </p>
     </div>
     <div style="text-align:center;">
-      <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Track Your Order</a>
+      <a href="${trackingUrl || `${SITE_URL}/orders`}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Track Your Order</a>
     </div>
   `;
 
@@ -279,26 +293,33 @@ export async function sendTrackingUpdate({
   customerName,
   orderNumber,
   trackingNumber,
+  trackingCarrier,
+  trackingUrl,
 }: {
   to: string;
   customerName: string;
   orderNumber: string;
   trackingNumber: string;
+  trackingCarrier?: string;
+  trackingUrl?: string;
 }) {
+  const carrierName = trackingCarrier ? escapeHtml(trackingCarrier) : "your delivery carrier";
+
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Tracking Update 🚚</h1>
     <p style="margin:0 0 16px;font-size:15px;color:#9090a0;line-height:1.6;">
       Hi ${escapeHtml(customerName) || "there"}, a tracking number has been added to your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong>.
     </p>
-    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
-      <p style="margin:0 0 8px;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your Tracking Number</p>
+    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:16px;">
+      <p style="margin:0 0 8px;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your Tracking ID</p>
       <p style="margin:0;font-size:18px;font-weight:700;color:#e1e2e6;letter-spacing:0.5px;">${escapeHtml(trackingNumber)}</p>
     </div>
     <p style="margin:0 0 24px;font-size:14px;color:#9090a0;line-height:1.6;">
-      You can use this tracking number with your delivery carrier to follow your parcel in real time. Estimated delivery is <strong style="color:#c4c4d0;">3–5 business days</strong>.
+      Please track your parcel on <strong style="color:#e1e2e6;">${carrierName}</strong>${trackingUrl ? `: <a href="${encodeURI(trackingUrl)}" style="color:#8b5cf6;text-decoration:underline;">${escapeHtml(trackingUrl)}</a>` : ""}.<br/>
+      Estimated delivery is <strong style="color:#c4c4d0;">3–5 business days</strong>.
     </p>
     <div style="text-align:center;">
-      <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View Your Orders</a>
+      <a href="${trackingUrl || `${SITE_URL}/orders`}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Track on ${carrierName}</a>
     </div>
   `;
 
