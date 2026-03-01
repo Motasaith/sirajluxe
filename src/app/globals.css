@@ -469,8 +469,9 @@ body {
   nav,
   .cart-drawer,
   .cookie-consent,
-  .crisp-client,
-  #crisp-chatbox {
+  .tawk-min-container,
+  #tawk-default-container,
+  iframe[title*="chat"] {
     display: none !important;
   }
 

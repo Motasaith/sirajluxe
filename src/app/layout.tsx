@@ -8,7 +8,7 @@ import { CartProvider } from "@/components/providers/cart-provider";
 import { WishlistProvider } from "@/components/providers/wishlist-provider";
 import { SiteContentProvider } from "@/components/providers/site-content-provider";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
-import { CrispProvider } from "@/components/providers/crisp-provider";
+import { TawkProvider } from "@/components/providers/tawk-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieConsent } from "@/components/ui/cookie-consent";
 
@@ -93,7 +93,7 @@ export default function RootLayout({
                   <ToastProvider>
                     {children}
                   </ToastProvider>
-                  <CrispProvider />
+                  <TawkProvider />
                   <CookieConsent />
                 </PostHogProvider>
                 </SiteContentProvider>
