@@ -12,6 +12,11 @@ export async function GET(
     const post = await BlogPost.findOne({
       slug: params.slug,
       published: true,
+      $or: [
+        { scheduledAt: null },
+        { scheduledAt: { $exists: false } },
+        { scheduledAt: { $lte: new Date() } },
+      ],
     }).lean();
 
     if (!post) {

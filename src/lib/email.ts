@@ -495,22 +495,44 @@ export async function sendReturnApproved({
   customerName,
   orderNumber,
   total,
+  returnShippingAddress,
+  returnCarrier,
+  returnInstructions,
 }: {
   to: string;
   customerName: string;
   orderNumber: string;
   total: number;
+  returnShippingAddress?: string;
+  returnCarrier?: string;
+  returnInstructions?: string;
 }) {
+  const returnDetailsHtml = returnShippingAddress
+    ? `
+    <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
+      <p style="margin:0 0 12px;font-size:13px;font-weight:600;color:#e1e2e6;text-transform:uppercase;letter-spacing:0.05em;">Return Shipping Details</p>
+      ${returnShippingAddress ? `<p style="margin:0 0 8px;font-size:14px;color:#9090a0;"><strong style="color:#c4c4d0;">Send to:</strong><br/>${escapeHtml(returnShippingAddress).replace(/\n/g, "<br/>")}</p>` : ""}
+      ${returnCarrier ? `<p style="margin:0 0 8px;font-size:14px;color:#9090a0;"><strong style="color:#c4c4d0;">Courier:</strong> ${escapeHtml(returnCarrier)}</p>` : ""}
+      ${returnInstructions ? `<p style="margin:0;font-size:14px;color:#9090a0;"><strong style="color:#c4c4d0;">Instructions:</strong><br/>${escapeHtml(returnInstructions).replace(/\n/g, "<br/>")}</p>` : ""}
+    </div>`
+    : `<div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
+      <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
+        📦 Please ensure the item is in its original packaging. Our team will contact you separately with the return address and courier details within 1 business day.
+      </p>
+    </div>`;
+
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Approved ✓</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
       Hi ${escapeHtml(customerName) || "there"}, great news — your return request for order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been approved.
     </p>
 
+    ${returnDetailsHtml}
+
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
       <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
-        💳 A refund of <strong style="color:#e1e2e6;">${currency(total)}</strong> will be processed within <strong style="color:#c4c4d0;">5–10 business days</strong>.<br/><br/>
-        📦 If you need to return the item, please ensure it is in its original packaging and post it within 7 days.
+        💳 Once we receive the item, a refund of <strong style="color:#e1e2e6;">${currency(total)}</strong> will be processed within <strong style="color:#c4c4d0;">5–10 business days</strong> back to your original payment method.<br/><br/>
+        ⚠️ Please ensure the item is returned within <strong style="color:#c4c4d0;">7 days</strong> of receiving this email.
       </p>
     </div>
 
@@ -562,5 +584,162 @@ export async function sendReturnDenied({
     to,
     subject: `Return Request Update — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Return Request Update", body),
+  });
+}
+
+// ──────────────────────────────────────────────
+// Abandoned Cart Email
+// ──────────────────────────────────────────────
+export async function sendAbandonedCartEmail({
+  to,
+  customerName,
+  items,
+}: {
+  to: string;
+  customerName: string;
+  items: { name: string; price: number; quantity: number; image?: string; color?: string; size?: string }[];
+}) {
+  const safeName = escapeHtml(customerName || "there");
+  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+
+  const itemRows = items
+    .map(
+      (item) => `
+    <tr>
+      <td style="padding:12px 0;border-bottom:1px solid #1e1e2e;">
+        <p style="margin:0;font-size:14px;color:#e1e2e6;font-weight:600;">${escapeHtml(item.name)}</p>
+        ${item.color || item.size ? `<p style="margin:4px 0 0;font-size:12px;color:#6b6b80;">${[item.color, item.size].filter(Boolean).join(" / ")}</p>` : ""}
+      </td>
+      <td style="padding:12px 0;border-bottom:1px solid #1e1e2e;text-align:center;color:#a0a0b0;font-size:14px;">${item.quantity}</td>
+      <td style="padding:12px 0;border-bottom:1px solid #1e1e2e;text-align:right;color:#e1e2e6;font-size:14px;font-weight:600;">£${(item.price * item.quantity).toFixed(2)}</td>
+    </tr>`
+    )
+    .join("");
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">You left something behind!</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#a0a0b0;">Hi ${safeName}, it looks like you added some great items to your cart but didn't finish checking out. They're still waiting for you!</p>
+
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <th style="padding:8px 0;border-bottom:1px solid #2a2a3a;text-align:left;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;">Item</th>
+        <th style="padding:8px 0;border-bottom:1px solid #2a2a3a;text-align:center;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;">Qty</th>
+        <th style="padding:8px 0;border-bottom:1px solid #2a2a3a;text-align:right;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;">Total</th>
+      </tr>
+      ${itemRows}
+    </table>
+
+    <div style="background:#1a1a2e;border-radius:12px;padding:16px 20px;margin-bottom:28px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="font-size:14px;color:#a0a0b0;">Cart Total</td>
+          <td style="text-align:right;font-size:18px;font-weight:700;color:#8b5cf6;">£${total.toFixed(2)}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="text-align:center;margin-bottom:16px;">
+      <a href="${SITE_URL}/checkout" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:50px;">Complete Your Order</a>
+    </div>
+    <p style="margin:0;font-size:12px;color:#4a4a5a;text-align:center;">Your items may sell out — don't miss them!</p>
+  `;
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: "You left items in your cart! — Siraj Luxe",
+    html: baseTemplate("Your Cart Awaits", body),
+  });
+}
+
+// ──────────────────────────────────────────────
+// 10. Admin-to-Customer Direct Message
+// ──────────────────────────────────────────────
+export async function sendAdminMessage({
+  to,
+  customerName,
+  subject,
+  message,
+  replyTo,
+}: {
+  to: string;
+  customerName: string;
+  subject: string;
+  message: string;
+  replyTo?: string;
+}) {
+  const safeName = escapeHtml(customerName || "there");
+  const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
+
+  const body = `
+    <p style="margin:0 0 16px;font-size:15px;color:#9090a0;line-height:1.6;">Hi ${safeName},</p>
+    <div style="padding:20px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;white-space:pre-line;">
+      <p style="margin:0;font-size:14px;color:#c4c4d0;line-height:1.8;">${safeMessage}</p>
+    </div>
+    <p style="margin:0 0 24px;font-size:13px;color:#6b6b80;line-height:1.5;">
+      Reply to this email to get in touch with our support team.
+    </p>
+    <div style="text-align:center;">
+      <a href="${SITE_URL}/contact" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Contact Us</a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM,
+    to,
+    subject: `${escapeHtml(subject)} | Siraj Luxe`,
+    html: baseTemplate(subject, body),
+    ...(replyTo ? { replyTo } : {}),
+  });
+}
+
+// ──────────────────────────────────────────────
+// 11. Low Stock Alert (to Admin)
+// ──────────────────────────────────────────────
+export async function sendLowStockAlert({
+  products,
+}: {
+  products: { name: string; inventory: number; slug: string }[];
+}) {
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "noreply@sirajluxe.com";
+
+  const rows = products
+    .map(
+      (p) => `
+    <tr>
+      <td style="padding:10px 0;border-bottom:1px solid #1e1e2e;color:#c4c4d0;font-size:14px;">${escapeHtml(p.name)}</td>
+      <td style="padding:10px 0;border-bottom:1px solid #1e1e2e;text-align:center;">
+        <span style="color:${p.inventory === 0 ? "#f87171" : "#fbbf24"};font-weight:700;font-size:14px;">${p.inventory === 0 ? "OUT" : p.inventory}</span>
+      </td>
+      <td style="padding:10px 0;border-bottom:1px solid #1e1e2e;text-align:right;">
+        <a href="${SITE_URL}/admin/products" style="color:#8b5cf6;font-size:13px;text-decoration:underline;">Edit</a>
+      </td>
+    </tr>`
+    )
+    .join("");
+
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Low Stock Alert ⚠️</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
+      ${products.length} product${products.length !== 1 ? "s" : ""} need restocking.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
+      <tr>
+        <th style="padding:8px 0;border-bottom:2px solid #1e1e2e;text-align:left;font-size:11px;color:#6b6b80;text-transform:uppercase;letter-spacing:1px;">Product</th>
+        <th style="padding:8px 0;border-bottom:2px solid #1e1e2e;text-align:center;font-size:11px;color:#6b6b80;text-transform:uppercase;letter-spacing:1px;">Stock</th>
+        <th style="padding:8px 0;border-bottom:2px solid #1e1e2e;text-align:right;font-size:11px;color:#6b6b80;text-transform:uppercase;letter-spacing:1px;">Action</th>
+      </tr>
+      ${rows}
+    </table>
+    <div style="text-align:center;">
+      <a href="${SITE_URL}/admin/products" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Manage Products</a>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: FROM,
+    to: adminEmail,
+    subject: `Low Stock Alert — ${products.length} products need restocking | Siraj Luxe`,
+    html: baseTemplate("Low Stock Alert", body),
   });
 }

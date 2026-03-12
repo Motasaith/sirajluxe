@@ -1,4 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { setCsrfCookie, validateCsrf, CSRF_COOKIE } from "@/lib/csrf";
 
 const isProtectedRoute = createRouteMatcher([
   "/account(.*)",
@@ -8,15 +10,39 @@ const isProtectedRoute = createRouteMatcher([
   "/api/admin(.*)",
 ]);
 
-// Webhooks must bypass auth — Stripe/Clerk send requests without user sessions
-const isWebhookRoute = createRouteMatcher([
+// Routes that bypass BOTH auth and CSRF (external webhooks, cron)
+const isBypassRoute = createRouteMatcher([
   "/api/webhooks(.*)",
+  "/api/cron(.*)",
 ]);
 
+const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
 export default clerkMiddleware(async (auth, req) => {
-  if (isWebhookRoute(req)) return; // skip auth for webhooks
+  if (isBypassRoute(req)) return; // skip auth + CSRF for webhooks/cron
+
   if (isProtectedRoute(req)) {
     await auth.protect();
+  }
+
+  // --- CSRF protection for API mutation requests ---
+  const isApiMutation =
+    req.nextUrl.pathname.startsWith("/api/") &&
+    MUTATION_METHODS.has(req.method);
+
+  if (isApiMutation && !validateCsrf(req)) {
+    return NextResponse.json(
+      { error: "Invalid or missing CSRF token" },
+      { status: 403 }
+    );
+  }
+
+  // Ensure CSRF cookie is always set
+  const existingToken = req.cookies.get(CSRF_COOKIE)?.value;
+  if (!existingToken) {
+    const response = NextResponse.next();
+    setCsrfCookie(response);
+    return response;
   }
 });
 

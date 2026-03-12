@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2, X, ImageIcon, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Loader2, X, ImageIcon, Plus, Trash2, Upload } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { TiptapEditor } from "../../components/tiptap-editor";
@@ -11,10 +11,13 @@ export default function NewProductPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [galleryUploading, setGalleryUploading] = useState(false);
   const [error, setError] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
   const [dragActive, setDragActive] = useState(false);
+  const [galleryDragActive, setGalleryDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [variants, setVariants] = useState<{ color: string; size: string; sku: string; inventory: number }[]>([]);
   const [form, setForm] = useState({
     name: "",
@@ -27,7 +30,7 @@ export default function NewProductPage() {
     inStock: true,
     featured: false,
     image: "",
-    images: "",
+    images: [] as string[],
     colors: "",
     sizes: "",
     sku: "",
@@ -47,7 +50,19 @@ export default function NewProductPage() {
       .catch(() => {});
   }, []);
 
-  // Handle image upload via Vercel Blob
+  // Upload a single image, returns URL or null
+  const uploadSingleImage = useCallback(async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith("image/")) return null;
+    if (file.size > 10 * 1024 * 1024) return null;
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch("/api/admin/media", { method: "POST", body: formData });
+    const data = await res.json();
+    if (!res.ok) return null;
+    return data.url as string;
+  }, []);
+
+  // Handle main image upload via Vercel Blob
   const uploadImage = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
       setError("Only image files are allowed");
@@ -60,18 +75,34 @@ export default function NewProductPage() {
     setUploading(true);
     setError("");
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/admin/media", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Upload failed");
-      setForm((prev) => ({ ...prev, image: data.url }));
+      const url = await uploadSingleImage(file);
+      if (!url) throw new Error("Upload failed");
+      setForm((prev) => ({ ...prev, image: url }));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
-  }, []);
+  }, [uploadSingleImage]);
+
+  // Handle gallery multi-image upload
+  const uploadGalleryImages = useCallback(async (files: FileList | File[]) => {
+    const validFiles = Array.from(files).filter(
+      (f) => f.type.startsWith("image/") && f.size <= 10 * 1024 * 1024
+    );
+    if (validFiles.length === 0) return;
+    setGalleryUploading(true);
+    setError("");
+    try {
+      const urls = await Promise.all(validFiles.map((f) => uploadSingleImage(f)));
+      const successful = urls.filter((u): u is string => !!u);
+      setForm((prev) => ({ ...prev, images: [...(prev.images as string[]), ...successful] }));
+    } catch {
+      setError("Some gallery images failed to upload");
+    } finally {
+      setGalleryUploading(false);
+    }
+  }, [uploadSingleImage]);
 
   // Drag and drop handlers
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -92,6 +123,24 @@ export default function NewProductPage() {
     if (e.target.files?.[0]) uploadImage(e.target.files[0]);
   }, [uploadImage]);
 
+  const handleGalleryDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setGalleryDragActive(false);
+    if (e.dataTransfer.files?.length) uploadGalleryImages(e.dataTransfer.files);
+  }, [uploadGalleryImages]);
+
+  const handleGalleryDrag = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") setGalleryDragActive(true);
+    else if (e.type === "dragleave") setGalleryDragActive(false);
+  }, []);
+
+  const handleGalleryFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) uploadGalleryImages(e.target.files);
+  }, [uploadGalleryImages]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -103,7 +152,7 @@ export default function NewProductPage() {
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
         colors: form.colors ? form.colors.split(",").map((c) => c.trim()).filter(Boolean) : [],
         sizes: form.sizes ? form.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [],
-        images: form.images ? form.images.split(",").map((u) => u.trim()).filter(Boolean) : [],
+        images: form.images,
         variants,
       };
 
@@ -244,9 +293,47 @@ export default function NewProductPage() {
                 </div>
               </div>
 
+              {/* Gallery Images */}
               <div>
-                <label className={labelClass}>Additional Image URLs (comma separated)</label>
-                <input type="text" value={form.images} onChange={(e) => setForm({ ...form, images: e.target.value })} className={inputClass} placeholder="https://..., https://..." />
+                <label className={labelClass}>Gallery Images</label>
+                {/* Uploaded gallery previews */}
+                {(form.images as string[]).length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    {(form.images as string[]).map((url, idx) => (
+                      <div key={idx} className="relative group rounded-lg overflow-hidden border border-white/[0.06] aspect-square bg-[#0d0d12]">
+                        <Image src={url} alt={`Gallery ${idx + 1}`} fill className="object-cover" sizes="150px" />
+                        <button
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, images: (prev.images as string[]).filter((_, i) => i !== idx) }))}
+                          className="absolute top-1 right-1 p-1 rounded-md bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {/* Upload zone */}
+                <div
+                  onDragEnter={handleGalleryDrag}
+                  onDragLeave={handleGalleryDrag}
+                  onDragOver={handleGalleryDrag}
+                  onDrop={handleGalleryDrop}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className={`flex flex-col items-center justify-center gap-2 p-5 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
+                    galleryDragActive ? "border-violet-500 bg-violet-500/10" : "border-white/[0.08] bg-[#0d0d12] hover:border-white/[0.15]"
+                  }`}
+                >
+                  {galleryUploading ? (
+                    <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-gray-500" />
+                  )}
+                  <p className="text-xs text-gray-400">
+                    {galleryUploading ? "Uploading..." : "Drop multiple images or click to select"}
+                  </p>
+                  <input ref={galleryInputRef} type="file" accept="image/*" multiple onChange={handleGalleryFileInput} className="hidden" />
+                </div>
               </div>
             </div>
           </div>

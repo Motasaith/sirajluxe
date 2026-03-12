@@ -5,6 +5,7 @@ import { Order } from "@/lib/models";
 import { isValidObjectId } from "@/lib/validation";
 import { rateLimit, getIP } from "@/lib/rate-limit";
 import { sendReturnRequest } from "@/lib/email";
+import { createNotification } from "@/lib/notifications";
 
 const RETURN_WINDOW_DAYS = 7;
 
@@ -92,6 +93,13 @@ export async function POST(
     );
 
     console.log(`Return requested for order ${order.orderNumber}: ${fullReason}`);
+
+    // Create in-app notification
+    createNotification({
+      type: "return_request",
+      message: `Return requested for order ${order.orderNumber} by ${order.customerName || order.customerEmail}`,
+      link: `/admin/orders/${order._id}`,
+    }).catch(() => {/* non-critical */});
 
     return NextResponse.json({
       message: "Return request submitted. We'll review it and get back to you within 1-2 business days.",

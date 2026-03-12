@@ -1,8 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Save, Store, Globe, Truck, Hash, Share2 } from "lucide-react";
+import { Loader2, Save, Store, Globe, Truck, Hash, Share2, Plus, Trash2 } from "lucide-react";
 import { toast } from "../components/toast";
+
+interface ShippingZone {
+  name: string;
+  countries: string[];
+  rate: number;
+  minOrderFree: number;
+}
 
 interface SettingsData {
   storeName: string;
@@ -15,6 +22,7 @@ interface SettingsData {
   shippingFlatRate: number;
   lowStockThreshold: number;
   orderPrefix: string;
+  shippingZones: ShippingZone[];
   socialLinks: {
     instagram: string;
     twitter: string;
@@ -34,6 +42,7 @@ const defaultSettings: SettingsData = {
   shippingFlatRate: 4.99,
   lowStockThreshold: 5,
   orderPrefix: "SL",
+  shippingZones: [],
   socialLinks: { instagram: "", twitter: "", facebook: "", tiktok: "" },
 };
 
@@ -57,6 +66,7 @@ export default function SettingsPage() {
           shippingFlatRate: data.shippingFlatRate ?? 4.99,
           lowStockThreshold: data.lowStockThreshold ?? 5,
           orderPrefix: data.orderPrefix || "SL",
+          shippingZones: data.shippingZones || [],
           socialLinks: {
             instagram: data.socialLinks?.instagram || "",
             twitter: data.socialLinks?.twitter || "",
@@ -256,6 +266,105 @@ export default function SettingsPage() {
               />
               <p className="text-[10px] text-gray-600 mt-1">Orders above this get free shipping. 0 = no free shipping.</p>
             </div>
+          </div>
+
+          {/* Shipping Zones */}
+          <div className="mt-5">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium text-gray-400">Shipping Zones <span className="text-gray-600">(optional — override flat rate by country)</span></p>
+              <button
+                type="button"
+                onClick={() => setSettings((prev) => ({
+                  ...prev,
+                  shippingZones: [...prev.shippingZones, { name: "New Zone", countries: [], rate: 0, minOrderFree: 0 }],
+                }))}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Zone
+              </button>
+            </div>
+            {settings.shippingZones.length === 0 ? (
+              <p className="text-xs text-gray-600 italic">No zones configured. Using flat rate above.</p>
+            ) : (
+              <div className="space-y-3">
+                {settings.shippingZones.map((zone, i) => (
+                  <div key={i} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                    <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-[10px] text-gray-500 mb-1">Zone Name</label>
+                        <input
+                          type="text"
+                          value={zone.name}
+                          onChange={(e) => setSettings((prev) => {
+                            const zones = [...prev.shippingZones];
+                            zones[i] = { ...zones[i], name: e.target.value };
+                            return { ...prev, shippingZones: zones };
+                          })}
+                          className={inputClass}
+                          placeholder="e.g. Europe"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-500 mb-1">Rate (£)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={zone.rate}
+                          onChange={(e) => setSettings((prev) => {
+                            const zones = [...prev.shippingZones];
+                            zones[i] = { ...zones[i], rate: parseFloat(e.target.value) || 0 };
+                            return { ...prev, shippingZones: zones };
+                          })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-500 mb-1">Countries <span className="text-gray-600">(comma-separated ISO codes, e.g. FR,DE,IT)</span></label>
+                        <input
+                          type="text"
+                          value={zone.countries.join(",")}
+                          onChange={(e) => setSettings((prev) => {
+                            const zones = [...prev.shippingZones];
+                            zones[i] = { ...zones[i], countries: e.target.value.split(",").map(c => c.trim().toUpperCase()).filter(Boolean) };
+                            return { ...prev, shippingZones: zones };
+                          })}
+                          className={inputClass}
+                          placeholder="e.g. FR,DE,IT"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-500 mb-1">Free Shipping Min Order (£, 0 = never free)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={zone.minOrderFree}
+                          onChange={(e) => setSettings((prev) => {
+                            const zones = [...prev.shippingZones];
+                            zones[i] = { ...zones[i], minOrderFree: parseFloat(e.target.value) || 0 };
+                            return { ...prev, shippingZones: zones };
+                          })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSettings((prev) => ({
+                        ...prev,
+                        shippingZones: prev.shippingZones.filter((_, j) => j !== i),
+                      }))}
+                      className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Remove Zone
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

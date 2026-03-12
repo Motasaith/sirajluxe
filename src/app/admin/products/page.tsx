@@ -3,10 +3,12 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, Trash2, Edit, Loader2, Package, Copy, Download, Upload, CheckSquare, Square } from "lucide-react";
+import { Plus, Search, Trash2, Edit, Loader2, Package, Copy, Download, Upload, CheckSquare, Square, DollarSign } from "lucide-react";
 import { Pagination } from "../components/pagination";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { toast } from "../components/toast";
+
+type BulkAction = "set_price" | "adjust_price" | "set_stock" | "adjust_stock";
 
 interface Product {
   id: string;
@@ -34,6 +36,10 @@ export default function ProductsPage() {
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [bulkUpdateOpen, setBulkUpdateOpen] = useState(false);
+  const [bulkAction, setBulkAction] = useState<BulkAction>("set_price");
+  const [bulkValue, setBulkValue] = useState("");
+  const [bulkUpdating, setBulkUpdating] = useState(false);
   const limit = 20;
 
   const fetchProducts = useCallback(async () => {
@@ -113,6 +119,33 @@ export default function ProductsPage() {
     fetchProducts();
   };
 
+  const handleBulkUpdate = async () => {
+    const val = parseFloat(bulkValue);
+    if (isNaN(val)) { toast("Enter a valid number", "error"); return; }
+    setBulkUpdating(true);
+    try {
+      const res = await fetch("/api/admin/products/bulk", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selected), action: bulkAction, value: val }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast(`Updated ${data.modified} product${data.modified !== 1 ? "s" : ""}`, "success");
+        setSelected(new Set());
+        setBulkUpdateOpen(false);
+        setBulkValue("");
+        fetchProducts();
+      } else {
+        toast(data.error || "Failed to update", "error");
+      }
+    } catch {
+      toast("Network error", "error");
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
+
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -184,13 +217,22 @@ export default function ProductsPage() {
           />
         </div>
         {selected.size > 0 && (
-          <button
-            onClick={() => setBulkDeleteOpen(true)}
-            className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-red-600/10 text-red-400 text-sm font-medium hover:bg-red-600/20 border border-red-500/20 transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            Delete ({selected.size})
-          </button>
+          <>
+            <button
+              onClick={() => setBulkUpdateOpen(true)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-violet-600/10 text-violet-400 text-sm font-medium hover:bg-violet-600/20 border border-violet-500/20 transition-colors"
+            >
+              <DollarSign className="w-4 h-4" />
+              Bulk Update ({selected.size})
+            </button>
+            <button
+              onClick={() => setBulkDeleteOpen(true)}
+              className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-red-600/10 text-red-400 text-sm font-medium hover:bg-red-600/20 border border-red-500/20 transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete ({selected.size})
+            </button>
+          </>
         )}
       </div>
 
@@ -332,6 +374,46 @@ export default function ProductsPage() {
         onConfirm={handleBulkDelete}
         onCancel={() => setBulkDeleteOpen(false)}
       />
+
+      {/* Bulk Update Dialog */}
+      {bulkUpdateOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setBulkUpdateOpen(false)} />
+          <div className="relative bg-[#0d0d12] border border-white/[0.08] rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+            <h3 className="text-white font-semibold text-sm mb-4">Bulk Update {selected.size} Products</h3>
+            <select
+              value={bulkAction}
+              onChange={(e) => setBulkAction(e.target.value as BulkAction)}
+              className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-white text-sm mb-3 focus:outline-none focus:border-violet-500/50"
+            >
+              <option value="set_price">Set Price (£)</option>
+              <option value="adjust_price">Adjust Price (%)</option>
+              <option value="set_stock">Set Stock</option>
+              <option value="adjust_stock">Adjust Stock (+/-)</option>
+            </select>
+            <input
+              type="number"
+              step={bulkAction.includes("price") ? "0.01" : "1"}
+              value={bulkValue}
+              onChange={(e) => setBulkValue(e.target.value)}
+              placeholder={
+                bulkAction === "set_price" ? "e.g. 29.99"
+                : bulkAction === "adjust_price" ? "e.g. -10 for 10% off"
+                : bulkAction === "set_stock" ? "e.g. 50"
+                : "e.g. +10 or -5"
+              }
+              className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-white text-sm mb-4 focus:outline-none focus:border-violet-500/50 placeholder-gray-600"
+            />
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setBulkUpdateOpen(false)} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+              <button onClick={handleBulkUpdate} disabled={bulkUpdating} className="px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 disabled:opacity-50 flex items-center gap-2">
+                {bulkUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

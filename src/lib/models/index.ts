@@ -5,7 +5,7 @@ export { Category } from "./category";
 export type { ICategory } from "./category";
 
 export { Order } from "./order";
-export type { IOrder, IOrderItem } from "./order";
+export type { IOrder, IOrderItem, IRefundRecord } from "./order";
 
 export { Customer } from "./customer";
 export type { ICustomer, IAddress } from "./customer";
@@ -32,7 +32,7 @@ export { StockAlert } from "./stock-alert";
 export type { IStockAlert } from "./stock-alert";
 
 export { Settings } from "./settings";
-export type { ISettings } from "./settings";
+export type { ISettings, IShippingZone } from "./settings";
 
 export { ActivityLog } from "./activity-log";
 export type { IActivityLog } from "./activity-log";
@@ -42,3 +42,18 @@ export type { IQuestion } from "./question";
 
 export { Subscriber } from "./subscriber";
 export type { ISubscriber } from "./subscriber";
+
+export { InventoryReservation } from "./inventory-reservation";
+export type { IInventoryReservation } from "./inventory-reservation";
+
+export { Cart } from "./cart";
+export type { ICart, ICartItem } from "./cart";
+
+export { Ticket } from "./ticket";
+export type { ITicket, ITicketMessage } from "./ticket";
+
+export { Promotion } from "./promotion";
+export type { IPromotion, PromotionType } from "./promotion";
+
+export { Notification } from "./notification";
+export type { INotification, NotificationType } from "./notification";

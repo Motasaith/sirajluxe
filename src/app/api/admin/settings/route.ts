@@ -53,6 +53,19 @@ export async function PUT(req: NextRequest) {
         tiktok: String(body.socialLinks.tiktok || ""),
       };
     }
+    if (Array.isArray(body.shippingZones)) {
+      allowed.shippingZones = body.shippingZones
+        .filter((z: unknown) => z && typeof z === "object")
+        .slice(0, 20) // cap at 20 zones
+        .map((z: Record<string, unknown>) => ({
+          name: String(z.name || "").slice(0, 100),
+          countries: Array.isArray(z.countries)
+            ? z.countries.filter((c: unknown) => typeof c === "string").map((c: string) => c.toUpperCase().slice(0, 2)).slice(0, 50)
+            : [],
+          rate: Math.max(0, Number(z.rate) || 0),
+          minOrderFree: Math.max(0, Number(z.minOrderFree) || 0),
+        }));
+    }
 
     const settings = await Settings.findOneAndUpdate(
       { key: "global" },

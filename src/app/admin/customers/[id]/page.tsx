@@ -11,7 +11,9 @@ import {
   Calendar,
   ShoppingCart,
   DollarSign,
+  Send,
 } from "lucide-react";
+import { toast } from "../../components/toast";
 
 interface Customer {
   _id: string;
@@ -48,6 +50,10 @@ export default function CustomerDetailPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailSending, setEmailSending] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -84,6 +90,34 @@ export default function CustomerDetailPage() {
 
   const fullName = `${customer.firstName} ${customer.lastName}`.trim() || "Unnamed Customer";
 
+  const handleSendEmail = async () => {
+    if (!emailSubject.trim() || !emailMessage.trim()) {
+      toast("Subject and message are required", "error");
+      return;
+    }
+    setEmailSending(true);
+    try {
+      const res = await fetch(`/api/admin/customers/${id}/email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subject: emailSubject, message: emailMessage }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast("Email sent successfully", "success");
+        setEmailOpen(false);
+        setEmailSubject("");
+        setEmailMessage("");
+      } else {
+        toast(data.error || "Failed to send email", "error");
+      }
+    } catch {
+      toast("Network error", "error");
+    } finally {
+      setEmailSending(false);
+    }
+  };
+
   return (
     <div>
       {/* Back */}
@@ -102,7 +136,16 @@ export default function CustomerDetailPage() {
             <User className="w-7 h-7 text-violet-400" />
           </div>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-white">{fullName}</h1>
+            <div className="flex items-start justify-between gap-4">
+              <h1 className="text-xl font-bold text-white">{fullName}</h1>
+              <button
+                onClick={() => setEmailOpen(true)}
+                className="flex items-center gap-2 flex-shrink-0 px-3 py-2 rounded-lg bg-violet-600/10 text-violet-400 text-sm font-medium hover:bg-violet-600/20 border border-violet-500/20 transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send Email
+              </button>
+            </div>
             <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-gray-400">
               <span className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5" />
@@ -179,6 +222,45 @@ export default function CustomerDetailPage() {
           </table>
         )}
       </div>
+
+      {/* Send Email Dialog */}
+      {emailOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEmailOpen(false)} />
+          <div className="relative bg-[#0d0d12] border border-white/[0.08] rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <h3 className="text-white font-semibold text-sm mb-4">Send Email to {fullName}</h3>
+            <div className="space-y-3 mb-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Subject</label>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="e.g. Your recent order"
+                  className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-white text-sm focus:outline-none focus:border-violet-500/50 placeholder-gray-600"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">Message</label>
+                <textarea
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  rows={5}
+                  placeholder="Write your message here..."
+                  className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-white text-sm focus:outline-none focus:border-violet-500/50 placeholder-gray-600 resize-none"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3">
+              <button onClick={() => setEmailOpen(false)} className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white transition-colors">Cancel</button>
+              <button onClick={handleSendEmail} disabled={emailSending} className="px-4 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 disabled:opacity-50 flex items-center gap-2">
+                {emailSending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Order } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 import { stripe } from "@/lib/stripe";
 import { logActivity } from "@/lib/activity-logger";
+import { createNotification } from "@/lib/notifications";
 
 // POST /api/admin/orders/[id]/refund — issue a Stripe refund
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
@@ -31,6 +32,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
     const body = await req.json().catch(() => ({}));
     const amount = body.amount ? Math.round(body.amount * 100) : undefined; // partial refund in pence
+    const reason: string = body.reason || "";
 
     // Issue refund via Stripe
     const refund = await stripe.refunds.create({
@@ -39,24 +41,49 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     });
 
     if (refund.status === "succeeded" || refund.status === "pending") {
-      order.paymentStatus = "refunded";
-      if (order.status !== "cancelled") {
-        order.status = "cancelled";
+      const refundAmountPounds = (refund.amount || 0) / 100;
+      const isFullRefund = !amount || amount >= Math.round(order.total * 100);
+
+      // Record the refund in the order's refund history
+      order.refunds.push({
+        stripeRefundId: refund.id,
+        amount: refundAmountPounds,
+        reason,
+        type: isFullRefund ? "full" : "partial",
+        date: new Date(),
+      });
+      order.refundedAmount = (order.refundedAmount || 0) + refundAmountPounds;
+
+      // Set payment status based on refund type
+      if (isFullRefund) {
+        order.paymentStatus = "refunded";
+        if (order.status !== "cancelled") {
+          order.status = "cancelled";
+        }
+      } else {
+        order.paymentStatus = "partially_refunded";
       }
+
       await order.save();
 
       await logActivity({
         action: "update",
         entity: "order",
         entityId: params.id,
-        details: `Refunded order ${order.orderNumber}: ${amount ? `£${(amount / 100).toFixed(2)} partial` : "full refund"}`,
+        details: `Refunded order ${order.orderNumber}: £${refundAmountPounds.toFixed(2)} ${isFullRefund ? "full" : "partial"} refund`,
+      });
+
+      await createNotification({
+        type: "refund_issued",
+        message: `Refund issued for order ${order.orderNumber}: £${refundAmountPounds.toFixed(2)} ${isFullRefund ? "(full)" : "(partial)"}`,
+        link: `/admin/orders/${params.id}`,
       });
 
       return NextResponse.json({
         success: true,
         refundId: refund.id,
         status: refund.status,
-        amount: (refund.amount || 0) / 100,
+        amount: refundAmountPounds,
       });
     }
 

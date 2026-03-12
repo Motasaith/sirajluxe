@@ -10,6 +10,14 @@ export interface IOrderItem {
   size?: string;
 }
 
+export interface IRefundRecord {
+  stripeRefundId: string;
+  amount: number;
+  reason: string;
+  type: "full" | "partial";
+  date: Date;
+}
+
 export interface IOrder extends Document {
   orderNumber: string;
   stripeSessionId: string;
@@ -25,8 +33,9 @@ export interface IOrder extends Document {
   shipping: number;
   total: number;
   couponCode: string;
+  promotionName: string;
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
-  paymentStatus: "pending" | "paid" | "failed" | "refunded";
+  paymentStatus: "pending" | "paid" | "failed" | "refunded" | "partially_refunded";
   shippingAddress: {
     line1: string;
     line2?: string;
@@ -42,6 +51,11 @@ export interface IOrder extends Document {
   returnStatus: "none" | "requested" | "approved" | "denied";
   returnReason: string;
   returnRequestedAt: Date | null;
+  returnShippingAddress: string;
+  returnCarrier: string;
+  returnInstructions: string;
+  refunds: IRefundRecord[];
+  refundedAmount: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -72,6 +86,7 @@ const OrderSchema = new Schema<IOrder>(
     shipping: { type: Number, default: 0 },
     total: { type: Number, required: true },
     couponCode: { type: String, default: "" },
+    promotionName: { type: String, default: "" },
     status: {
       type: String,
       enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
@@ -79,7 +94,7 @@ const OrderSchema = new Schema<IOrder>(
     },
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "failed", "refunded", "partially_refunded"],
       default: "pending",
     },
     shippingAddress: {
@@ -101,6 +116,19 @@ const OrderSchema = new Schema<IOrder>(
     },
     returnReason: { type: String, default: "" },
     returnRequestedAt: { type: Date, default: null },
+    returnShippingAddress: { type: String, default: "" },
+    returnCarrier: { type: String, default: "" },
+    returnInstructions: { type: String, default: "" },
+    refunds: [
+      {
+        stripeRefundId: { type: String, required: true },
+        amount: { type: Number, required: true },
+        reason: { type: String, default: "" },
+        type: { type: String, enum: ["full", "partial"], required: true },
+        date: { type: Date, default: Date.now },
+      },
+    ],
+    refundedAmount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

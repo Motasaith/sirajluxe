@@ -29,6 +29,8 @@ import {
   CheckCircle2,
   AlertCircle,
   MessageCircleQuestion,
+  Camera,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -67,6 +69,7 @@ interface Review {
   rating: number;
   title: string;
   comment: string;
+  images?: string[];
   verified: boolean;
   createdAt: string;
 }
@@ -160,6 +163,8 @@ export default function ProductDetailPage() {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [reviewError, setReviewError] = useState("");
   const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
+  const [reviewImageUploading, setReviewImageUploading] = useState(false);
 
   // Related & recently viewed
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -343,6 +348,7 @@ export default function ProductDetailPage() {
           rating: reviewForm.rating,
           title: reviewForm.title,
           comment: reviewForm.comment,
+          images: reviewImages,
         }),
       });
       const data = await res.json();
@@ -352,6 +358,7 @@ export default function ProductDetailPage() {
         setReviewSuccess(true);
         setShowReviewForm(false);
         setReviewForm({ rating: 5, title: "", comment: "" });
+        setReviewImages([]);
         fetchReviews(product.id);
       }
     } catch {
@@ -360,6 +367,29 @@ export default function ProductDetailPage() {
       setReviewSubmitting(false);
     }
   };
+
+  const handleUploadReviewImage = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    const remaining = 6 - reviewImages.length;
+    if (remaining <= 0) return;
+    setReviewImageUploading(true);
+    try {
+      const toUpload = Array.from(files).slice(0, remaining);
+      const uploaded: string[] = [];
+      for (const file of toUpload) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/reviews/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if (res.ok && data.url) uploaded.push(data.url);
+      }
+      setReviewImages((prev) => [...prev, ...uploaded]);
+    } finally {
+      setReviewImageUploading(false);
+      e.target.value = "";
+    }
+  }, [reviewImages.length]);
 
   const handleShare = async (platform: string) => {
     const url = window.location.href;
@@ -1156,6 +1186,47 @@ export default function ProductDetailPage() {
                               />
                             </div>
 
+                            {/* Photo Upload */}
+                            <div>
+                              <label className="text-sm font-medium text-heading block mb-2">
+                                Photos <span className="text-xs font-normal text-muted-fg">(up to 6)</span>
+                              </label>
+                              {reviewImages.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                  {reviewImages.map((url, i) => (
+                                    <div key={i} className="relative group w-16 h-16 rounded-lg overflow-hidden border border-[var(--border)]">
+                                      <Image src={url} alt={`Photo ${i + 1}`} fill className="object-cover" sizes="64px" />
+                                      <button
+                                        type="button"
+                                        onClick={() => setReviewImages((prev) => prev.filter((_, j) => j !== i))}
+                                        className="absolute top-0.5 right-0.5 p-0.5 rounded bg-black/70 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {reviewImages.length < 6 && (
+                                <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[var(--border)] text-sm text-muted-fg hover:text-heading hover:border-neon-violet cursor-pointer transition-all">
+                                  {reviewImageUploading ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Camera className="w-4 h-4" />
+                                  )}
+                                  {reviewImageUploading ? "Uploading..." : "Add Photos"}
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    multiple
+                                    className="hidden"
+                                    onChange={handleUploadReviewImage}
+                                    disabled={reviewImageUploading}
+                                  />
+                                </label>
+                              )}
+                            </div>
+
                             {reviewError && (
                               <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2">
                                 <AlertCircle className="w-4 h-4" />
@@ -1246,6 +1317,15 @@ export default function ProductDetailPage() {
                                   <p className="text-body text-sm leading-relaxed">
                                     {review.comment}
                                   </p>
+                                  {review.images && review.images.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                      {review.images.map((img, i) => (
+                                        <a key={i} href={img} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 rounded-lg overflow-hidden border border-[var(--border)] hover:opacity-80 transition-opacity">
+                                          <Image src={img} alt={`Review photo ${i + 1}`} width={64} height={64} className="object-cover w-full h-full" />
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Loader2, Users, Search, Download } from "lucide-react";
+import { Loader2, Users, Search, Download, TrendingUp, Repeat2, UserPlus } from "lucide-react";
 import { Pagination } from "../components/pagination";
 import { toast } from "../components/toast";
 
@@ -17,6 +17,15 @@ interface Customer {
   createdAt: string;
 }
 
+interface CustomerStats {
+  total: number;
+  newThisMonth: number;
+  repeatCount: number;
+  repeatRate: number;
+  avgLTV: number;
+  totalRevenue: number;
+}
+
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +33,7 @@ export default function CustomersPage() {
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [stats, setStats] = useState<CustomerStats | null>(null);
   const limit = 20;
 
   const fetchCustomers = useCallback(async () => {
@@ -49,6 +59,13 @@ export default function CustomersPage() {
   }, [fetchCustomers]);
 
   useEffect(() => { setPage(1); }, [search]);
+
+  useEffect(() => {
+    fetch("/api/admin/stats/customers")
+      .then((r) => r.json())
+      .then((d) => { if (!d.error) setStats(d); })
+      .catch(() => {});
+  }, []);
 
   const exportCSV = () => {
     const headers = ["Name", "Email", "Orders", "Total Spent", "Joined"];
@@ -76,6 +93,48 @@ export default function CustomersPage() {
           <span className="hidden sm:inline">Export</span>
         </button>
       </div>
+
+      {/* Stats Bar */}
+      {stats && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+          <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0">
+              <Users className="w-4 h-4 text-violet-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">{stats.total.toLocaleString()}</p>
+              <p className="text-xs text-gray-500">Total Customers</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+              <UserPlus className="w-4 h-4 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">{stats.newThisMonth.toLocaleString()}</p>
+              <p className="text-xs text-gray-500">New This Month</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+              <Repeat2 className="w-4 h-4 text-blue-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">{stats.repeatRate}%</p>
+              <p className="text-xs text-gray-500">Repeat Rate</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-4 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+              <TrendingUp className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-lg font-bold text-white">£{stats.avgLTV.toFixed(2)}</p>
+              <p className="text-xs text-gray-500">Avg LTV</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative mb-6">

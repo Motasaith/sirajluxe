@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2, X, ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Loader2, X, ImageIcon, Clock } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { TiptapEditor } from "../../components/tiptap-editor";
@@ -25,6 +25,7 @@ export default function NewBlogPostPage() {
     category: "General",
     tags: "",
     published: false,
+    scheduledAt: "",
     metaTitle: "",
     metaDescription: "",
   });
@@ -61,6 +62,7 @@ export default function NewBlogPostPage() {
       const payload = {
         ...form,
         tags: form.tags ? form.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+        scheduledAt: form.scheduledAt ? new Date(form.scheduledAt).toISOString() : null,
       };
       const res = await fetch("/api/admin/blog", {
         method: "POST",
@@ -164,10 +166,29 @@ export default function NewBlogPostPage() {
               </div>
               <div className="flex items-center justify-between">
                 <label className="text-sm text-gray-300">Publish immediately</label>
-                <button type="button" onClick={() => setForm({ ...form, published: !form.published })} className={`w-10 h-5 rounded-full transition-colors relative ${form.published ? "bg-violet-600" : "bg-gray-700"}`}>
+                <button type="button" onClick={() => setForm({ ...form, published: !form.published, scheduledAt: "" })} className={`w-10 h-5 rounded-full transition-colors relative ${form.published ? "bg-violet-600" : "bg-gray-700"}`}>
                   <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${form.published ? "left-5" : "left-0.5"}`} />
                 </button>
               </div>
+              {!form.published && (
+                <div>
+                  <label className={labelClass}>
+                    <Clock className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />
+                    Schedule for later
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={form.scheduledAt}
+                    onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
+                    className={inputClass}
+                  />
+                  {form.scheduledAt && (
+                    <p className="text-[11px] text-violet-400 mt-1">
+                      Will auto-publish on {new Date(form.scheduledAt).toLocaleString("en-GB")}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* SEO */}

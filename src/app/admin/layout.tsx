@@ -3,6 +3,7 @@ import { getUserRole } from "@/lib/admin-auth";
 import { AdminSidebar } from "./components/sidebar";
 import { AdminToastProvider } from "./components/toast";
 import { AdminRoleProvider } from "./components/role-context";
+import { NotificationBell } from "./components/notification-bell";
 
 export const metadata = {
   title: "Admin | Siraj Luxe",
@@ -24,7 +25,12 @@ export default async function AdminLayout({
       <div className="min-h-screen bg-[#050505]">
         <AdminSidebar />
         <main className="md:ml-64 min-h-screen">
-          <div className="p-4 md:p-8 pt-16 md:pt-8">{children}</div>
+          <div className="p-4 md:p-8 pt-16 md:pt-8">
+            <div className="flex justify-end mb-4 md:mb-0 md:absolute md:top-6 md:right-8">
+              <NotificationBell />
+            </div>
+            {children}
+          </div>
         </main>
         <AdminToastProvider />
       </div>

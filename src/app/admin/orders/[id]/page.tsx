@@ -25,7 +25,6 @@ import {
   Send,
 } from "lucide-react";
 import { toast } from "../../components/toast";
-import { ConfirmDialog } from "../../components/confirm-dialog";
 
 interface OrderItem {
   productId: string;
@@ -33,6 +32,14 @@ interface OrderItem {
   price: number;
   quantity: number;
   image: string;
+}
+
+interface RefundRecord {
+  stripeRefundId: string;
+  amount: number;
+  reason: string;
+  type: "full" | "partial";
+  date: string;
 }
 
 interface Order {
@@ -46,6 +53,7 @@ interface Order {
   subtotal: number;
   discount: number;
   couponCode: string;
+  promotionName?: string;
   tax: number;
   shipping: number;
   total: number;
@@ -66,6 +74,11 @@ interface Order {
   returnStatus?: string;
   returnReason?: string;
   returnRequestedAt?: string;
+  returnShippingAddress?: string;
+  returnCarrier?: string;
+  returnInstructions?: string;
+  refunds?: RefundRecord[];
+  refundedAmount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -81,6 +94,7 @@ const statusColors: Record<string, string> = {
   paid: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   failed: "bg-red-500/10 text-red-400 border-red-500/20",
   refunded: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+  partially_refunded: "bg-orange-500/10 text-orange-400 border-orange-500/20",
 };
 
 function OrderTimeline({ status }: { status: string }) {
@@ -147,21 +161,46 @@ export default function AdminOrderDetailPage() {
   const [message, setMessage] = useState("");
   const [refunding, setRefunding] = useState(false);
   const [showRefundConfirm, setShowRefundConfirm] = useState(false);
+  const [refundType, setRefundType] = useState<"full" | "partial">("full");
+  const [refundAmount, setRefundAmount] = useState("");
+  const [refundReason, setRefundReason] = useState("");
   const [sendingTracking, setSendingTracking] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
+  const [showApproveReturnModal, setShowApproveReturnModal] = useState(false);
+  const [returnShipAddress, setReturnShipAddress] = useState("");
+  const [returnShipCarrier, setReturnShipCarrier] = useState("");
+  const [returnShipInstructions, setReturnShipInstructions] = useState("");
+  const [approvingReturn, setApprovingReturn] = useState(false);
+  const [editableItems, setEditableItems] = useState<OrderItem[]>([]);
+  const [savingItems, setSavingItems] = useState(false);
 
   const handleRefund = async () => {
     if (!order) return;
     setRefunding(true);
     try {
+      const body: Record<string, unknown> = { reason: refundReason || undefined };
+      if (refundType === "partial") {
+        const amt = parseFloat(refundAmount);
+        if (!amt || amt <= 0) {
+          toast("Enter a valid refund amount", "error");
+          setRefunding(false);
+          return;
+        }
+        body.amount = amt;
+      }
       const res = await fetch(`/api/admin/orders/${id}/refund`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok) {
-        setOrder((prev) => prev ? { ...prev, paymentStatus: "refunded", status: "cancelled" } : prev);
+        setOrder((prev) => prev ? {
+          ...prev,
+          paymentStatus: data.type === "partial" ? "partially_refunded" : "refunded",
+          status: data.type === "partial" ? prev.status : "cancelled",
+          refundedAmount: (prev.refundedAmount || 0) + (data.amount || 0),
+        } : prev);
         toast(`Refund processed: £${data.amount?.toFixed(2)}`, "success");
       } else {
         toast(data.error || "Refund failed", "error");
@@ -171,6 +210,9 @@ export default function AdminOrderDetailPage() {
     } finally {
       setRefunding(false);
       setShowRefundConfirm(false);
+      setRefundType("full");
+      setRefundAmount("");
+      setRefundReason("");
     }
   };
 
@@ -182,6 +224,7 @@ export default function AdminOrderDetailPage() {
       })
       .then((data) => {
         setOrder(data);
+        setEditableItems(data.items || []);
         setNewStatus(data.status);
         setTrackingNumber(data.trackingNumber || "");
         setTrackingCarrier(data.trackingCarrier || "");
@@ -271,6 +314,36 @@ export default function AdminOrderDetailPage() {
       minute: "2-digit",
     });
 
+  const handleSaveItems = async () => {
+    if (!order || editableItems.length === 0) return;
+    setSavingItems(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: editableItems }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update items");
+      setOrder(data);
+      setEditableItems(data.items || []);
+      toast("Order items updated", "success");
+    } catch (err: unknown) {
+      toast(err instanceof Error ? err.message : "Failed to update items", "error");
+    } finally {
+      setSavingItems(false);
+    }
+  };
+
+  const canEditItems = !!order && ["pending", "processing"].includes(order.status);
+  const subtotalPreview = editableItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountRatio = order && order.subtotal > 0 ? order.discount / order.subtotal : 0;
+  const discountPreview = order ? Math.max(0, Math.min(subtotalPreview, subtotalPreview * discountRatio)) : 0;
+  const oldTaxBase = order ? Math.max(0, order.subtotal - order.discount) : 0;
+  const taxRatio = order && oldTaxBase > 0 ? order.tax / oldTaxBase : 0;
+  const taxPreview = Math.max(0, (subtotalPreview - discountPreview) * taxRatio);
+  const totalPreview = order ? Math.max(0, subtotalPreview - discountPreview + order.shipping + taxPreview) : 0;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
@@ -320,7 +393,7 @@ export default function AdminOrderDetailPage() {
             <Printer className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Print Invoice</span>
           </button>
-          {order.paymentStatus === "paid" && (
+          {(order.paymentStatus === "paid" || order.paymentStatus === "partially_refunded") && (
             <button
               onClick={() => setShowRefundConfirm(true)}
               disabled={refunding}
@@ -480,22 +553,7 @@ export default function AdminOrderDetailPage() {
           {order.returnStatus === "requested" && (
             <div className="flex gap-3">
               <button
-                onClick={async () => {
-                  try {
-                    const res = await fetch(`/api/admin/orders/${id}`, {
-                      method: "PATCH",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ returnStatus: "approved" }),
-                    });
-                    if (res.ok) {
-                      const updated = await res.json();
-                      setOrder(updated);
-                      toast("Return approved", "success");
-                    } else {
-                      toast("Failed to approve", "error");
-                    }
-                  } catch { toast("Network error", "error"); }
-                }}
+                onClick={() => setShowApproveReturnModal(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-medium hover:bg-emerald-500/20 transition-colors"
               >
                 <CheckCircle2 className="w-4 h-4" />
@@ -525,6 +583,47 @@ export default function AdminOrderDetailPage() {
               </button>
             </div>
           )}
+          {order.returnStatus === "approved" && order.returnShippingAddress && (
+            <div className="mt-3 pt-3 border-t border-white/[0.06] space-y-1 text-sm text-gray-400">
+              <p><strong className="text-white">Return address:</strong> {order.returnShippingAddress}</p>
+              {order.returnCarrier && <p><strong className="text-white">Courier:</strong> {order.returnCarrier}</p>}
+              {order.returnInstructions && <p><strong className="text-white">Instructions:</strong> {order.returnInstructions}</p>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Refund History */}
+      {order.refunds && order.refunds.length > 0 && (
+        <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-6">
+          <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+            <RotateCcw className="w-4 h-4 text-orange-400" />
+            Refund History
+            <span className="ml-auto text-xs text-orange-400 font-medium">
+              Total refunded: {formatCurrency(order.refundedAmount || 0)}
+            </span>
+          </h3>
+          <div className="divide-y divide-white/[0.04]">
+            {order.refunds.map((r, i) => (
+              <div key={i} className="py-3 first:pt-0 last:pb-0 flex items-start justify-between gap-4">
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`inline-flex px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-full border ${
+                      r.type === "full"
+                        ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                        : "bg-orange-500/10 text-orange-400 border-orange-500/20"
+                    }`}>
+                      {r.type} refund
+                    </span>
+                    <span className="text-xs text-gray-500">{new Date(r.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}</span>
+                  </div>
+                  {r.reason && <p className="text-xs text-gray-400 mt-1">{r.reason}</p>}
+                  <p className="text-[10px] text-gray-600 font-mono">{r.stripeRefundId}</p>
+                </div>
+                <span className="text-sm font-semibold text-white flex-shrink-0">{formatCurrency(r.amount)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -604,12 +703,24 @@ export default function AdminOrderDetailPage() {
 
       {/* Items */}
       <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6">
-        <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
-          <Package className="w-4 h-4 text-violet-400" />
-          Items ({order.items.length})
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Package className="w-4 h-4 text-violet-400" />
+            Items ({editableItems.length})
+          </h3>
+          {canEditItems && (
+            <button
+              onClick={handleSaveItems}
+              disabled={savingItems || editableItems.length === 0}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-violet-600 text-white text-xs font-medium hover:bg-violet-500 disabled:opacity-50"
+            >
+              {savingItems ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Update Items
+            </button>
+          )}
+        </div>
         <div className="divide-y divide-white/[0.04]">
-          {order.items.map((item, i) => (
+          {editableItems.map((item, i) => (
             <div key={i} className="flex items-center gap-4 py-4 first:pt-0 last:pb-0">
               {item.image ? (
                 <Image
@@ -626,9 +737,31 @@ export default function AdminOrderDetailPage() {
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-200 truncate">{item.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  {formatCurrency(item.price)} × {item.quantity}
-                </p>
+                {canEditItems ? (
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs text-gray-500">Qty</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const next = Math.max(1, parseInt(e.target.value || "1", 10));
+                        setEditableItems((prev) => prev.map((p, idx) => idx === i ? { ...p, quantity: next } : p));
+                      }}
+                      className="w-16 px-2 py-1 rounded border border-white/[0.08] bg-[#111118] text-white text-xs"
+                    />
+                    <button
+                      onClick={() => setEditableItems((prev) => prev.filter((_, idx) => idx !== i))}
+                      className="text-xs text-red-400 hover:text-red-300"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {formatCurrency(item.price)} × {item.quantity}
+                  </p>
+                )}
               </div>
               <span className="text-sm font-semibold text-white">
                 {formatCurrency(item.price * item.quantity)}
@@ -642,17 +775,21 @@ export default function AdminOrderDetailPage() {
           <div className="max-w-xs ml-auto space-y-2 text-sm">
             <div className="flex justify-between text-gray-400">
               <span>Subtotal</span>
-              <span>{formatCurrency(order.subtotal)}</span>
+              <span>{formatCurrency(canEditItems ? subtotalPreview : order.subtotal)}</span>
             </div>
-            {order.discount > 0 && (
+            {(canEditItems ? discountPreview : order.discount) > 0 && (
               <div className="flex justify-between text-emerald-400">
-                <span>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</span>
-                <span>-{formatCurrency(order.discount)}</span>
+                <span>
+                  Discount
+                  {order.couponCode ? ` (${order.couponCode})` : ""}
+                  {order.promotionName ? ` + ${order.promotionName}` : ""}
+                </span>
+                <span>-{formatCurrency(canEditItems ? discountPreview : order.discount)}</span>
               </div>
             )}
             <div className="flex justify-between text-gray-400">
               <span>Tax</span>
-              <span>{formatCurrency(order.tax)}</span>
+              <span>{formatCurrency(canEditItems ? taxPreview : order.tax)}</span>
             </div>
             <div className="flex justify-between text-gray-400">
               <span>Shipping</span>
@@ -660,22 +797,210 @@ export default function AdminOrderDetailPage() {
             </div>
             <div className="flex justify-between text-white font-semibold text-base pt-2 border-t border-white/[0.06]">
               <span>Total</span>
-              <span>{formatCurrency(order.total)}</span>
+              <span>{formatCurrency(canEditItems ? totalPreview : order.total)}</span>
             </div>
           </div>
         </div>
       </div>
 
-      <ConfirmDialog
-        open={showRefundConfirm}
-        title="Issue Refund"
-        message={`Are you sure you want to issue a full refund of ${formatCurrency(order.total)} for order ${order.orderNumber}? This will refund the customer via Stripe and cancel the order.`}
-        confirmLabel="Issue Refund"
-        variant="danger"
-        loading={refunding}
-        onConfirm={handleRefund}
-        onCancel={() => setShowRefundConfirm(false)}
-      />
+      {/* Partial / Full Refund Modal */}
+      {showRefundConfirm && order && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0a0a0f] p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-white mb-1">Issue Refund</h2>
+            <p className="text-sm text-gray-400 mb-5">
+              Order <span className="text-white font-medium">{order.orderNumber}</span>
+            </p>
+
+            {/* Refund type */}
+            <div className="mb-5">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Refund type</p>
+              <div className="flex gap-3">
+                {(["full", "partial"] as const).map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setRefundType(type)}
+                    className={`flex-1 py-2.5 rounded-xl border text-sm font-medium transition-colors capitalize ${
+                      refundType === type
+                        ? "border-violet-500 bg-violet-500/10 text-violet-300"
+                        : "border-white/[0.08] text-gray-400 hover:border-white/20"
+                    }`}
+                  >
+                    {type === "full"
+                      ? `Full — ${formatCurrency(order.total)}`
+                      : "Partial"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Amount (partial only) */}
+            {refundType === "partial" && (
+              <div className="mb-5">
+                <label className="text-xs font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                  Amount (£)
+                </label>
+                <input
+                  type="number"
+                  min={0.01}
+                  step={0.01}
+                  max={(order.total - (order.refundedAmount || 0)).toFixed(2)}
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                  placeholder={`max ${formatCurrency(order.total - (order.refundedAmount || 0))}`}
+                  className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50"
+                />
+              </div>
+            )}
+
+            {/* Reason */}
+            <div className="mb-6">
+              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                Reason (optional)
+              </label>
+              <textarea
+                rows={2}
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                placeholder="e.g. Item damaged on arrival"
+                className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 resize-none"
+              />
+            </div>
+
+            <p className="text-xs text-gray-500 mb-5">
+              {refundType === "full"
+                ? "A full refund will be issued via Stripe and the order will be cancelled."
+                : "A partial refund will be issued via Stripe. The order status will remain unchanged."}
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRefundConfirm(false);
+                  setRefundType("full");
+                  setRefundAmount("");
+                  setRefundReason("");
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-white/[0.08] text-gray-300 text-sm hover:bg-white/[0.04] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleRefund}
+                disabled={refunding}
+                className="flex-1 py-2.5 rounded-xl bg-red-500/90 text-white text-sm font-semibold hover:bg-red-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {refunding && <Loader2 className="w-4 h-4 animate-spin" />}
+                {refunding ? "Processing..." : "Issue Refund"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Return Modal */}
+      {showApproveReturnModal && order && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md rounded-2xl border border-white/[0.08] bg-[#0a0a0f] p-6 shadow-2xl">
+            <h2 className="text-lg font-bold text-white mb-1">Approve Return</h2>
+            <p className="text-sm text-gray-400 mb-5">
+              Provide return shipping details for <span className="text-white font-medium">{order.orderNumber}</span>. These will be emailed to the customer.
+            </p>
+
+            <div className="mb-4">
+              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                Return Address <span className="text-red-400">*</span>
+              </label>
+              <textarea
+                rows={3}
+                value={returnShipAddress}
+                onChange={(e) => setReturnShipAddress(e.target.value)}
+                placeholder={"Siraj Luxe Returns\n123 Warehouse Road\nLondon, E1 1AB\nUnited Kingdom"}
+                className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 resize-none"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                Courier
+              </label>
+              <input
+                type="text"
+                value={returnShipCarrier}
+                onChange={(e) => setReturnShipCarrier(e.target.value)}
+                placeholder="Royal Mail, DPD, Hermes..."
+                className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50"
+              />
+            </div>
+
+            <div className="mb-6">
+              <label className="text-xs font-medium text-gray-400 uppercase tracking-wider block mb-1.5">
+                Additional Instructions (optional)
+              </label>
+              <textarea
+                rows={2}
+                value={returnShipInstructions}
+                onChange={(e) => setReturnShipInstructions(e.target.value)}
+                placeholder="e.g. Write your order number on the outside of the parcel. Keep postage receipt as proof."
+                className="w-full px-3 py-2.5 rounded-lg border border-white/[0.06] bg-[#0d0d12] text-white text-sm placeholder-gray-600 focus:outline-none focus:border-violet-500/50 resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowApproveReturnModal(false);
+                  setReturnShipAddress("");
+                  setReturnShipCarrier("");
+                  setReturnShipInstructions("");
+                }}
+                className="flex-1 py-2.5 rounded-xl border border-white/[0.08] text-gray-300 text-sm hover:bg-white/[0.04] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={approvingReturn || !returnShipAddress.trim()}
+                onClick={async () => {
+                  setApprovingReturn(true);
+                  try {
+                    const res = await fetch(`/api/admin/orders/${id}`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        returnStatus: "approved",
+                        returnShippingAddress: returnShipAddress.trim(),
+                        returnCarrier: returnShipCarrier.trim(),
+                        returnInstructions: returnShipInstructions.trim(),
+                      }),
+                    });
+                    if (res.ok) {
+                      const updated = await res.json();
+                      setOrder(updated);
+                      toast("Return approved — customer notified with shipping details", "success");
+                      setShowApproveReturnModal(false);
+                      setReturnShipAddress("");
+                      setReturnShipCarrier("");
+                      setReturnShipInstructions("");
+                    } else {
+                      toast("Failed to approve return", "error");
+                    }
+                  } catch { toast("Network error", "error"); }
+                  finally { setApprovingReturn(false); }
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-emerald-600/90 text-white text-sm font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {approvingReturn && <Loader2 className="w-4 h-4 animate-spin" />}
+                {approvingReturn ? "Approving..." : "Approve & Notify Customer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

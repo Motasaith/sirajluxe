@@ -100,6 +100,61 @@ function splitPipe(val: string | undefined): string[] {
     .filter(Boolean);
 }
 
+interface NormalizedProductData {
+  name: string;
+  slug?: string;
+  description: string;
+  price: number;
+  originalPrice?: number;
+  category: string;
+  tags: string[];
+  inStock: boolean;
+  featured: boolean;
+  image: string;
+  images: string[];
+  colors: string[];
+  sizes: string[];
+  sku: string;
+  inventory: number;
+  metaTitle: string;
+  metaDescription: string;
+}
+
+function normalizeRow(row: CsvRow, rowNum: number): { data: NormalizedProductData | null; error?: string } {
+  if (!row.name?.trim()) {
+    return { data: null, error: `Row ${rowNum}: Missing required field "name"` };
+  }
+  const price = toFloat(row.price);
+  if (price <= 0) {
+    return { data: null, error: `Row ${rowNum}: Invalid price for "${row.name}"` };
+  }
+  if (!row.category?.trim()) {
+    return { data: null, error: `Row ${rowNum}: Missing required field "category" for "${row.name}"` };
+  }
+
+  return {
+    data: {
+      name: row.name.trim(),
+      slug: row.slug?.trim() || undefined,
+      description: row.description?.trim() || "",
+      price,
+      originalPrice: row.originalPrice ? toFloat(row.originalPrice) : undefined,
+      category: row.category.trim(),
+      tags: splitPipe(row.tags),
+      inStock: row.inStock ? toBool(row.inStock) : true,
+      featured: toBool(row.featured),
+      image: row.image?.trim() || "",
+      images: splitPipe(row.images),
+      colors: splitPipe(row.colors),
+      sizes: splitPipe(row.sizes),
+      sku: row.sku?.trim() || "",
+      inventory: toInt(row.inventory),
+      metaTitle: row.metaTitle?.trim() || "",
+      metaDescription: row.metaDescription?.trim() || "",
+    },
+  };
+}
+
 // POST /api/admin/products/import — bulk import products from CSV
 export async function POST(req: NextRequest) {
   const denied = await adminGuard("admin");
@@ -108,6 +163,8 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    const mode = String(formData.get("mode") || "import").toLowerCase();
+    const isPreviewMode = mode === "preview";
 
     if (!file || !file.name.endsWith(".csv")) {
       return NextResponse.json({ error: "Please upload a .csv file" }, { status: 400 });
@@ -132,45 +189,57 @@ export async function POST(req: NextRequest) {
 
     const results = { created: 0, updated: 0, errors: [] as string[] };
 
+    const skus = Array.from(new Set(rows.map((r) => (r.sku || "").trim()).filter(Boolean)));
+    const existingProducts = skus.length
+      ? await Product.find({ sku: { $in: skus } }).select("sku").lean()
+      : [];
+    const existingSkuSet = new Set(existingProducts.map((p) => String((p as { sku?: string }).sku || "")));
+
+    if (isPreviewMode) {
+      const previewRows = rows.map((row, i) => {
+        const rowNum = i + 2;
+        const normalized = normalizeRow(row, rowNum);
+        const sku = (row.sku || "").trim();
+        const action = sku && existingSkuSet.has(sku) ? "update" : "create";
+
+        return {
+          row: rowNum,
+          name: row.name?.trim() || "",
+          sku,
+          price: normalized.data?.price || 0,
+          category: row.category?.trim() || "",
+          inventory: normalized.data?.inventory || 0,
+          action,
+          valid: !normalized.error,
+          error: normalized.error || "",
+        };
+      });
+
+      const summary = {
+        total: previewRows.length,
+        valid: previewRows.filter((r) => r.valid).length,
+        invalid: previewRows.filter((r) => !r.valid).length,
+        wouldCreate: previewRows.filter((r) => r.valid && r.action === "create").length,
+        wouldUpdate: previewRows.filter((r) => r.valid && r.action === "update").length,
+      };
+
+      return NextResponse.json({
+        summary,
+        rows: previewRows.slice(0, 200),
+        truncated: previewRows.length > 200,
+      });
+    }
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const rowNum = i + 2; // 1-indexed, +1 for header row
 
-      if (!row.name?.trim()) {
-        results.errors.push(`Row ${rowNum}: Missing required field "name"`);
+      const normalized = normalizeRow(row, rowNum);
+      if (!normalized.data) {
+        if (normalized.error) results.errors.push(normalized.error);
         continue;
       }
-
-      const price = toFloat(row.price);
-      if (price <= 0) {
-        results.errors.push(`Row ${rowNum}: Invalid price for "${row.name}"`);
-        continue;
-      }
-
-      if (!row.category?.trim()) {
-        results.errors.push(`Row ${rowNum}: Missing required field "category" for "${row.name}"`);
-        continue;
-      }
-
-      const productData = {
-        name: row.name.trim(),
-        slug: row.slug?.trim() || undefined, // let pre-validate hook generate if empty
-        description: row.description?.trim() || "",
-        price,
-        originalPrice: row.originalPrice ? toFloat(row.originalPrice) : undefined,
-        category: row.category.trim(),
-        tags: splitPipe(row.tags),
-        inStock: row.inStock ? toBool(row.inStock) : true,
-        featured: toBool(row.featured),
-        image: row.image?.trim() || "",
-        images: splitPipe(row.images),
-        colors: splitPipe(row.colors),
-        sizes: splitPipe(row.sizes),
-        sku: row.sku?.trim() || "",
-        inventory: toInt(row.inventory),
-        metaTitle: row.metaTitle?.trim() || "",
-        metaDescription: row.metaDescription?.trim() || "",
-      };
+      const productData = normalized.data;
 
       try {
         // If SKU provided, try to update existing product

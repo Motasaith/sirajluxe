@@ -9,6 +9,7 @@ import { WishlistProvider } from "@/components/providers/wishlist-provider";
 import { SiteContentProvider } from "@/components/providers/site-content-provider";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
 import { TawkProvider } from "@/components/providers/tawk-provider";
+import { CsrfProvider } from "@/components/providers/csrf-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieConsent } from "@/components/ui/cookie-consent";
 
@@ -86,6 +87,7 @@ export default function RootLayout({
             defaultTheme="dark"
             enableSystem={false}
           >
+            <CsrfProvider>
             <CartProvider>
               <WishlistProvider>
                 <SiteContentProvider>
@@ -99,6 +101,7 @@ export default function RootLayout({
                 </SiteContentProvider>
               </WishlistProvider>
             </CartProvider>
+            </CsrfProvider>
           </ThemeProvider>
         </body>
       </html>

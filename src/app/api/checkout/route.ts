@@ -4,6 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
 import { Customer, Product, Coupon, Settings } from "@/lib/models";
 import { rateLimit, getIP } from "@/lib/rate-limit";
+import { reserveInventory } from "@/lib/inventory";
 
 interface CartItem {
   productId: string;
@@ -131,6 +132,15 @@ export async function POST(req: NextRequest) {
         },
         quantity: item.quantity,
       });
+    }
+
+    // --- Reserve inventory (15-min hold) ---
+    const reservation = await reserveInventory(
+      userId,
+      items.map((i: CartItem) => ({ productId: i.productId, quantity: i.quantity, color: i.color, size: i.size }))
+    );
+    if (!reservation.success) {
+      return NextResponse.json({ error: reservation.error }, { status: 400 });
     }
 
     // --- Coupon / discount handling ---

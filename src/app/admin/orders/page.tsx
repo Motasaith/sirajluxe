@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Loader2, ChevronDown, Search, Download, CheckSquare, Square } from "lucide-react";
+import { Loader2, ChevronDown, Search, Download, CheckSquare, Square, CalendarDays } from "lucide-react";
 import { Pagination } from "../components/pagination";
 import { toast } from "../components/toast";
 
@@ -46,6 +46,8 @@ export default function OrdersPage() {
   const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
   const [bulkStatus, setBulkStatus] = useState("processing");
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const limit = 20;
 
   const fetchOrders = useCallback(async () => {
@@ -55,6 +57,8 @@ export default function OrdersPage() {
       if (filter) url += `&status=${filter}`;
       if (paymentFilter) url += `&paymentStatus=${paymentFilter}`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (dateFrom) url += `&dateFrom=${encodeURIComponent(dateFrom)}`;
+      if (dateTo) url += `&dateTo=${encodeURIComponent(dateTo)}`;
       const res = await fetch(url);
       const data = await res.json();
       setOrders(data.docs || []);
@@ -65,14 +69,14 @@ export default function OrdersPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, paymentFilter, search, page]);
+  }, [filter, paymentFilter, search, page, dateFrom, dateTo]);
 
   useEffect(() => {
     const timer = setTimeout(fetchOrders, 300);
     return () => clearTimeout(timer);
   }, [fetchOrders]);
 
-  useEffect(() => { setPage(1); }, [search, filter, paymentFilter]);
+  useEffect(() => { setPage(1); }, [search, filter, paymentFilter, dateFrom, dateTo]);
 
   const updateStatus = async (id: string, status: string) => {
     setUpdating(id);
@@ -172,6 +176,31 @@ export default function OrdersPage() {
               <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
             ))}
           </select>
+          <div className="flex items-center gap-1.5 ml-1">
+            <CalendarDays className="w-4 h-4 text-gray-500 hidden sm:block" />
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              title="From date"
+              className="px-2 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-gray-400 text-sm focus:outline-none focus:border-violet-500/50 w-36"
+            />
+            <span className="text-gray-600 text-xs">–</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              title="To date"
+              className="px-2 py-2.5 rounded-lg border border-white/[0.06] bg-[#0a0a0f] text-gray-400 text-sm focus:outline-none focus:border-violet-500/50 w-36"
+            />
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(""); setDateTo(""); }}
+                className="text-gray-500 hover:text-white text-xs ml-1 transition-colors"
+                title="Clear dates"
+              >✕</button>
+            )}
+          </div>
         </div>
       </div>
 

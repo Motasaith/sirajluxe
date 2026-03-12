@@ -21,6 +21,9 @@ import {
   ClipboardList,
   MessageCircleQuestion,
   Mail,
+  LifeBuoy,
+  Gift,
+  Database,
 } from "lucide-react";
 import { useAdminRole } from "./role-context";
 import type { AdminRole } from "@/lib/admin-auth";
@@ -41,10 +44,13 @@ const navItems = [
   { label: "Customers", href: "/admin/customers", icon: Users, minRole: "support" as AdminRole },
   { label: "Reviews", href: "/admin/reviews", icon: MessageSquare, minRole: "support" as AdminRole },
   { label: "Q&A", href: "/admin/questions", icon: MessageCircleQuestion, minRole: "support" as AdminRole },
+    { label: "Support", href: "/admin/tickets", icon: LifeBuoy, minRole: "support" as AdminRole },
   { label: "Site Editor", href: "/admin/site-editor", icon: PenTool, minRole: "editor" as AdminRole },
   { label: "Blog", href: "/admin/blog", icon: FileText, minRole: "editor" as AdminRole },
+  { label: "Promotions", href: "/admin/promotions", icon: Gift, minRole: "admin" as AdminRole },
   { label: "Newsletter", href: "/admin/newsletter", icon: Mail, minRole: "editor" as AdminRole },
   { label: "Media", href: "/admin/media", icon: ImageIcon, minRole: "admin" as AdminRole },
+  { label: "Data Export", href: "/admin/export", icon: Database, minRole: "admin" as AdminRole },
   { label: "Activity Log", href: "/admin/activity", icon: ClipboardList, minRole: "super_admin" as AdminRole },
   { label: "Settings", href: "/admin/settings", icon: Settings, minRole: "super_admin" as AdminRole },
 ];

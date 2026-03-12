@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { auth } from "@clerk/nextjs/server";
 import { connectDB } from "@/lib/mongodb";
-import { Customer, Product, Coupon, Settings, Order } from "@/lib/models";
+import { Customer, Product, Coupon, Settings, Order, Promotion } from "@/lib/models";
 import { rateLimit, getIP } from "@/lib/rate-limit";
+import { reserveInventory } from "@/lib/inventory";
 import { sendOrderConfirmation } from "@/lib/email";
+import { calculateShipping } from "@/lib/shipping";
 
 interface CartItem {
   productId: string;
@@ -57,6 +59,7 @@ export async function POST(req: NextRequest) {
     const settings = await Settings.findOne({ key: "global" }).lean();
     const STANDARD_SHIPPING_RATE = Math.round((settings?.shippingFlatRate ?? 3.99) * 100);
     const FREE_SHIPPING_THRESHOLD = Math.round((settings?.freeShippingThreshold ?? 10) * 100);
+    const shippingZones = settings?.shippingZones || [];
 
     // --- Validate products ---
     const orderItems: { productId: string; name: string; price: number; quantity: number; image: string; color?: string; size?: string }[] = [];
@@ -126,9 +129,19 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // --- Reserve inventory (15-min hold) ---
+    const reservation = await reserveInventory(
+      userId,
+      items.map((i: CartItem) => ({ productId: i.productId, quantity: i.quantity, color: i.color, size: i.size }))
+    );
+    if (!reservation.success) {
+      return NextResponse.json({ error: reservation.error }, { status: 400 });
+    }
+
     // --- Coupon handling ---
     let discountPence = 0;
     let appliedCouponCode: string | null = null;
+    let appliedPromotionName: string | null = null;
 
     if (couponCode && typeof couponCode === "string") {
       // First find the coupon to validate it
@@ -178,6 +191,48 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // --- Auto promotions ---
+    // Applies the best active promotion. If a coupon is used, only stackable promotions can apply.
+    const now = new Date();
+    const activePromotions = await Promotion.find({ active: true }).lean();
+    const totalItemCount = (items as CartItem[]).reduce((acc, item) => acc + item.quantity, 0);
+
+    let bestPromotionDiscount = 0;
+    let bestPromotionName: string | null = null;
+
+    for (const promo of activePromotions) {
+      const startOk = !promo.startDate || new Date(promo.startDate) <= now;
+      const endOk = !promo.endDate || new Date(promo.endDate) >= now;
+      if (!startOk || !endOk) continue;
+      if (appliedCouponCode && !promo.stackable) continue;
+
+      let promoDiscount = 0;
+      if (promo.type === "spend_x_get_pct") {
+        if (subtotalPence / 100 >= (promo.minimumSpend || 0)) {
+          promoDiscount = Math.round(subtotalPence * ((promo.discountValue || 0) / 100));
+        }
+      } else if (promo.type === "spend_x_get_off") {
+        if (subtotalPence / 100 >= (promo.minimumSpend || 0)) {
+          promoDiscount = Math.round((promo.discountValue || 0) * 100);
+        }
+      } else if (promo.type === "buy_x_get_pct") {
+        if (totalItemCount >= (promo.minimumItems || 0)) {
+          promoDiscount = Math.round(subtotalPence * ((promo.discountValue || 0) / 100));
+        }
+      }
+
+      promoDiscount = Math.max(0, Math.min(promoDiscount, subtotalPence));
+      if (promoDiscount > bestPromotionDiscount) {
+        bestPromotionDiscount = promoDiscount;
+        bestPromotionName = promo.name;
+      }
+    }
+
+    if (bestPromotionDiscount > 0) {
+      discountPence = Math.min(subtotalPence, discountPence + bestPromotionDiscount);
+      appliedPromotionName = bestPromotionName;
+    }
+
     // --- Shipping ---
     // Ensure customer record exists (upsert)
     const customer = await Customer.findOneAndUpdate(
@@ -193,8 +248,17 @@ export async function POST(req: NextRequest) {
       { upsert: true, returnDocument: 'after' }
     );
     const isFirstOrder = !customer || customer.orderCount === 0;
-    const qualifiesForFreeShipping = isFirstOrder || subtotalPence >= FREE_SHIPPING_THRESHOLD;
-    const shippingPence = qualifiesForFreeShipping ? 0 : STANDARD_SHIPPING_RATE;
+    const shippingCountry = (shippingAddress as ShippingAddress)?.country || "GB";
+    const shippingPence = isFirstOrder
+      ? 0
+      : calculateShipping({
+          country: shippingCountry,
+          subtotalPence,
+          shippingZones: shippingZones as { name: string; countries: string[]; rate: number; minOrderFree: number }[],
+          flatRatePence: STANDARD_SHIPPING_RATE,
+          freeThresholdPence: FREE_SHIPPING_THRESHOLD,
+        });
+    const qualifiesForFreeShipping = shippingPence === 0;
 
     // --- Tax calculation (fallback rate for Payment Intent flow) ---
     const taxRate = settings?.taxRate ?? 0;
@@ -225,6 +289,7 @@ export async function POST(req: NextRequest) {
           : "Free shipping applied"
         : null,
       coupon: appliedCouponCode,
+      promotion: appliedPromotionName,
     };
 
     const shippingAddr = {
@@ -327,6 +392,7 @@ export async function POST(req: NextRequest) {
         productIds: JSON.stringify(productIdMap),
         ...(Object.keys(variantMap).length > 0 ? { variantIds: JSON.stringify(variantMap) } : {}),
         ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
+        ...(appliedPromotionName ? { promotionName: appliedPromotionName } : {}),
       },
       ...(resolvedEmail ? { receipt_email: resolvedEmail } : {}),
     });
@@ -350,6 +416,7 @@ export async function POST(req: NextRequest) {
       paymentStatus: "pending",
       shippingAddress: shippingAddr,
       ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
+      ...(appliedPromotionName ? { promotionName: appliedPromotionName } : {}),
     });
 
     return NextResponse.json({

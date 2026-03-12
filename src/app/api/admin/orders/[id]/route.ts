@@ -68,8 +68,75 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       updateFields.returnStatus = body.returnStatus;
     }
 
-    // Get the order BEFORE update to compare status
+    if (body.returnShippingAddress !== undefined) {
+      updateFields.returnShippingAddress = ensureString(body.returnShippingAddress) || "";
+    }
+    if (body.returnCarrier !== undefined) {
+      updateFields.returnCarrier = ensureString(body.returnCarrier) || "";
+    }
+    if (body.returnInstructions !== undefined) {
+      updateFields.returnInstructions = ensureString(body.returnInstructions) || "";
+    }
+
+    // Get the order BEFORE update to compare status and allow controlled item edits.
     const previousOrder = await Order.findById(params.id).lean();
+    if (!previousOrder) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    // Pre-shipment order edit: pending/processing only.
+    if (body.items !== undefined) {
+      const canEditItems = ["pending", "processing"].includes(previousOrder.status);
+      if (!canEditItems) {
+        return NextResponse.json({ error: "Items can only be edited before shipment" }, { status: 400 });
+      }
+      if (!Array.isArray(body.items) || body.items.length === 0) {
+        return NextResponse.json({ error: "Order must contain at least one item" }, { status: 400 });
+      }
+
+      const sanitizedItems = body.items.map((item: Record<string, unknown>) => ({
+        productId: String(item.productId || "").trim(),
+        name: String(item.name || "").trim(),
+        price: Number(item.price || 0),
+        quantity: Number(item.quantity || 0),
+        image: String(item.image || ""),
+        color: String(item.color || ""),
+        size: String(item.size || ""),
+      }));
+
+      const invalid = sanitizedItems.some(
+        (i: { productId: string; name: string; price: number; quantity: number }) => !i.productId || !i.name || i.price < 0 || i.quantity < 1
+      );
+      if (invalid) {
+        return NextResponse.json({ error: "Invalid item payload" }, { status: 400 });
+      }
+
+      const round2 = (n: number) => Math.round(n * 100) / 100;
+      const newSubtotal = round2(
+        sanitizedItems.reduce(
+          (sum: number, item: { price: number; quantity: number }) => sum + item.price * item.quantity,
+          0
+        )
+      );
+
+      const oldSubtotal = Number(previousOrder.subtotal || 0);
+      const oldDiscount = Number(previousOrder.discount || 0);
+      const oldTax = Number(previousOrder.tax || 0);
+      const oldShipping = Number(previousOrder.shipping || 0);
+      const discountRatio = oldSubtotal > 0 ? oldDiscount / oldSubtotal : 0;
+      const newDiscount = round2(Math.max(0, Math.min(newSubtotal, newSubtotal * discountRatio)));
+      const oldTaxBase = Math.max(0, oldSubtotal - oldDiscount);
+      const taxRatio = oldTaxBase > 0 ? oldTax / oldTaxBase : 0;
+      const newTax = round2(Math.max(0, (newSubtotal - newDiscount) * taxRatio));
+      const newTotal = round2(Math.max(0, newSubtotal - newDiscount + oldShipping + newTax));
+
+      updateFields.items = sanitizedItems;
+      updateFields.subtotal = newSubtotal;
+      updateFields.discount = newDiscount;
+      updateFields.tax = newTax;
+      updateFields.total = newTotal;
+    }
+
     const order = await Order.findByIdAndUpdate(params.id, updateFields, { returnDocument: 'after', runValidators: true }).lean();
     if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
@@ -121,6 +188,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             customerName: updated.customerName || "",
             orderNumber: updated.orderNumber,
             total: updated.total,
+            returnShippingAddress: updated.returnShippingAddress || "",
+            returnCarrier: updated.returnCarrier || "",
+            returnInstructions: updated.returnInstructions || "",
           });
           console.log(`Return approved email sent for ${updated.orderNumber}`);
         } else if (updated.returnStatus === "denied") {

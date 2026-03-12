@@ -6,8 +6,10 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
+import { useUser } from "@clerk/nextjs";
 
 export interface CartItem {
   id: string;
@@ -41,6 +43,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const { isSignedIn } = useUser();
+  const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastSynced = useRef<string>("");
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -55,12 +60,76 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setHydrated(true);
   }, []);
 
-  // Save cart to localStorage on change
+  // On sign-in: merge server cart with local cart
   useEffect(() => {
-    if (hydrated) {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    if (!hydrated || !isSignedIn) return;
+    (async () => {
+      try {
+        const res = await fetch("/api/cart");
+        if (!res.ok) return;
+        const { items: serverItems } = await res.json();
+        if (serverItems && serverItems.length > 0) {
+          setItems((local) => {
+            if (local.length === 0) return serverItems;
+            // Merge: keep local items, add any server-only items
+            const localKeys = new Set(
+              local.map((i: CartItem) => `${i.id}-${i.color || ""}-${i.size || ""}`)
+            );
+            const merged = [...local];
+            for (const si of serverItems) {
+              const key = `${si.productId || si.id}-${si.color || ""}-${si.size || ""}`;
+              if (!localKeys.has(key)) {
+                merged.push({
+                  id: si.productId || si.id,
+                  name: si.name,
+                  price: si.price,
+                  image: si.image || "",
+                  quantity: si.quantity,
+                  color: si.color,
+                  size: si.size,
+                });
+              }
+            }
+            return merged;
+          });
+        }
+      } catch {
+        // server sync failed — continue with local cart
+      }
+    })();
+  }, [hydrated, isSignedIn]);
+
+  // Save cart to localStorage + debounced server sync
+  useEffect(() => {
+    if (!hydrated) return;
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+
+    // Debounced server sync (500ms after last change)
+    if (isSignedIn) {
+      const serialized = JSON.stringify(items);
+      if (serialized === lastSynced.current) return;
+
+      if (syncTimeout.current) clearTimeout(syncTimeout.current);
+      syncTimeout.current = setTimeout(() => {
+        lastSynced.current = serialized;
+        fetch("/api/cart", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((i) => ({
+              productId: i.id,
+              name: i.name,
+              price: i.price,
+              image: i.image,
+              quantity: i.quantity,
+              color: i.color || "",
+              size: i.size || "",
+            })),
+          }),
+        }).catch(() => {});
+      }, 500);
     }
-  }, [items, hydrated]);
+  }, [items, hydrated, isSignedIn]);
 
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
@@ -100,7 +169,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const clearCart = useCallback(() => setItems([]), []);
+  const clearCart = useCallback(() => {
+    setItems([]);
+    if (isSignedIn) {
+      fetch("/api/cart", { method: "DELETE" }).catch(() => {});
+    }
+  }, [isSignedIn]);
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);

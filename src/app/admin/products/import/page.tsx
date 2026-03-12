@@ -15,6 +15,28 @@ export default function ImportProductsPage() {
     updated: number;
     errors: string[];
   } | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [preview, setPreview] = useState<{
+    summary: {
+      total: number;
+      valid: number;
+      invalid: number;
+      wouldCreate: number;
+      wouldUpdate: number;
+    };
+    rows: {
+      row: number;
+      name: string;
+      sku: string;
+      price: number;
+      category: string;
+      inventory: number;
+      action: "create" | "update";
+      valid: boolean;
+      error: string;
+    }[];
+    truncated?: boolean;
+  } | null>(null);
   const [error, setError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -28,6 +50,33 @@ export default function ImportProductsPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handlePreview = async () => {
+    if (!file) return;
+    setPreviewing(true);
+    setError("");
+    setResult(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("mode", "preview");
+
+      const res = await fetch("/api/admin/products/import", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Preview failed");
+      } else {
+        setPreview(data);
+      }
+    } catch {
+      setError("Preview failed. Please try again.");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
   const handleImport = async () => {
     if (!file) return;
     setImporting(true);
@@ -37,6 +86,7 @@ export default function ImportProductsPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("mode", "import");
 
       const res = await fetch("/api/admin/products/import", {
         method: "POST",
@@ -129,28 +179,39 @@ export default function ImportProductsPage() {
             onChange={(e) => {
               setFile(e.target.files?.[0] || null);
               setResult(null);
+              setPreview(null);
               setError("");
             }}
           />
         </div>
 
-        <button
-          onClick={handleImport}
-          disabled={!file || importing}
-          className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {importing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Importing…
-            </>
-          ) : (
-            <>
-              <Upload className="w-4 h-4" />
-              Import Products
-            </>
-          )}
-        </button>
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button
+            onClick={handlePreview}
+            disabled={!file || previewing || importing}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-white/[0.08] text-gray-300 text-sm font-medium hover:bg-white/[0.03] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {previewing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {previewing ? "Previewing…" : "Preview CSV"}
+          </button>
+          <button
+            onClick={handleImport}
+            disabled={!file || importing || !preview || preview.summary.invalid > 0}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {importing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Importing…
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Confirm Import
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Error */}
@@ -158,6 +219,72 @@ export default function ImportProductsPage() {
         <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6 flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />
           <p className="text-sm text-red-300">{error}</p>
+        </div>
+      )}
+
+      {/* Preview */}
+      {preview && (
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6 mb-6">
+          <h2 className="text-sm font-semibold text-white mb-4">Validation Preview</h2>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+            <div className="bg-white/[0.02] border border-white/[0.06] rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-white">{preview.summary.total}</p>
+              <p className="text-xs text-gray-400">Rows</p>
+            </div>
+            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-emerald-400">{preview.summary.valid}</p>
+              <p className="text-xs text-gray-400">Valid</p>
+            </div>
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-red-400">{preview.summary.invalid}</p>
+              <p className="text-xs text-gray-400">Invalid</p>
+            </div>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-blue-400">{preview.summary.wouldCreate}</p>
+              <p className="text-xs text-gray-400">Would Create</p>
+            </div>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-amber-400">{preview.summary.wouldUpdate}</p>
+              <p className="text-xs text-gray-400">Would Update</p>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-lg border border-white/[0.06]">
+            <table className="w-full min-w-[700px]">
+              <thead className="bg-white/[0.02] border-b border-white/[0.06]">
+                <tr>
+                  <th className="text-left px-3 py-2 text-xs text-gray-500">Row</th>
+                  <th className="text-left px-3 py-2 text-xs text-gray-500">Name</th>
+                  <th className="text-left px-3 py-2 text-xs text-gray-500">SKU</th>
+                  <th className="text-left px-3 py-2 text-xs text-gray-500">Price</th>
+                  <th className="text-left px-3 py-2 text-xs text-gray-500">Category</th>
+                  <th className="text-left px-3 py-2 text-xs text-gray-500">Action</th>
+                  <th className="text-left px-3 py-2 text-xs text-gray-500">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {preview.rows.map((row) => (
+                  <tr key={row.row} className="border-b border-white/[0.04] last:border-0">
+                    <td className="px-3 py-2 text-xs text-gray-400">{row.row}</td>
+                    <td className="px-3 py-2 text-xs text-white">{row.name || "-"}</td>
+                    <td className="px-3 py-2 text-xs text-gray-300">{row.sku || "-"}</td>
+                    <td className="px-3 py-2 text-xs text-gray-300">£{row.price.toFixed(2)}</td>
+                    <td className="px-3 py-2 text-xs text-gray-300">{row.category || "-"}</td>
+                    <td className="px-3 py-2 text-xs capitalize text-gray-300">{row.action}</td>
+                    <td className={`px-3 py-2 text-xs ${row.valid ? "text-emerald-400" : "text-red-400"}`}>
+                      {row.valid ? "Valid" : row.error}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {preview.truncated && (
+            <p className="text-xs text-gray-500 mt-2">Showing first 200 rows in preview.</p>
+          )}
+          {preview.summary.invalid > 0 && (
+            <p className="text-xs text-red-400 mt-3">Fix invalid rows before confirming import.</p>
+          )}
         </div>
       )}
 

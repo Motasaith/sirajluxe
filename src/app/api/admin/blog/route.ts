@@ -4,7 +4,7 @@ import { BlogPost } from "@/lib/models";
 import { adminGuard } from "@/lib/admin-auth";
 
 // Whitelist of allowed blog post fields
-const BLOG_FIELDS = ["title", "slug", "content", "excerpt", "coverImage", "category", "tags", "published", "publishedAt", "author", "metaTitle", "metaDescription"] as const;
+const BLOG_FIELDS = ["title", "slug", "content", "excerpt", "coverImage", "category", "tags", "published", "publishedAt", "scheduledAt", "author", "metaTitle", "metaDescription"] as const;
 
 function pickBlogFields(body: Record<string, unknown>) {
   const picked: Record<string, unknown> = {};

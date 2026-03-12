@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
     const statusRaw = searchParams.get("status") || "";
     const paymentStatusRaw = searchParams.get("paymentStatus") || "";
     const search = searchParams.get("search") || "";
+    const dateFrom = searchParams.get("dateFrom") || "";
+    const dateTo = searchParams.get("dateTo") || "";
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: any = {};
@@ -46,6 +48,17 @@ export async function GET(req: NextRequest) {
         { customerEmail: { $regex: escaped, $options: "i" } },
         { customerName: { $regex: escaped, $options: "i" } },
       ];
+    }
+
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) {
+        // Include the entire end day
+        const endDate = new Date(dateTo);
+        endDate.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = endDate;
+      }
     }
 
     const [orders, total] = await Promise.all([

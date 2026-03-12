@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { Loader2, Printer, ArrowLeft } from "lucide-react";
+import { Loader2, Printer, ArrowLeft, Download } from "lucide-react";
 import Link from "next/link";
 
 interface OrderItem {
@@ -51,6 +51,7 @@ const formatDate = (d: string) =>
 
 export default function InvoicePage() {
   const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const { isSignedIn, isLoaded } = useUser();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,10 +64,16 @@ export default function InvoicePage() {
         if (!r.ok) throw new Error("Not found");
         return r.json();
       })
-      .then(setOrder)
+      .then((data) => {
+        setOrder(data);
+        // Auto-trigger print dialog when ?print=1
+        if (searchParams.get("print") === "1") {
+          setTimeout(() => window.print(), 600);
+        }
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [id, isSignedIn, isLoaded]);
+  }, [id, isSignedIn, isLoaded, searchParams]);
 
   const handlePrint = () => window.print();
 
@@ -106,13 +113,22 @@ export default function InvoicePage() {
           <ArrowLeft className="w-4 h-4" />
           Back to Order
         </Link>
-        <button
-          onClick={handlePrint}
-          className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition-colors"
-        >
-          <Printer className="w-4 h-4" />
-          Print / Save as PDF
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            Print
+          </button>
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Download PDF
+          </button>
+        </div>
       </div>
 
       {/* Invoice content */}

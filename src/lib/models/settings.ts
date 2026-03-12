@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IShippingZone {
+  name: string;
+  countries: string[];
+  rate: number;
+  minOrderFree: number; // 0 = never free
+}
+
 export interface ISettings extends Document {
   key: string;
   storeName: string;
@@ -12,6 +19,7 @@ export interface ISettings extends Document {
   shippingFlatRate: number;
   lowStockThreshold: number;
   orderPrefix: string;
+  shippingZones: IShippingZone[];
   socialLinks: {
     instagram: string;
     twitter: string;
@@ -20,6 +28,16 @@ export interface ISettings extends Document {
   };
   updatedAt: Date;
 }
+
+const ShippingZoneSchema = new Schema<IShippingZone>(
+  {
+    name: { type: String, required: true },
+    countries: { type: [String], default: [] },
+    rate: { type: Number, required: true },
+    minOrderFree: { type: Number, default: 0 },
+  },
+  { _id: true }
+);
 
 const SettingsSchema = new Schema<ISettings>(
   {
@@ -34,6 +52,7 @@ const SettingsSchema = new Schema<ISettings>(
     shippingFlatRate: { type: Number, default: 4.99 },
     lowStockThreshold: { type: Number, default: 5 },
     orderPrefix: { type: String, default: "SL" },
+    shippingZones: { type: [ShippingZoneSchema], default: [] },
     socialLinks: {
       instagram: { type: String, default: "" },
       twitter: { type: String, default: "" },

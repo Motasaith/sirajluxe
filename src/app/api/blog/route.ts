@@ -13,7 +13,15 @@ export async function GET(req: NextRequest) {
     const page = capInt(searchParams.get("page"), 1, 1, 1000);
     const skip = (page - 1) * limit;
 
-    const filter: Record<string, unknown> = { published: true };
+    const now = new Date();
+    const filter: Record<string, unknown> = {
+      published: true,
+      $or: [
+        { scheduledAt: null },
+        { scheduledAt: { $exists: false } },
+        { scheduledAt: { $lte: now } },
+      ],
+    };
     if (category && category !== "All") filter.category = category;
 
     const [docs, total] = await Promise.all([

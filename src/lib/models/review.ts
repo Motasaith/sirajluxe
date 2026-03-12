@@ -8,6 +8,7 @@ export interface IReview extends Document {
   rating: number;
   title: string;
   comment: string;
+  images: string[];
   verified: boolean; // purchased the product
   approved: boolean; // admin-approved
   createdAt: Date;
@@ -23,6 +24,7 @@ const ReviewSchema = new Schema<IReview>(
     rating: { type: Number, required: true, min: 1, max: 5 },
     title: { type: String, required: true, maxlength: 120 },
     comment: { type: String, required: true, maxlength: 2000 },
+    images: [{ type: String }],
     verified: { type: Boolean, default: false },
     approved: { type: Boolean, default: false },
   },

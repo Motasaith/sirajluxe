@@ -4,6 +4,8 @@ import { stripe } from "@/lib/stripe";
 import { connectDB } from "@/lib/mongodb";
 import { Order, Customer, Product, Coupon } from "@/lib/models";
 import { sendOrderConfirmation, sendOrderCancelled } from "@/lib/email";
+import { releaseReservations } from "@/lib/inventory";
+import { createNotification } from "@/lib/notifications";
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -117,6 +119,18 @@ export async function POST(req: NextRequest) {
 
       console.log(`Order created: ${order.orderNumber} — £${order.total}`);
 
+      // Create in-app notification
+      await createNotification({
+        type: "new_order",
+        message: `New order ${order.orderNumber} — £${order.total.toFixed(2)} from ${order.customerName || order.customerEmail}`,
+        link: `/admin/orders/${order._id}`,
+      });
+
+      // Release inventory reservations for this session
+      if (session.metadata?.clerkUserId) {
+        await releaseReservations(session.metadata.clerkUserId);
+      }
+
       // Send order confirmation email
       try {
         await sendOrderConfirmation({
@@ -221,6 +235,11 @@ export async function POST(req: NextRequest) {
 
       if (pendingOrder) {
         console.log(`Payment succeeded — order ${pendingOrder.orderNumber} marked as processing`);
+
+        // Release inventory reservations for this session
+        if (pendingOrder.clerkUserId) {
+          await releaseReservations(pendingOrder.clerkUserId);
+        }
 
         // Update or create customer
         if (pendingOrder.clerkUserId) {

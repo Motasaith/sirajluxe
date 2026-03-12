@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
         rating: r.rating,
         title: r.title,
         comment: r.comment,
+        images: r.images || [],
         verified: r.verified,
         createdAt: r.createdAt,
       })),
@@ -72,6 +73,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { productId, title, comment } = body;
     const rating = Number(body.rating);
+    const images: string[] = Array.isArray(body.images)
+      ? body.images.filter((u: unknown) => typeof u === "string").slice(0, 6)
+      : [];
 
     if (!productId || !title?.trim() || !comment?.trim()) {
       return NextResponse.json({ error: "All fields are required" }, { status: 400 });
@@ -119,6 +123,7 @@ export async function POST(req: NextRequest) {
       rating: Math.round(rating),
       title: title.slice(0, 120),
       comment: comment.slice(0, 2000),
+      images,
       verified,
       approved: false, // requires admin moderation before appearing publicly
     });
