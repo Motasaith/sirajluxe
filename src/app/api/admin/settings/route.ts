@@ -24,7 +24,7 @@ export async function GET() {
 
 // PUT /api/admin/settings — update store settings
 export async function PUT(req: NextRequest) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("super_admin");
   if (denied) return denied;
   try {
     await connectDB();
@@ -34,12 +34,16 @@ export async function PUT(req: NextRequest) {
     const allowed: Record<string, unknown> = {};
     const stringFields = ["storeName", "storeEmail", "storePhone", "currency", "orderPrefix"];
     const numberFields = ["taxRate", "freeShippingThreshold", "shippingFlatRate", "lowStockThreshold"];
+    const booleanFields = ["enableStripeTax"];
 
     for (const f of stringFields) {
       if (body[f] !== undefined) allowed[f] = String(body[f]);
     }
     for (const f of numberFields) {
       if (body[f] !== undefined) allowed[f] = Number(body[f]) || 0;
+    }
+    for (const f of booleanFields) {
+      if (body[f] !== undefined) allowed[f] = Boolean(body[f]);
     }
     if (body.socialLinks && typeof body.socialLinks === "object") {
       allowed.socialLinks = {

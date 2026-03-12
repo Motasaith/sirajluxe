@@ -1,5 +1,5 @@
 export { Product } from "./product";
-export type { IProduct } from "./product";
+export type { IProduct, IVariant } from "./product";
 
 export { Category } from "./category";
 export type { ICategory } from "./category";

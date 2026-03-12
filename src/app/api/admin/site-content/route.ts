@@ -31,7 +31,7 @@ export async function GET() {
 
 // PUT /api/admin/site-content — upsert a section by key
 export async function PUT(req: NextRequest) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("editor");
   if (denied) return denied;
   try {
     await connectDB();
@@ -70,7 +70,7 @@ export async function PUT(req: NextRequest) {
 
 // DELETE /api/admin/site-content — reset a section to defaults
 export async function DELETE(req: NextRequest) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("editor");
   if (denied) return denied;
   try {
     await connectDB();

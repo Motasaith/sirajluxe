@@ -6,6 +6,8 @@ export interface IOrderItem {
   price: number;
   quantity: number;
   image: string;
+  color?: string;
+  size?: string;
 }
 
 export interface IOrder extends Document {
@@ -60,6 +62,8 @@ const OrderSchema = new Schema<IOrder>(
         price: { type: Number, required: true },
         quantity: { type: Number, required: true },
         image: { type: String, default: "" },
+        color: { type: String, default: "" },
+        size: { type: String, default: "" },
       },
     ],
     subtotal: { type: Number, default: 0 },

@@ -37,7 +37,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("editor");
   if (denied) return denied;
   try {
     await connectDB();
@@ -59,7 +59,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("editor");
   if (denied) return denied;
   try {
     await connectDB();

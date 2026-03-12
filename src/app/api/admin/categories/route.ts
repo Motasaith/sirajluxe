@@ -19,7 +19,7 @@ export async function GET() {
 
 // POST /api/admin/categories
 export async function POST(req: NextRequest) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/admin/categories
 export async function DELETE(req: NextRequest) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const { id } = await req.json();
@@ -55,7 +55,7 @@ export async function DELETE(req: NextRequest) {
 
 // PUT /api/admin/categories — update category
 export async function PUT(req: NextRequest) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();

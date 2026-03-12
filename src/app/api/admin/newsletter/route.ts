@@ -41,7 +41,7 @@ export async function GET() {
 
 // POST /api/admin/newsletter — send a newsletter to all active subscribers
 export async function POST(req: NextRequest) {
-  const guard = await adminGuard();
+  const guard = await adminGuard("editor");
   if (guard) return guard;
 
   try {
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
 
 // DELETE /api/admin/newsletter — remove a subscriber
 export async function DELETE(req: NextRequest) {
-  const guard = await adminGuard();
+  const guard = await adminGuard("editor");
   if (guard) return guard;
 
   try {

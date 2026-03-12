@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 // PATCH /api/admin/orders/[id] — update order status
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();

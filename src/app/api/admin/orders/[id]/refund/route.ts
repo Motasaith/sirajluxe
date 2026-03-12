@@ -7,7 +7,7 @@ import { logActivity } from "@/lib/activity-logger";
 
 // POST /api/admin/orders/[id]/refund — issue a Stripe refund
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("super_admin");
   if (denied) return denied;
 
   if (!stripe) {

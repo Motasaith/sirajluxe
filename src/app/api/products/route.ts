@@ -67,6 +67,8 @@ export async function GET(req: NextRequest) {
         colors: (p.colors || []).map((c: string) => ({ color: c })),
         sizes: (p.sizes || []).map((s: string) => ({ size: s })),
         images: (p.images || []).map((url: string) => ({ url })),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        variants: (p as any).variants || [],
       })),
       total,
       page,

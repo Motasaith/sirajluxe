@@ -7,6 +7,7 @@ export interface ISettings extends Document {
   storePhone: string;
   currency: string;
   taxRate: number;
+  enableStripeTax: boolean;
   freeShippingThreshold: number;
   shippingFlatRate: number;
   lowStockThreshold: number;
@@ -28,6 +29,7 @@ const SettingsSchema = new Schema<ISettings>(
     storePhone: { type: String, default: "" },
     currency: { type: String, default: "GBP" },
     taxRate: { type: Number, default: 0 },
+    enableStripeTax: { type: Boolean, default: false },
     freeShippingThreshold: { type: Number, default: 10 },
     shippingFlatRate: { type: Number, default: 4.99 },
     lowStockThreshold: { type: Number, default: 5 },

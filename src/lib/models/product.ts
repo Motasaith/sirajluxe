@@ -1,5 +1,12 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
+export interface IVariant {
+  color: string;
+  size: string;
+  sku: string;
+  inventory: number;
+}
+
 export interface IProduct extends Document {
   name: string;
   slug: string;
@@ -18,6 +25,7 @@ export interface IProduct extends Document {
   sizes: string[];
   sku: string;
   inventory: number;
+  variants: IVariant[];
   metaTitle?: string;
   metaDescription?: string;
   weight?: number;
@@ -30,6 +38,16 @@ export interface IProduct extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+
+const VariantSchema = new Schema<IVariant>(
+  {
+    color: { type: String, default: "" },
+    size: { type: String, default: "" },
+    sku: { type: String, default: "" },
+    inventory: { type: Number, default: 0, min: 0 },
+  },
+  { _id: false }
+);
 
 const ProductSchema = new Schema<IProduct>(
   {
@@ -50,6 +68,7 @@ const ProductSchema = new Schema<IProduct>(
     sizes: [{ type: String }],
     sku: { type: String, default: "" },
     inventory: { type: Number, default: 0 },
+    variants: { type: [VariantSchema], default: [] },
     metaTitle: { type: String, default: "" },
     metaDescription: { type: String, default: "" },
     weight: { type: Number, min: 0 },

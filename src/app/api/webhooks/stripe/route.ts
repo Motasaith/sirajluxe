@@ -138,6 +138,19 @@ export async function POST(req: NextRequest) {
       const productIdMap = session.metadata?.productIds
         ? (JSON.parse(session.metadata.productIds) as Record<string, number>)
         : {};
+      const variantMapCheckout = session.metadata?.variantIds
+        ? (JSON.parse(session.metadata.variantIds) as Record<string, number>)
+        : {};
+
+      // Decrement variant-level inventory
+      for (const [variantKey, qty] of Object.entries(variantMapCheckout)) {
+        const [productId, color, size] = variantKey.split(":");
+        await Product.findOneAndUpdate(
+          { _id: productId, "variants.color": color, "variants.size": size },
+          { $inc: { "variants.$.inventory": -(qty as number) } }
+        );
+      }
+
       for (const [productId, qty] of Object.entries(productIdMap)) {
         // Single atomic pipeline update: decrement inventory and update inStock flag
         const updated = await Product.findByIdAndUpdate(productId, {
@@ -250,6 +263,19 @@ export async function POST(req: NextRequest) {
         const piProductIdMap = succeededPI.metadata?.productIds
           ? (JSON.parse(succeededPI.metadata.productIds) as Record<string, number>)
           : {};
+        const piVariantMap = succeededPI.metadata?.variantIds
+          ? (JSON.parse(succeededPI.metadata.variantIds) as Record<string, number>)
+          : {};
+
+        // Decrement variant-level inventory
+        for (const [variantKey, qty] of Object.entries(piVariantMap)) {
+          const [productId, color, size] = variantKey.split(":");
+          await Product.findOneAndUpdate(
+            { _id: productId, "variants.color": color, "variants.size": size },
+            { $inc: { "variants.$.inventory": -(qty as number) } }
+          );
+        }
+
         for (const [productId, qty] of Object.entries(piProductIdMap)) {
           const updated = await Product.findByIdAndUpdate(productId, {
             $inc: { inventory: -(qty as number) },

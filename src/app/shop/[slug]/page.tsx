@@ -56,6 +56,7 @@ interface Product {
   colors?: { color: string }[];
   sizes?: { size: string }[];
   inventory: number;
+  variants?: { color: string; size: string; sku: string; inventory: number }[];
 }
 
 interface Review {
@@ -285,6 +286,21 @@ export default function ProductDetailPage() {
   };
 
   /* ── Handlers ── */
+  // Compute variant-level inventory if available
+  const getVariantInventory = () => {
+    if (!product) return 0;
+    if (product.variants && product.variants.length > 0 && (selectedColor || selectedSize)) {
+      const variant = product.variants.find(
+        (v) => (v.color || "") === (selectedColor || "") && (v.size || "") === (selectedSize || "")
+      );
+      if (variant) return variant.inventory;
+    }
+    return product.inventory;
+  };
+
+  const variantInventory = product ? getVariantInventory() : 0;
+  const isVariantInStock = product ? (product.variants && product.variants.length > 0 ? variantInventory > 0 : product.inStock) : false;
+
   const handleAddToCart = () => {
     if (!product) return;
     addItem(
@@ -779,7 +795,7 @@ export default function ProductDetailPage() {
                       <button
                         onClick={() =>
                           setQuantity(
-                            Math.min(product.inventory || 99, quantity + 1)
+                            Math.min(variantInventory || 99, quantity + 1)
                           )
                         }
                         className="w-10 h-10 rounded-xl glass flex items-center justify-center text-body hover:text-heading"
@@ -787,15 +803,15 @@ export default function ProductDetailPage() {
                         <Plus className="w-4 h-4" />
                       </button>
                       <span className="ml-4 text-sm text-subtle-fg">
-                        {product.inventory > 0
-                          ? `${product.inventory} in stock`
+                        {variantInventory > 0
+                          ? `${variantInventory} in stock`
                           : "Out of stock"}
                       </span>
                     </div>
                   </div>
 
                   {/* Add to Cart */}
-                  {product.inStock ? (
+                  {isVariantInStock ? (
                     <button
                       onClick={handleAddToCart}
                       className={`w-full py-4 rounded-2xl text-white font-semibold text-lg flex items-center justify-center gap-3 transition-all duration-300 ${

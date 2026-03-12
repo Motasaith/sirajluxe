@@ -10,6 +10,7 @@ interface SettingsData {
   storePhone: string;
   currency: string;
   taxRate: number;
+  enableStripeTax: boolean;
   freeShippingThreshold: number;
   shippingFlatRate: number;
   lowStockThreshold: number;
@@ -28,6 +29,7 @@ const defaultSettings: SettingsData = {
   storePhone: "",
   currency: "GBP",
   taxRate: 0,
+  enableStripeTax: false,
   freeShippingThreshold: 10,
   shippingFlatRate: 4.99,
   lowStockThreshold: 5,
@@ -50,6 +52,7 @@ export default function SettingsPage() {
           storePhone: data.storePhone || "",
           currency: data.currency || "GBP",
           taxRate: data.taxRate ?? 0,
+          enableStripeTax: data.enableStripeTax ?? false,
           freeShippingThreshold: data.freeShippingThreshold ?? 10,
           shippingFlatRate: data.shippingFlatRate ?? 4.99,
           lowStockThreshold: data.lowStockThreshold ?? 5,
@@ -195,7 +198,7 @@ export default function SettingsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1.5">Tax Rate (%)</label>
+              <label className="block text-xs text-gray-500 mb-1.5">Fallback Tax Rate (%)</label>
               <input
                 type="number"
                 step="0.01"
@@ -205,7 +208,21 @@ export default function SettingsPage() {
                 onChange={(e) => updateField("taxRate", parseFloat(e.target.value) || 0)}
                 className={inputClass}
               />
+              <p className="text-[10px] text-gray-600 mt-1">Used when Stripe Tax is disabled.</p>
             </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+            <div>
+              <label className="text-sm text-gray-300 font-medium">Enable Stripe Tax</label>
+              <p className="text-[10px] text-gray-600 mt-0.5">Automatically calculate location-based tax on checkout. Requires Stripe Tax to be enabled in your Stripe Dashboard.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSettings((prev) => ({ ...prev, enableStripeTax: !prev.enableStripeTax }))}
+              className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${settings.enableStripeTax ? "bg-violet-600" : "bg-gray-700"}`}
+            >
+              <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${settings.enableStripeTax ? "left-5" : "left-0.5"}`} />
+            </button>
           </div>
         </section>
 

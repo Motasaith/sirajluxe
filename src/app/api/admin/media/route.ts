@@ -20,7 +20,7 @@ export async function GET() {
 
 // POST /api/admin/media — upload file to Vercel Blob
 export async function POST(req: NextRequest) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
 
 // PUT /api/admin/media — update alt text
 export async function PUT(req: NextRequest) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const { id, alt } = await req.json();
@@ -114,7 +114,7 @@ export async function PUT(req: NextRequest) {
 
 // DELETE /api/admin/media
 export async function DELETE(req: NextRequest) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     const { id, url } = await req.json();
 

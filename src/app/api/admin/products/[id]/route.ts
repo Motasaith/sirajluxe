@@ -20,12 +20,12 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
 // PUT /api/admin/products/[id]
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();
-    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, metaTitle, metaDescription } = body;
-    const product = await Product.findByIdAndUpdate(params.id, { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, metaTitle, metaDescription }, {
+    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants, metaTitle, metaDescription } = body;
+    const product = await Product.findByIdAndUpdate(params.id, { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants: variants || [], metaTitle, metaDescription }, {
       returnDocument: 'after',
       runValidators: true,
     }).lean();
@@ -40,7 +40,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
 // DELETE /api/admin/products/[id]
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const product = await Product.findByIdAndDelete(params.id);

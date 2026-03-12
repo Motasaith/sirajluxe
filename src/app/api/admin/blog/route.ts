@@ -33,7 +33,7 @@ export async function GET() {
 
 // POST /api/admin/blog — create a new blog post
 export async function POST(req: NextRequest) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("editor");
   if (denied) return denied;
   try {
     await connectDB();

@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
     const lineItems = [];
     let subtotalPence = 0;
     const productIdMap: Record<string, number> = {};
+    const variantMap: Record<string, number> = {};
 
     for (const item of items as CartItem[]) {
       if (!item.productId || !item.quantity || item.quantity < 1) {
@@ -77,7 +78,28 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      if (product.inventory < item.quantity) {
+      // Check variant-level inventory if variants exist
+      if (product.variants && product.variants.length > 0 && (item.color || item.size)) {
+        const variant = product.variants.find(
+          (v) => (v.color || "") === (item.color || "") && (v.size || "") === (item.size || "")
+        );
+        if (variant) {
+          if (variant.inventory < item.quantity) {
+            const label = [item.color, item.size].filter(Boolean).join(" / ");
+            return NextResponse.json(
+              { error: `Insufficient stock for ${product.name} (${label}). Only ${variant.inventory} available.` },
+              { status: 400 }
+            );
+          }
+          const variantKey = `${product._id}:${item.color || ""}:${item.size || ""}`;
+          variantMap[variantKey] = (variantMap[variantKey] || 0) + item.quantity;
+        } else if (product.inventory < item.quantity) {
+          return NextResponse.json(
+            { error: `Insufficient stock for ${product.name}. Only ${product.inventory} available.` },
+            { status: 400 }
+          );
+        }
+      } else if (product.inventory < item.quantity) {
         return NextResponse.json(
           { error: `Insufficient stock for ${product.name}. Only ${product.inventory} available.` },
           { status: 400 }
@@ -207,12 +229,18 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Check if Stripe Tax is enabled
+    const stripeTaxEnabled = settings?.enableStripeTax === true;
+
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || req.headers.get("origin");
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: lineItems,
+      line_items: lineItems.map((li) => stripeTaxEnabled
+        ? { ...li, price_data: { ...li.price_data, tax_behavior: "exclusive" as const } }
+        : li
+      ),
       mode: "payment",
+      ...(stripeTaxEnabled ? { automatic_tax: { enabled: true } } : {}),
       ...(stripeDiscounts.length > 0 ? { discounts: stripeDiscounts } : {}),
       shipping_address_collection: {
         allowed_countries: ["GB"],
@@ -225,6 +253,7 @@ export async function POST(req: NextRequest) {
         clerkUserId: userId,
         isFirstOrder: isFirstOrder ? "true" : "false",
         productIds: JSON.stringify(productIdMap),
+        ...(Object.keys(variantMap).length > 0 ? { variantIds: JSON.stringify(variantMap) } : {}),
         ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
       },
     });

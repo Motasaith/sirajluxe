@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Save, Loader2, X, ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Loader2, X, ImageIcon, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { TiptapEditor } from "../../../components/tiptap-editor";
@@ -19,6 +19,7 @@ export default function EditProductPage() {
   const [categories, setCategories] = useState<string[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [variants, setVariants] = useState<{ color: string; size: string; sku: string; inventory: number }[]>([]);
   const [form, setForm] = useState({
     name: "",
     slug: "",
@@ -108,6 +109,7 @@ export default function EditProductPage() {
           metaTitle: data.metaTitle || "",
           metaDescription: data.metaDescription || "",
         });
+        setVariants(data.variants || []);
       })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -125,6 +127,7 @@ export default function EditProductPage() {
         colors: form.colors ? form.colors.split(",").map((c) => c.trim()).filter(Boolean) : [],
         sizes: form.sizes ? form.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [],
         images: form.images ? form.images.split(",").map((u) => u.trim()).filter(Boolean) : [],
+        variants,
       };
 
       const res = await fetch(`/api/admin/products/${id}`, {
@@ -317,6 +320,109 @@ export default function EditProductPage() {
                 <label className={labelClass}>Sizes (comma separated)</label>
                 <input type="text" value={form.sizes} onChange={(e) => setForm({ ...form, sizes: e.target.value })} className={inputClass} />
               </div>
+            </div>
+
+            {/* Variant Inventory */}
+            <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-medium text-white">Variant Inventory</h3>
+                  <p className="text-[11px] text-gray-600 mt-0.5">Track stock per color/size combination. Leave empty to use global inventory only.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setVariants([...variants, { color: "", size: "", sku: "", inventory: 0 }])}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600/10 text-violet-400 text-xs font-medium hover:bg-violet-600/20 border border-violet-500/20 transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  Add Variant
+                </button>
+              </div>
+              {variants.length > 0 && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-[1fr_1fr_1fr_80px_36px] gap-2 text-[10px] font-medium text-gray-500 uppercase tracking-wider px-1">
+                    <span>Color</span>
+                    <span>Size</span>
+                    <span>SKU</span>
+                    <span>Stock</span>
+                    <span></span>
+                  </div>
+                  {variants.map((v, i) => (
+                    <div key={i} className="grid grid-cols-[1fr_1fr_1fr_80px_36px] gap-2 items-center">
+                      <input
+                        type="text"
+                        value={v.color}
+                        onChange={(e) => {
+                          const next = [...variants];
+                          next[i] = { ...next[i], color: e.target.value };
+                          setVariants(next);
+                        }}
+                        className={inputClass}
+                        placeholder="e.g. Red"
+                      />
+                      <input
+                        type="text"
+                        value={v.size}
+                        onChange={(e) => {
+                          const next = [...variants];
+                          next[i] = { ...next[i], size: e.target.value };
+                          setVariants(next);
+                        }}
+                        className={inputClass}
+                        placeholder="e.g. M"
+                      />
+                      <input
+                        type="text"
+                        value={v.sku}
+                        onChange={(e) => {
+                          const next = [...variants];
+                          next[i] = { ...next[i], sku: e.target.value };
+                          setVariants(next);
+                        }}
+                        className={inputClass}
+                        placeholder="SKU"
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        value={v.inventory}
+                        onChange={(e) => {
+                          const next = [...variants];
+                          next[i] = { ...next[i], inventory: parseInt(e.target.value) || 0 };
+                          setVariants(next);
+                        }}
+                        className={inputClass}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setVariants(variants.filter((_, j) => j !== i))}
+                        className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {form.colors && form.sizes && variants.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const colors = form.colors.split(",").map((c) => c.trim()).filter(Boolean);
+                        const sizes = form.sizes.split(",").map((s) => s.trim()).filter(Boolean);
+                        const generated: typeof variants = [];
+                        for (const color of colors) {
+                          for (const size of sizes) {
+                            generated.push({ color, size, sku: "", inventory: 0 });
+                          }
+                        }
+                        if (generated.length > 0) setVariants(generated);
+                      }}
+                      className="text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                    >
+                      Auto-generate from colors × sizes
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* SEO */}

@@ -61,7 +61,9 @@ export async function POST(req: NextRequest) {
     // --- Validate products ---
     const orderItems: { productId: string; name: string; price: number; quantity: number; image: string; color?: string; size?: string }[] = [];
     let subtotalPence = 0;
+    // Maps productId -> qty for global inventory, and "productId:color:size" -> qty for variant inventory
     const productIdMap: Record<string, number> = {};
+    const variantMap: Record<string, number> = {};
 
     for (const item of items as CartItem[]) {
       if (!item.productId || !item.quantity || item.quantity < 1) {
@@ -75,11 +77,38 @@ export async function POST(req: NextRequest) {
       if (!product.inStock) {
         return NextResponse.json({ error: `Out of stock: ${product.name}` }, { status: 400 });
       }
-      if (product.inventory < item.quantity) {
-        return NextResponse.json(
-          { error: `Insufficient stock for ${product.name}. Only ${product.inventory} available.` },
-          { status: 400 }
+
+      // Check variant-level inventory if variants exist, otherwise check global
+      if (product.variants && product.variants.length > 0 && (item.color || item.size)) {
+        const variant = product.variants.find(
+          (v) => (v.color || "") === (item.color || "") && (v.size || "") === (item.size || "")
         );
+        if (variant) {
+          if (variant.inventory < item.quantity) {
+            const label = [item.color, item.size].filter(Boolean).join(" / ");
+            return NextResponse.json(
+              { error: `Insufficient stock for ${product.name} (${label}). Only ${variant.inventory} available.` },
+              { status: 400 }
+            );
+          }
+          const variantKey = `${product._id}:${item.color || ""}:${item.size || ""}`;
+          variantMap[variantKey] = (variantMap[variantKey] || 0) + item.quantity;
+        } else {
+          // Variant not found, fall back to global inventory check
+          if (product.inventory < item.quantity) {
+            return NextResponse.json(
+              { error: `Insufficient stock for ${product.name}. Only ${product.inventory} available.` },
+              { status: 400 }
+            );
+          }
+        }
+      } else {
+        if (product.inventory < item.quantity) {
+          return NextResponse.json(
+            { error: `Insufficient stock for ${product.name}. Only ${product.inventory} available.` },
+            { status: 400 }
+          );
+        }
       }
 
       productIdMap[product._id.toString()] = (productIdMap[product._id.toString()] || 0) + item.quantity;
@@ -167,8 +196,13 @@ export async function POST(req: NextRequest) {
     const qualifiesForFreeShipping = isFirstOrder || subtotalPence >= FREE_SHIPPING_THRESHOLD;
     const shippingPence = qualifiesForFreeShipping ? 0 : STANDARD_SHIPPING_RATE;
 
+    // --- Tax calculation (fallback rate for Payment Intent flow) ---
+    const taxRate = settings?.taxRate ?? 0;
+    const taxableAmount = subtotalPence - discountPence;
+    const taxPence = taxRate > 0 ? Math.round(taxableAmount * (taxRate / 100)) : 0;
+
     // --- Totals ---
-    const totalPence = Math.max(0, subtotalPence - discountPence + shippingPence);
+    const totalPence = Math.max(0, subtotalPence - discountPence + shippingPence + taxPence);
     const resolvedEmail = customerEmail || customer?.email || "";
 
     // --- Create Order Number ---
@@ -183,6 +217,7 @@ export async function POST(req: NextRequest) {
       subtotal: subtotalPence / 100,
       discount: discountPence / 100,
       shipping: shippingPence / 100,
+      tax: taxPence / 100,
       total: totalPence / 100,
       freeShippingReason: qualifiesForFreeShipping
         ? isFirstOrder
@@ -216,7 +251,7 @@ export async function POST(req: NextRequest) {
         subtotal: subtotalPence / 100,
         discount: discountPence / 100,
         shipping: shippingPence / 100,
-        tax: 0,
+        tax: taxPence / 100,
         total: totalPence / 100,
         status: "processing",
         paymentStatus: "paid",
@@ -224,7 +259,14 @@ export async function POST(req: NextRequest) {
         ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
       });
 
-      // Decrement inventory atomically
+      // Decrement inventory atomically (variant-level + global)
+      for (const [variantKey, qty] of Object.entries(variantMap)) {
+        const [productId, color, size] = variantKey.split(":");
+        await Product.findOneAndUpdate(
+          { _id: productId, "variants.color": color, "variants.size": size },
+          { $inc: { "variants.$.inventory": -(qty as number) } }
+        );
+      }
       for (const [productId, qty] of Object.entries(productIdMap)) {
         const updated = await Product.findByIdAndUpdate(productId, {
           $inc: { inventory: -(qty as number) },
@@ -283,6 +325,7 @@ export async function POST(req: NextRequest) {
         orderNumber,
         isFirstOrder: isFirstOrder ? "true" : "false",
         productIds: JSON.stringify(productIdMap),
+        ...(Object.keys(variantMap).length > 0 ? { variantIds: JSON.stringify(variantMap) } : {}),
         ...(appliedCouponCode ? { couponCode: appliedCouponCode } : {}),
       },
       ...(resolvedEmail ? { receipt_email: resolvedEmail } : {}),
@@ -301,7 +344,7 @@ export async function POST(req: NextRequest) {
       subtotal: subtotalPence / 100,
       discount: discountPence / 100,
       shipping: shippingPence / 100,
-      tax: 0,
+      tax: taxPence / 100,
       total: totalPence / 100,
       status: "pending",
       paymentStatus: "pending",

@@ -49,12 +49,12 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/products — create product
 export async function POST(req: NextRequest) {
-  const denied = await adminGuard(); if (denied) return denied;
+  const denied = await adminGuard("admin"); if (denied) return denied;
   try {
     await connectDB();
     const body = await req.json();
-    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, metaTitle, metaDescription } = body;
-    const product = await Product.create({ name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, metaTitle, metaDescription });
+    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants, metaTitle, metaDescription } = body;
+    const product = await Product.create({ name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants: variants || [], metaTitle, metaDescription });
     return NextResponse.json({ ...product.toObject(), id: product._id.toString() }, { status: 201 });
   } catch (error: unknown) {
     console.error("POST /api/admin/products error:", error instanceof Error ? error.message : "Unknown error");

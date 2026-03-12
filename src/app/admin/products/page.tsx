@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, Trash2, Edit, Loader2, Package, Copy, Download, CheckSquare, Square } from "lucide-react";
+import { Plus, Search, Trash2, Edit, Loader2, Package, Copy, Download, Upload, CheckSquare, Square } from "lucide-react";
 import { Pagination } from "../components/pagination";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { toast } from "../components/toast";
@@ -154,6 +154,13 @@ export default function ProductsPage() {
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Export</span>
           </button>
+          <Link
+            href="/admin/products/import"
+            className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-white/[0.06] text-gray-400 text-sm hover:text-white hover:bg-white/[0.03] transition-colors"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="hidden sm:inline">Import</span>
+          </Link>
           <Link
             href="/admin/products/new"
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-500 transition-colors"

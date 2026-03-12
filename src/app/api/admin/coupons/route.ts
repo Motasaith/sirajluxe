@@ -20,7 +20,7 @@ export async function GET() {
 
 // POST /api/admin/coupons
 export async function POST(req: NextRequest) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("admin");
   if (denied) return denied;
   try {
     await connectDB();
@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 
 // PUT /api/admin/coupons
 export async function PUT(req: NextRequest) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("admin");
   if (denied) return denied;
   try {
     await connectDB();
@@ -100,7 +100,7 @@ export async function PUT(req: NextRequest) {
 
 // DELETE /api/admin/coupons
 export async function DELETE(req: NextRequest) {
-  const denied = await adminGuard();
+  const denied = await adminGuard("admin");
   if (denied) return denied;
   try {
     await connectDB();

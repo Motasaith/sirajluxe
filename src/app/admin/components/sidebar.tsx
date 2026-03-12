@@ -22,27 +22,41 @@ import {
   MessageCircleQuestion,
   Mail,
 } from "lucide-react";
+import { useAdminRole } from "./role-context";
+import type { AdminRole } from "@/lib/admin-auth";
+
+const ROLE_LEVEL: Record<AdminRole, number> = {
+  super_admin: 4,
+  admin: 3,
+  editor: 2,
+  support: 1,
+};
 
 const navItems = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Products", href: "/admin/products", icon: Package },
-  { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
-  { label: "Categories", href: "/admin/categories", icon: FolderTree },
-  { label: "Coupons", href: "/admin/coupons", icon: Ticket },
-  { label: "Customers", href: "/admin/customers", icon: Users },
-  { label: "Reviews", href: "/admin/reviews", icon: MessageSquare },
-  { label: "Q&A", href: "/admin/questions", icon: MessageCircleQuestion },
-  { label: "Site Editor", href: "/admin/site-editor", icon: PenTool },
-  { label: "Blog", href: "/admin/blog", icon: FileText },
-  { label: "Newsletter", href: "/admin/newsletter", icon: Mail },
-  { label: "Media", href: "/admin/media", icon: ImageIcon },
-  { label: "Activity Log", href: "/admin/activity", icon: ClipboardList },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+  { label: "Dashboard", href: "/admin", icon: LayoutDashboard, minRole: "support" as AdminRole },
+  { label: "Products", href: "/admin/products", icon: Package, minRole: "admin" as AdminRole },
+  { label: "Orders", href: "/admin/orders", icon: ShoppingCart, minRole: "support" as AdminRole },
+  { label: "Categories", href: "/admin/categories", icon: FolderTree, minRole: "admin" as AdminRole },
+  { label: "Coupons", href: "/admin/coupons", icon: Ticket, minRole: "admin" as AdminRole },
+  { label: "Customers", href: "/admin/customers", icon: Users, minRole: "support" as AdminRole },
+  { label: "Reviews", href: "/admin/reviews", icon: MessageSquare, minRole: "support" as AdminRole },
+  { label: "Q&A", href: "/admin/questions", icon: MessageCircleQuestion, minRole: "support" as AdminRole },
+  { label: "Site Editor", href: "/admin/site-editor", icon: PenTool, minRole: "editor" as AdminRole },
+  { label: "Blog", href: "/admin/blog", icon: FileText, minRole: "editor" as AdminRole },
+  { label: "Newsletter", href: "/admin/newsletter", icon: Mail, minRole: "editor" as AdminRole },
+  { label: "Media", href: "/admin/media", icon: ImageIcon, minRole: "admin" as AdminRole },
+  { label: "Activity Log", href: "/admin/activity", icon: ClipboardList, minRole: "super_admin" as AdminRole },
+  { label: "Settings", href: "/admin/settings", icon: Settings, minRole: "super_admin" as AdminRole },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const role = useAdminRole();
+
+  const filteredNavItems = navItems.filter(
+    (item) => ROLE_LEVEL[role] >= ROLE_LEVEL[item.minRole]
+  );
 
   // Close on route change
   useEffect(() => {
@@ -85,7 +99,7 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {filteredNavItems.map((item) => {
           const isActive =
             item.href === "/admin"
               ? pathname === "/admin"
