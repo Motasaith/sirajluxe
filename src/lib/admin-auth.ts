@@ -29,20 +29,6 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
   .filter(Boolean);
 
 /**
- * Get the primary email of the currently authenticated user from Clerk.
- * Uses the Clerk Backend API (not sessionClaims) for reliability.
- */
-async function getUserEmail(userId: string): Promise<string> {
-  try {
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    return user.emailAddresses?.[0]?.emailAddress?.toLowerCase() || "";
-  } catch {
-    return "";
-  }
-}
-
-/**
  * Get the admin role for the current user.
  * Returns the role if the user is an admin, or null if not.
  *
