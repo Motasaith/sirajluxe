@@ -1,10 +1,66 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
 import { categories } from "@/lib/data";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+
+function CategoryCardImage({ categoryName }: { categoryName: string }) {
+  const [images, setImages] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchProducts() {
+      try {
+        const url = `/api/products?category=${encodeURIComponent(categoryName)}&limit=5`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (!mounted) return;
+        if (data.products && data.products.length > 0) {
+          const productImages = data.products
+            .map((p: any) => p.image || (p.images && p.images[0]))
+            .filter((img: any) => typeof img === "string" && img.length > 0);
+          if (productImages.length > 0) {
+            setImages(productImages);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch products for category", categoryName, error);
+      }
+    }
+    fetchProducts();
+    return () => { mounted = false; };
+  }, [categoryName]);
+
+  useEffect(() => {
+    if (images.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % images.length);
+      }, 5000); 
+      return () => clearInterval(interval);
+    }
+  }, [images]);
+
+  if (images.length === 0) return null;
+
+  return (
+    <AnimatePresence mode="popLayout">
+      <motion.img
+        key={currentIndex}
+        initial={{ opacity: 0, scale: 1.05 }}
+        animate={{ opacity: 0.5, scale: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 1.5 }}
+        src={images[currentIndex]}
+        alt={`${categoryName} product`}
+        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+      />
+    </AnimatePresence>
+  );
+}
 
 export function CategoriesSection() {
   const { data: cms, enabled } = useSiteContent("homepage.categories");
@@ -43,13 +99,13 @@ export function CategoriesSection() {
             const isLarge = i < 2;
 
             return (
-              <Link key={category.id} href={`/shop?category=${encodeURIComponent(category.name)}`}>
+              <Link key={category.id} href={`/shop?category=${encodeURIComponent(category.name)}`} className="contents">
               <motion.div
                 initial={{ opacity: 0, y: 40, scale: 0.95 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: i * 0.1 }}
-                className={`group relative rounded-3xl overflow-hidden cursor-pointer ${
+                className={`group relative rounded-3xl overflow-hidden cursor-pointer bg-black ${
                   isLarge && i === 0
                     ? "lg:col-span-2 lg:row-span-2 min-h-[300px] lg:min-h-[500px]"
                     : isLarge
@@ -58,6 +114,8 @@ export function CategoriesSection() {
                 }`}
                 whileHover={{ scale: 0.99 }}
               >
+                <CategoryCardImage categoryName={category.name} />
+
                 {/* Gradient Background */}
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${category.gradient}`}

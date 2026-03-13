@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { randomBytes } from "crypto";
 
 const CSRF_COOKIE = "csrf-token";
 const CSRF_HEADER = "x-csrf-token";
 const TOKEN_LENGTH = 32;
+
+function generateToken(length: number): string {
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+}
 
 /**
  * Generate a CSRF token and set it as an httpOnly=false cookie
  * so that client-side JavaScript can read it and send it back as a header.
  */
 export function setCsrfCookie(response: NextResponse, token?: string): string {
-  const csrfToken = token || randomBytes(TOKEN_LENGTH).toString("hex");
+  const csrfToken = token || generateToken(TOKEN_LENGTH);
   response.cookies.set(CSRF_COOKIE, csrfToken, {
     httpOnly: false, // Client JS must be able to read it
     secure: process.env.NODE_ENV === "production",
