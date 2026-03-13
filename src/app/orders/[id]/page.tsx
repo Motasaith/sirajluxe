@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -133,6 +133,8 @@ function OrderTimeline({ status }: { status: string }) {
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
+  const guestEmail = searchParams?.get("guest_email");
   const { isSignedIn, isLoaded } = useUser();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -148,12 +150,16 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     if (!isLoaded) return;
-    if (!isSignedIn) {
+    if (!isSignedIn && !guestEmail) {
       setLoading(false);
       return;
     }
 
-    fetch(`/api/orders/${id}`)
+    const fetchUrl = guestEmail 
+      ? `/api/orders/${id}?guest_email=${encodeURIComponent(guestEmail)}`
+      : `/api/orders/${id}`;
+
+    fetch(fetchUrl)
       .then((r) => {
         if (!r.ok) throw new Error("Not found");
         return r.json();
@@ -204,7 +210,11 @@ export default function OrderDetailPage() {
     setReturnError("");
     setReturnSuccess("");
     try {
-      const res = await fetch(`/api/orders/${order._id}/return`, {
+      const returnUrl = guestEmail
+        ? `/api/orders/${order._id}/return?guest_email=${encodeURIComponent(guestEmail)}`
+        : `/api/orders/${order._id}/return`;
+        
+      const res = await fetch(returnUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: returnReason, details: returnDetails.trim() }),

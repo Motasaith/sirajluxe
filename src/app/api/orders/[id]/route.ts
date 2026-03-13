@@ -11,7 +11,8 @@ export async function GET(
 ) {
   try {
     const { userId } = await auth();
-    if (!userId) {
+    const guestEmail = req.nextUrl.searchParams.get("guest_email");
+    if (!userId && !guestEmail) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -22,7 +23,15 @@ export async function GET(
 
     await connectDB();
 
-    const order = await Order.findOne({ _id: id, clerkUserId: userId }).lean();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: any = { _id: id };
+    if (guestEmail) {
+      query.customerEmail = guestEmail;
+    } else {
+      query.clerkUserId = userId;
+    }
+
+    const order = await Order.findOne(query).lean();
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }

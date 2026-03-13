@@ -6,6 +6,7 @@ const isProtectedRoute = createRouteMatcher([
   "/account(.*)",
   "/admin(.*)",
   "/api/admin(.*)",
+  "/orders(/?)$",
 ]);
 
 // Routes that bypass BOTH auth and CSRF (external webhooks, cron)

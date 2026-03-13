@@ -29,8 +29,10 @@ export async function POST(
     }
 
     const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Sign in to request a return" }, { status: 401 });
+    const guestEmail = req.nextUrl.searchParams.get("guest_email");
+    
+    if (!userId && !guestEmail) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { id } = params;
@@ -47,7 +49,15 @@ export async function POST(
 
     await connectDB();
 
-    const order = await Order.findOne({ _id: id, clerkUserId: userId });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query: any = { _id: id };
+    if (guestEmail) {
+      query.customerEmail = guestEmail;
+    } else {
+      query.clerkUserId = userId;
+    }
+
+    const order = await Order.findOne(query);
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }

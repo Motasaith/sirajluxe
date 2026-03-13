@@ -40,14 +40,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const isGuest = !userId;
+    const finalUserId = userId || "guest";
+    const sessionUserId = userId || `guest_${crypto.randomUUID()}`;
 
     const { items, customerEmail, customerName, customerPhone, couponCode, shippingAddress } = await req.json();
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
+    }
+    
+    if (isGuest && !customerEmail) {
+      return NextResponse.json({ error: "Email is required for guest checkout" }, { status: 400 });
     }
 
     if (!shippingAddress?.line1 || !shippingAddress?.city || !shippingAddress?.postalCode) {
@@ -147,7 +151,7 @@ export async function POST(req: NextRequest) {
 
     // --- Reserve inventory (15-min hold) ---
     const reservation = await reserveInventory(
-      userId,
+      sessionUserId,
       items.map((i: CartItem) => ({ productId: i.productId, quantity: i.quantity, color: i.color, size: i.size }))
     );
     if (!reservation.success) {
@@ -251,18 +255,21 @@ export async function POST(req: NextRequest) {
 
     // --- Shipping ---
     // Ensure customer record exists (upsert)
-    const customer = await Customer.findOneAndUpdate(
-      { clerkId: userId },
-      {
-        $setOnInsert: {
-          clerkId: userId,
-          email: customerEmail || "",
-          firstName: customerName?.split(" ")[0] || "",
-          lastName: customerName?.split(" ").slice(1).join(" ") || "",
+    let customer = null;
+    if (userId) {
+      customer = await Customer.findOneAndUpdate(
+        { clerkId: userId },
+        {
+          $setOnInsert: {
+            clerkId: userId,
+            email: customerEmail || "",
+            firstName: customerName?.split(" ")[0] || "",
+            lastName: customerName?.split(" ").slice(1).join(" ") || "",
+          },
         },
-      },
-      { upsert: true, returnDocument: 'after' }
-    );
+        { upsert: true, returnDocument: 'after' }
+      );
+    }
     const isFirstOrder = !customer || customer.orderCount === 0;
     const shippingCountry = (shippingAddress as ShippingAddress)?.country || "GB";
     const shippingPence = isFirstOrder
@@ -338,7 +345,7 @@ export async function POST(req: NextRequest) {
         orderNumber,
         stripeSessionId: "",
         paymentIntentId: `free_${orderNumber}`,
-        clerkUserId: userId,
+        clerkUserId: finalUserId,
         customerEmail: resolvedEmail,
         customerName: customerName || "",
         customerPhone: customerPhone || "",
@@ -417,7 +424,7 @@ export async function POST(req: NextRequest) {
       automatic_payment_methods: { enabled: true },
       ...(useStripeTax ? { automatic_tax: { enabled: true } } : {}),
       metadata: {
-        clerkUserId: userId,
+          clerkUserId: finalUserId,
         orderNumber,
         isFirstOrder: isFirstOrder ? "true" : "false",
         productIds: JSON.stringify(productIdMap),
@@ -433,7 +440,7 @@ export async function POST(req: NextRequest) {
       orderNumber,
       stripeSessionId: "",
       paymentIntentId: paymentIntent.id,
-      clerkUserId: userId,
+      clerkUserId: finalUserId,
       customerEmail: resolvedEmail,
       customerName: customerName || "",
       customerPhone: customerPhone || "",
