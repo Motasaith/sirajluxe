@@ -32,7 +32,7 @@ export { StockAlert } from "./stock-alert";
 export type { IStockAlert } from "./stock-alert";
 
 export { Settings } from "./settings";
-export type { ISettings, IShippingZone } from "./settings";
+export type { ISettings, IShippingZone, ITaxRule, IWeightTier } from "./settings";
 
 export { ActivityLog } from "./activity-log";
 export type { IActivityLog } from "./activity-log";
@@ -42,6 +42,9 @@ export type { IQuestion } from "./question";
 
 export { Subscriber } from "./subscriber";
 export type { ISubscriber } from "./subscriber";
+
+export { StripeEvent } from "./stripe-event";
+export type { IStripeEvent } from "./stripe-event";
 
 export { InventoryReservation } from "./inventory-reservation";
 export type { IInventoryReservation } from "./inventory-reservation";

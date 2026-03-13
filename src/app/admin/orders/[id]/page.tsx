@@ -502,6 +502,41 @@ export default function AdminOrderDetailPage() {
             )}
             Send Tracking
           </button>
+          <button
+            onClick={() => {
+              const printWindow = window.open("", "_blank");
+              if (printWindow) {
+                printWindow.document.write(`
+                  <html>
+                    <head><title>Shipping Label - ${order.orderNumber}</title></head>
+                    <body style="font-family: sans-serif; padding: 40px; max-width: 400px; border: 2px dashed #000; margin: 40px auto; text-align: center;">
+                      <h1 style="margin: 0 0 20px 0;">PRIORITY SHIPPING</h1>
+                      <div style="font-size: 80px; margin-bottom: 20px;">📦</div>
+                      <div style="text-align: left; margin-bottom: 20px;">
+                        <strong>SHIP TO:</strong><br/>
+                        ${order.customerName}<br/>
+                        ${order.shippingAddress?.line1}<br/>
+                        ${order.shippingAddress?.line2 ? order.shippingAddress.line2 + '<br/>' : ''}
+                        ${order.shippingAddress?.city}, ${order.shippingAddress?.state} ${order.shippingAddress?.postalCode}<br/>
+                        ${order.shippingAddress?.country}
+                      </div>
+                      <div style="border-top: 1px solid #000; padding-top: 20px; font-weight: bold; font-family: monospace;">
+                        TRACKING: ${order.trackingNumber || 'PENDING'}
+                      </div>
+                      <script>
+                        window.onload = () => window.print();
+                      </script>
+                    </body>
+                  </html>
+                `);
+                printWindow.document.close();
+              }
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          >
+            <Printer className="w-4 h-4" />
+            Print Label
+          </button>
           {message && (
             <span className={`text-sm ${message.includes("success") ? "text-emerald-400" : "text-red-400"}`}>
               {message}

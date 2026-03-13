@@ -2,28 +2,53 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import connectDB from "@/lib/mongodb";
 import { Cart } from "@/lib/models";
+import { rateLimit, getIP } from "@/lib/rate-limit";
 
-// GET /api/cart — get server-side cart for logged-in user
-export async function GET() {
+export async function GET(req: NextRequest) {
   const { userId } = await auth();
-  if (!userId) {
+  const sessionId = req.headers.get("x-session-id");
+
+  if (!userId && !sessionId) {
     return NextResponse.json({ items: [] });
   }
 
   await connectDB();
-  const cart = await Cart.findOne({ clerkUserId: userId }).lean();
+  let cart = null;
+  
+  if (userId) {
+    cart = await Cart.findOne({ clerkUserId: userId }).lean();
+    if (!cart && sessionId) {
+      // Migrate guest cart if exists
+      cart = await Cart.findOne({ sessionId, clerkUserId: { $exists: false } }).lean();
+      if (cart) {
+        await Cart.findByIdAndUpdate(cart._id, { clerkUserId: userId });
+      }
+    }
+  } else if (sessionId) {
+    cart = await Cart.findOne({ sessionId, clerkUserId: { $exists: false } }).lean();
+  }
+
   return NextResponse.json({ items: cart?.items || [] });
 }
 
 // PUT /api/cart — sync client cart to server
 export async function PUT(req: NextRequest) {
   const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ success: true }); // Guest — no server sync
+  const sessionId = req.headers.get("x-session-id");
+  
+  if (!userId && !sessionId) {
+    return NextResponse.json({ success: true });
+  }
+
+  const identifier = userId || sessionId || getIP(req);
+  const { allowed } = rateLimit(`cart_sync_${identifier}`, { limit: 30, windowSec: 60 });
+  
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
 
   try {
-    const { items } = await req.json();
+    const { items, email: guestEmail } = await req.json();
 
     if (!Array.isArray(items)) {
       return NextResponse.json({ error: "Invalid items" }, { status: 400 });
@@ -42,21 +67,25 @@ export async function PUT(req: NextRequest) {
 
     await connectDB();
 
-    // Get user email from Clerk for abandoned cart emails
-    let email = "";
-    try {
-      const client = await clerkClient();
-      const user = await client.users.getUser(userId);
-      email = user.emailAddresses?.[0]?.emailAddress || "";
-    } catch {
-      // email not available — not critical
+    let email = guestEmail || "";
+    if (userId) {
+      try {
+        const client = await clerkClient();
+        const user = await client.users.getUser(userId);
+        email = user.emailAddresses?.[0]?.emailAddress || email;
+      } catch {
+        // email not available — not critical
+      }
     }
 
+    const query = userId ? { clerkUserId: userId } : { sessionId };
+    
     await Cart.findOneAndUpdate(
-      { clerkUserId: userId },
+      query,
       {
         items: safeItems,
         email,
+        ...(userId ? { clerkUserId: userId } : { sessionId }),
         // Reset abandoned email flag if cart was updated (user is active)
         ...(safeItems.length > 0 ? { abandonedEmailSent: false } : {}),
       },
@@ -70,15 +99,19 @@ export async function PUT(req: NextRequest) {
 }
 
 // DELETE /api/cart — clear server-side cart
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
   const { userId } = await auth();
-  if (!userId) {
+  const sessionId = req.headers.get("x-session-id");
+  
+  if (!userId && !sessionId) {
     return NextResponse.json({ success: true });
   }
 
   await connectDB();
+  const query = userId ? { clerkUserId: userId } : { sessionId };
+  
   await Cart.findOneAndUpdate(
-    { clerkUserId: userId },
+    query,
     { items: [], abandonedEmailSent: false }
   );
 

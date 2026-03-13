@@ -157,7 +157,7 @@ function PaymentForm({
 // ─── Main Checkout Page ──────────────────────────────────────────────────────
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, total: cartTotal, itemCount, clearCart } = useCart();
+  const { items, total: cartTotal, itemCount, clearCart, setGuestEmail } = useCart();
   const { user, isLoaded } = useUser();
   const { toast } = useToast();
   const { resolvedTheme } = useTheme();
@@ -199,6 +199,13 @@ export default function CheckoutPage() {
       setEmail(user.primaryEmailAddress?.emailAddress || "");
     }
   }, [user]);
+
+  // Sync email to cart provider for guest checkouts
+  useEffect(() => {
+    if (email && email.includes("@")) {
+      setGuestEmail(email);
+    }
+  }, [email, setGuestEmail]);
 
   // Fetch saved addresses
   useEffect(() => {

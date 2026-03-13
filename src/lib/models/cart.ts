@@ -11,7 +11,8 @@ export interface ICartItem {
 }
 
 export interface ICart extends Document {
-  clerkUserId: string;
+  clerkUserId?: string;
+  sessionId?: string;
   email?: string;
   items: ICartItem[];
   abandonedEmailSent: boolean;
@@ -34,7 +35,8 @@ const CartItemSchema = new Schema<ICartItem>(
 
 const CartSchema = new Schema<ICart>(
   {
-    clerkUserId: { type: String, required: true, unique: true },
+    clerkUserId: { type: String, index: true },
+    sessionId: { type: String, index: true },
     email: { type: String, default: "" },
     items: { type: [CartItemSchema], default: [] },
     abandonedEmailSent: { type: Boolean, default: false },
@@ -44,6 +46,7 @@ const CartSchema = new Schema<ICart>(
 
 CartSchema.index({ updatedAt: 1 });
 CartSchema.index({ clerkUserId: 1 });
+CartSchema.index({ sessionId: 1 });
 
 export const Cart: Model<ICart> =
   mongoose.models.Cart || mongoose.model<ICart>("Cart", CartSchema);

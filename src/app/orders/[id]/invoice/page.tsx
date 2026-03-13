@@ -122,7 +122,24 @@ export default function InvoicePage() {
             Print
           </button>
           <button
-            onClick={handlePrint}
+            onClick={async () => {
+              try {
+                const res = await fetch(`/api/orders/${id}/invoice`);
+                if (!res.ok) throw new Error("Failed to generate PDF");
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `invoice-${order?.orderNumber || id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } catch (err) {
+                console.error("PDF download failed:", err);
+                alert("Failed to download PDF. Please try printing instead.");
+              }
+            }}
             className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition-colors"
           >
             <Download className="w-4 h-4" />
@@ -170,13 +187,12 @@ export default function InvoicePage() {
           <div className="text-right">
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Payment Status</h3>
             <span
-              className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
-                order.paymentStatus === "paid"
+              className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${order.paymentStatus === "paid"
                   ? "bg-emerald-100 text-emerald-700"
                   : order.paymentStatus === "refunded"
-                  ? "bg-purple-100 text-purple-700"
-                  : "bg-gray-100 text-gray-700"
-              }`}
+                    ? "bg-purple-100 text-purple-700"
+                    : "bg-gray-100 text-gray-700"
+                }`}
             >
               {order.paymentStatus}
             </span>

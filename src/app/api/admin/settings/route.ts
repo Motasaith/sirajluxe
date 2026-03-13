@@ -64,7 +64,27 @@ export async function PUT(req: NextRequest) {
             : [],
           rate: Math.max(0, Number(z.rate) || 0),
           minOrderFree: Math.max(0, Number(z.minOrderFree) || 0),
+          weightTiers: Array.isArray(z.weightTiers)
+            ? z.weightTiers
+              .filter((t: unknown) => t && typeof t === "object")
+              .slice(0, 10)
+              .map((t: Record<string, unknown>) => ({
+                maxWeight: Math.max(0, Number(t.maxWeight) || 0),
+                rate: Math.max(0, Number(t.rate) || 0),
+              }))
+            : [],
         }));
+    }
+    if (Array.isArray(body.taxRules)) {
+      allowed.taxRules = body.taxRules
+        .filter((r: unknown) => r && typeof r === "object")
+        .slice(0, 50)
+        .map((r: Record<string, unknown>) => ({
+          country: String(r.country || "").toUpperCase().slice(0, 2),
+          rate: Math.max(0, Math.min(100, Number(r.rate) || 0)),
+          name: String(r.name || "").slice(0, 100),
+        }))
+        .filter((r: { country: string; name: string }) => r.country && r.name);
     }
 
     const settings = await Settings.findOneAndUpdate(

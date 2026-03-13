@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Plus, Search, Trash2, Edit, Loader2, Package, Copy, Download, Upload, CheckSquare, Square, DollarSign } from "lucide-react";
+import { Plus, Search, Trash2, Edit, Loader2, Package, Copy, Download, Upload, CheckSquare, Square, DollarSign, BarChart2 } from "lucide-react";
 import { Pagination } from "../components/pagination";
 import { ConfirmDialog } from "../components/confirm-dialog";
 import { toast } from "../components/toast";
@@ -322,6 +322,13 @@ export default function ProductsPage() {
                         >
                           <Copy className="w-4 h-4" />
                         </button>
+                        <Link
+                          href={`/admin/products/${pid}/analytics`}
+                          className="p-2 rounded-lg text-gray-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition-colors"
+                          title="Analytics"
+                        >
+                          <BarChart2 className="w-4 h-4" />
+                        </Link>
                         <Link
                           href={`/admin/products/${pid}/edit`}
                           className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/[0.05] transition-colors"

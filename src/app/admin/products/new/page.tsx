@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Loader2, X, ImageIcon, Plus, Trash2, Upload } from "lu
 import Link from "next/link";
 import Image from "next/image";
 import { TiptapEditor } from "../../components/tiptap-editor";
+import { RelatedProductsSelector } from "@/components/admin/related-products-selector";
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -35,8 +36,16 @@ export default function NewProductPage() {
     sizes: "",
     sku: "",
     inventory: 0,
+    relatedProducts: [] as string[],
     metaTitle: "",
     metaDescription: "",
+    weight: 0,
+    dimensions: {
+      length: 0,
+      width: 0,
+      height: 0,
+      unit: "cm",
+    },
   });
 
   // Fetch existing categories for suggestions
@@ -47,7 +56,7 @@ export default function NewProductPage() {
         const cats = [...new Set(data.docs?.map((p: { category: string }) => p.category).filter(Boolean))] as string[];
         setCategories(cats);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Upload a single image, returns URL or null
@@ -153,6 +162,7 @@ export default function NewProductPage() {
         colors: form.colors ? form.colors.split(",").map((c) => c.trim()).filter(Boolean) : [],
         sizes: form.sizes ? form.sizes.split(",").map((s) => s.trim()).filter(Boolean) : [],
         images: form.images,
+        relatedProducts: form.relatedProducts,
         variants,
       };
 
@@ -262,9 +272,8 @@ export default function NewProductPage() {
                     onDragOver={handleDrag}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
-                      dragActive ? "border-violet-500 bg-violet-500/10" : "border-white/[0.08] bg-[#0d0d12] hover:border-white/[0.15]"
-                    }`}
+                    className={`relative flex flex-col items-center justify-center gap-3 p-8 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${dragActive ? "border-violet-500 bg-violet-500/10" : "border-white/[0.08] bg-[#0d0d12] hover:border-white/[0.15]"
+                      }`}
                   >
                     {uploading ? (
                       <Loader2 className="w-8 h-8 text-violet-400 animate-spin" />
@@ -320,9 +329,8 @@ export default function NewProductPage() {
                   onDragOver={handleGalleryDrag}
                   onDrop={handleGalleryDrop}
                   onClick={() => galleryInputRef.current?.click()}
-                  className={`flex flex-col items-center justify-center gap-2 p-5 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
-                    galleryDragActive ? "border-violet-500 bg-violet-500/10" : "border-white/[0.08] bg-[#0d0d12] hover:border-white/[0.15]"
-                  }`}
+                  className={`flex flex-col items-center justify-center gap-2 p-5 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${galleryDragActive ? "border-violet-500 bg-violet-500/10" : "border-white/[0.08] bg-[#0d0d12] hover:border-white/[0.15]"
+                    }`}
                 >
                   {galleryUploading ? (
                     <Loader2 className="w-6 h-6 text-violet-400 animate-spin" />
@@ -492,6 +500,41 @@ export default function NewProductPage() {
                   Auto-generate from colors × sizes
                 </button>
               )}
+            </div>
+
+            {/* Related Products */}
+            <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5 space-y-4">
+              <div>
+                <h3 className="text-sm font-medium text-white">Related Products</h3>
+                <p className="text-[11px] text-gray-600 mt-0.5 mb-4">Select products to show in the &quot;You May Also Like&quot; section.</p>
+                <RelatedProductsSelector
+                  selectedIds={form.relatedProducts}
+                  onChange={(ids: string[]) => setForm({ ...form, relatedProducts: ids })}
+                />
+              </div>
+            </div>
+
+            {/* Shipping */}
+            <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-5 space-y-4">
+              <h3 className="text-sm font-medium text-white">Shipping</h3>
+              <div>
+                <label className={labelClass}>Weight (kg)</label>
+                <input type="number" min={0} step="0.01" value={form.weight || ""} onChange={(e) => setForm({ ...form, weight: parseFloat(e.target.value) || 0 })} className={inputClass} placeholder="0.00" />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className={labelClass}>Length (cm)</label>
+                  <input type="number" min={0} step="0.1" value={form.dimensions.length || ""} onChange={(e) => setForm({ ...form, dimensions: { ...form.dimensions, length: parseFloat(e.target.value) || 0 } })} className={inputClass} placeholder="0" />
+                </div>
+                <div>
+                  <label className={labelClass}>Width (cm)</label>
+                  <input type="number" min={0} step="0.1" value={form.dimensions.width || ""} onChange={(e) => setForm({ ...form, dimensions: { ...form.dimensions, width: parseFloat(e.target.value) || 0 } })} className={inputClass} placeholder="0" />
+                </div>
+                <div>
+                  <label className={labelClass}>Height (cm)</label>
+                  <input type="number" min={0} step="0.1" value={form.dimensions.height || ""} onChange={(e) => setForm({ ...form, dimensions: { ...form.dimensions, height: parseFloat(e.target.value) || 0 } })} className={inputClass} placeholder="0" />
+                </div>
+              </div>
             </div>
 
             {/* SEO */}

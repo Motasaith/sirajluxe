@@ -1,145 +1,74 @@
-"use client";
-
-import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import { CheckCircle2, ArrowRight, ShoppingBag, Loader2, Package, Truck, Bell, Clock } from "lucide-react";
 import Link from "next/link";
-import { useCart } from "@/components/providers/cart-provider";
+import { CheckCircle2, ChevronRight, Package, ArrowRight } from "lucide-react";
+import connectDB from "@/lib/mongodb";
+import { Order } from "@/lib/models";
+import { notFound } from "next/navigation";
 
-function SuccessContent() {
-  const searchParams = useSearchParams();
-  const sessionId = searchParams.get("session_id");
-  const orderNumber = searchParams.get("order");
-  const paymentIntentParam = searchParams.get("payment_intent");
-  const { clearCart } = useCart();
-  const [cleared, setCleared] = useState(false);
-  const [verified, setVerified] = useState(false);
+export default async function CheckoutSuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
+  const orderNumber = resolvedParams.order as string;
 
-  const hasPayment = sessionId || orderNumber || paymentIntentParam;
+  if (!orderNumber) {
+    notFound();
+  }
 
-  // Clear cart once on mount (payment already confirmed by Stripe redirect)
-  useEffect(() => {
-    if (hasPayment && !cleared) {
-      clearCart();
-      setCleared(true);
-    }
-  }, [hasPayment, cleared, clearCart]);
+  await connectDB();
+  const order = await Order.findOne({ orderNumber }).lean();
 
-  // Verify payment & trigger confirmation email (fallback when webhooks aren't configured)
-  useEffect(() => {
-    if (paymentIntentParam && !verified) {
-      setVerified(true);
-      fetch("/api/orders/verify-payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentIntentId: paymentIntentParam }),
-      }).catch(() => {
-        // Silent — webhook may handle it instead
-      });
-    }
-  }, [paymentIntentParam, verified]);
-
-  if (!hasPayment) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center max-w-md mx-auto px-6">
-          <Loader2 className="w-8 h-8 text-neon-violet animate-spin mx-auto mb-4" />
-          <p className="text-muted-fg">Verifying your order...</p>
-        </div>
-      </div>
-    );
+  if (!order) {
+    notFound();
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center max-w-md mx-auto px-6">
-        <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full text-center space-y-6">
+        <div className="w-20 h-20 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-8 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
           <CheckCircle2 className="w-10 h-10 text-emerald-500" />
         </div>
 
-        <h1 className="text-3xl font-bold text-heading mb-3">
+        <h1 className="text-3xl font-bold tracking-tight text-heading">
           Order Confirmed!
         </h1>
-        {orderNumber && (
-          <p className="text-sm font-mono text-neon-violet mb-2">Order #{orderNumber}</p>
-        )}
-        <p className="text-body mb-8 leading-relaxed">
-          Thank you for your purchase! We&apos;ve sent a confirmation email with your order details.
+        
+        <p className="text-[var(--muted)] text-base">
+          Thank you for shopping with Siraj Luxe. Your order <strong className="text-neon-violet">{orderNumber}</strong> has been successfully placed.
         </p>
 
-        {/* What Happens Next */}
-        <div className="text-left bg-[var(--overlay)] border border-[var(--border)] rounded-2xl p-5 mb-8">
-          <h3 className="text-sm font-semibold text-heading mb-4">What Happens Next?</h3>
-          <div className="space-y-4">
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Package className="w-4 h-4 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-heading">Processing</p>
-                <p className="text-xs text-muted-fg">We&apos;re preparing your order. Takes 1–2 business days.</p>
-              </div>
+        <div className="p-6 rounded-2xl bg-[var(--elevated)] border border-[var(--border)] text-left space-y-4">
+          <div className="flex items-start gap-4 pb-4 border-b border-[var(--border)]">
+            <div className="w-10 h-10 rounded-xl bg-neon-violet/10 flex items-center justify-center flex-shrink-0">
+              <Package className="w-5 h-5 text-neon-violet" />
             </div>
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
-                <Truck className="w-4 h-4 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-heading">Tracking ID</p>
-                <p className="text-xs text-muted-fg">You&apos;ll receive an email with your tracking number once shipped.</p>
-              </div>
+            <div>
+              <h3 className="font-semibold text-heading">Order Status</h3>
+              <p className="text-sm text-[var(--dim)] mt-1">We've received your order and are preparing it for shipment.</p>
             </div>
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center shrink-0">
-                <Bell className="w-4 h-4 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-heading">Email Updates</p>
-                <p className="text-xs text-muted-fg">We&apos;ll notify you at every step — shipped, out for delivery, and delivered.</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-neon-violet/10 flex items-center justify-center shrink-0">
-                <Clock className="w-4 h-4 text-neon-violet" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-heading">Delivery</p>
-                <p className="text-xs text-muted-fg">Estimated 3–5 business days. Track your order anytime from your orders page.</p>
-              </div>
-            </div>
+          </div>
+
+          <div className="pt-2 text-sm text-[var(--muted)]">
+            We've sent a confirmation email to <strong className="text-[var(--body)]">{order.customerEmail}</strong> with your order details.
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link href="/shop" className="magnetic-btn">
-            <span className="flex items-center gap-2">
-              <ShoppingBag className="w-4 h-4" />
-              Continue Shopping
-            </span>
+        <div className="pt-6 flex flex-col sm:flex-row gap-3">
+          <Link
+            href="/shop"
+            className="flex-1 px-6 py-3 rounded-xl bg-[var(--elevated)] border border-[var(--border)] hover:border-[var(--glass-border)] text-heading font-medium transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            Continue Shopping
           </Link>
           <Link
-            href="/orders"
-            className="flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300 text-sm font-medium"
+            href="/orders" // Note: Currently assuming an orders page exists or will exist.
+            className="flex-1 px-6 py-3 rounded-xl bg-neon-violet text-white font-medium hover:bg-neon-purple shadow-[0_0_20px_rgba(139,92,246,0.25)] transition-all duration-200 flex items-center justify-center gap-2"
           >
-            View Orders
-            <ArrowRight className="w-4 h-4" />
+            View Order <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
     </div>
-  );
-}
-
-export default function CheckoutSuccessPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <Loader2 className="w-8 h-8 text-neon-violet animate-spin" />
-        </div>
-      }
-    >
-      <SuccessContent />
-    </Suspense>
   );
 }

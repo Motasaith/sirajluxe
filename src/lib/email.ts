@@ -108,8 +108,7 @@ interface ShippingAddress {
 // ──────────────────────────────────────────────
 // 1. Order Confirmation Email
 // ──────────────────────────────────────────────
-export async function sendOrderConfirmation({
-  to,
+export function renderOrderConfirmation({
   customerName,
   orderNumber,
   items,
@@ -118,7 +117,6 @@ export async function sendOrderConfirmation({
   total,
   shippingAddress,
 }: {
-  to: string;
   customerName: string;
   orderNumber: string;
   items: OrderItem[];
@@ -220,26 +218,28 @@ export async function sendOrderConfirmation({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Order Confirmed — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Order Confirmed", body),
-  });
+  };
+}
+
+export async function sendOrderConfirmation(params: Parameters<typeof renderOrderConfirmation>[0] & { to: string }) {
+  const { subject, html } = renderOrderConfirmation(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 2. Order Shipped Email
 // ──────────────────────────────────────────────
-export async function sendOrderShipped({
-  to,
+export function renderOrderShipped({
   customerName,
   orderNumber,
   trackingNumber,
   trackingCarrier,
   trackingUrl,
 }: {
-  to: string;
   customerName: string;
   orderNumber: string;
   trackingNumber?: string;
@@ -277,26 +277,28 @@ export async function sendOrderShipped({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Order Shipped — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Order Shipped", body),
-  });
+  };
+}
+
+export async function sendOrderShipped(params: Parameters<typeof renderOrderShipped>[0] & { to: string }) {
+  const { subject, html } = renderOrderShipped(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 2b. Tracking Update Email
 // ──────────────────────────────────────────────
-export async function sendTrackingUpdate({
-  to,
+export function renderTrackingUpdate({
   customerName,
   orderNumber,
   trackingNumber,
   trackingCarrier,
   trackingUrl,
 }: {
-  to: string;
   customerName: string;
   orderNumber: string;
   trackingNumber: string;
@@ -323,23 +325,25 @@ export async function sendTrackingUpdate({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Tracking Update — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Tracking Update", body),
-  });
+  };
+}
+
+export async function sendTrackingUpdate(params: Parameters<typeof renderTrackingUpdate>[0] & { to: string }) {
+  const { subject, html } = renderTrackingUpdate(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 3. Order Delivered Email
 // ──────────────────────────────────────────────
-export async function sendOrderDelivered({
-  to,
+export function renderOrderDelivered({
   customerName,
   orderNumber,
 }: {
-  to: string;
   customerName: string;
   orderNumber: string;
 }) {
@@ -359,22 +363,24 @@ export async function sendOrderDelivered({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Order Delivered — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Order Delivered", body),
-  });
+  };
+}
+
+export async function sendOrderDelivered(params: Parameters<typeof renderOrderDelivered>[0] & { to: string }) {
+  const { subject, html } = renderOrderDelivered(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 4. Welcome Email (new customer)
 // ──────────────────────────────────────────────
-export async function sendWelcomeEmail({
-  to,
+export function renderWelcomeEmail({
   customerName,
 }: {
-  to: string;
   customerName: string;
 }) {
   const body = `
@@ -392,24 +398,26 @@ export async function sendWelcomeEmail({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Welcome to Siraj Luxe — Your £10 Free Shipping Offer Awaits`,
     html: baseTemplate("Welcome to Siraj Luxe", body),
-  });
+  };
+}
+
+export async function sendWelcomeEmail(params: Parameters<typeof renderWelcomeEmail>[0] & { to: string }) {
+  const { subject, html } = renderWelcomeEmail(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 5. Order Cancelled / Refund Email
 // ──────────────────────────────────────────────
-export async function sendOrderCancelled({
-  to,
+export function renderOrderCancelled({
   customerName,
   orderNumber,
   total,
 }: {
-  to: string;
   customerName: string;
   orderNumber: string;
   total: number;
@@ -432,18 +440,22 @@ export async function sendOrderCancelled({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Order Cancelled — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Order Cancelled", body),
-  });
+  };
+}
+
+export async function sendOrderCancelled(params: Parameters<typeof renderOrderCancelled>[0] & { to: string }) {
+  const { subject, html } = renderOrderCancelled(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 6. Return Request Notification (to Admin)
 // ──────────────────────────────────────────────
-export async function sendReturnRequest({
+export function renderReturnRequest({
   orderNumber,
   customerName,
   customerEmail,
@@ -456,8 +468,6 @@ export async function sendReturnRequest({
   reason: string;
   total: number;
 }) {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "noreply@sirajluxe.com";
-
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Request Received</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
@@ -478,20 +488,30 @@ export async function sendReturnRequest({
     </div>
   `;
 
+  return {
+    subject: `Return Request — ${orderNumber} | Siraj Luxe`,
+    html: baseTemplate("Return Request", body),
+  };
+}
+
+export async function sendReturnRequest(params: Parameters<typeof renderReturnRequest>[0]) {
+  const { subject, html } = renderReturnRequest(params);
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "noreply@sirajluxe.com";
+  
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
   await transporter.sendMail({
     from: FROM,
     to: adminEmail,
-    replyTo: customerEmail,
-    subject: `Return Request — ${orderNumber} | Siraj Luxe`,
-    html: baseTemplate("Return Request", body),
+    replyTo: params.customerEmail,
+    subject,
+    html,
   });
 }
 
 // ──────────────────────────────────────────────
 // 7. Return Approved Email (to Customer)
 // ──────────────────────────────────────────────
-export async function sendReturnApproved({
-  to,
+export function renderReturnApproved({
   customerName,
   orderNumber,
   total,
@@ -499,7 +519,6 @@ export async function sendReturnApproved({
   returnCarrier,
   returnInstructions,
 }: {
-  to: string;
   customerName: string;
   orderNumber: string;
   total: number;
@@ -541,23 +560,25 @@ export async function sendReturnApproved({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Return Approved — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Return Approved", body),
-  });
+  };
+}
+
+export async function sendReturnApproved(params: Parameters<typeof renderReturnApproved>[0] & { to: string }) {
+  const { subject, html } = renderReturnApproved(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 8. Return Denied Email (to Customer)
 // ──────────────────────────────────────────────
-export async function sendReturnDenied({
-  to,
+export function renderReturnDenied({
   customerName,
   orderNumber,
 }: {
-  to: string;
   customerName: string;
   orderNumber: string;
 }) {
@@ -579,23 +600,25 @@ export async function sendReturnDenied({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `Return Request Update — ${orderNumber} | Siraj Luxe`,
     html: baseTemplate("Return Request Update", body),
-  });
+  };
+}
+
+export async function sendReturnDenied(params: Parameters<typeof renderReturnDenied>[0] & { to: string }) {
+  const { subject, html } = renderReturnDenied(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // Abandoned Cart Email
 // ──────────────────────────────────────────────
-export async function sendAbandonedCartEmail({
-  to,
+export function renderAbandonedCartEmail({
   customerName,
   items,
 }: {
-  to: string;
   customerName: string;
   items: { name: string; price: number; quantity: number; image?: string; color?: string; size?: string }[];
 }) {
@@ -644,29 +667,29 @@ export async function sendAbandonedCartEmail({
     <p style="margin:0;font-size:12px;color:#4a4a5a;text-align:center;">Your items may sell out — don't miss them!</p>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: "You left items in your cart! — Siraj Luxe",
     html: baseTemplate("Your Cart Awaits", body),
-  });
+  };
+}
+
+export async function sendAbandonedCartEmail(params: Parameters<typeof renderAbandonedCartEmail>[0] & { to: string }) {
+  const { subject, html } = renderAbandonedCartEmail(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({ from: FROM, to: params.to, subject, html });
 }
 
 // ──────────────────────────────────────────────
 // 10. Admin-to-Customer Direct Message
 // ──────────────────────────────────────────────
-export async function sendAdminMessage({
-  to,
+export function renderAdminMessage({
   customerName,
   subject,
   message,
-  replyTo,
 }: {
-  to: string;
   customerName: string;
   subject: string;
   message: string;
-  replyTo?: string;
 }) {
   const safeName = escapeHtml(customerName || "there");
   const safeMessage = escapeHtml(message).replace(/\n/g, "<br/>");
@@ -684,25 +707,32 @@ export async function sendAdminMessage({
     </div>
   `;
 
-  await transporter.sendMail({
-    from: FROM,
-    to,
+  return {
     subject: `${escapeHtml(subject)} | Siraj Luxe`,
     html: baseTemplate(subject, body),
-    ...(replyTo ? { replyTo } : {}),
+  };
+}
+
+export async function sendAdminMessage(params: Parameters<typeof renderAdminMessage>[0] & { to: string, replyTo?: string }) {
+  const { subject, html } = renderAdminMessage(params);
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
+  await transporter.sendMail({
+    from: FROM,
+    to: params.to,
+    subject,
+    html,
+    ...(params.replyTo ? { replyTo: params.replyTo } : {}),
   });
 }
 
 // ──────────────────────────────────────────────
 // 11. Low Stock Alert (to Admin)
 // ──────────────────────────────────────────────
-export async function sendLowStockAlert({
+export function renderLowStockAlert({
   products,
 }: {
   products: { name: string; inventory: number; slug: string }[];
 }) {
-  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "noreply@sirajluxe.com";
-
   const rows = products
     .map(
       (p) => `
@@ -736,10 +766,20 @@ export async function sendLowStockAlert({
     </div>
   `;
 
+  return {
+    subject: `Low Stock Alert — ${products.length} products need restocking | Siraj Luxe`,
+    html: baseTemplate("Low Stock Alert", body),
+  };
+}
+
+export async function sendLowStockAlert(params: Parameters<typeof renderLowStockAlert>[0]) {
+  const { subject, html } = renderLowStockAlert(params);
+  const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || "noreply@sirajluxe.com";
+  if (!process.env.SMTP_USER) { console.log("SMTP not configured"); return; }
   await transporter.sendMail({
     from: FROM,
     to: adminEmail,
-    subject: `Low Stock Alert — ${products.length} products need restocking | Siraj Luxe`,
-    html: baseTemplate("Low Stock Alert", body),
+    subject,
+    html,
   });
 }

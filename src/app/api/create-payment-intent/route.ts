@@ -7,6 +7,7 @@ import { rateLimit, getIP } from "@/lib/rate-limit";
 import { reserveInventory } from "@/lib/inventory";
 import { sendOrderConfirmation } from "@/lib/email";
 import { calculateShipping } from "@/lib/shipping";
+import { calculateTax } from "@/lib/tax";
 
 interface CartItem {
   productId: string;
@@ -60,6 +61,7 @@ export async function POST(req: NextRequest) {
     const STANDARD_SHIPPING_RATE = Math.round((settings?.shippingFlatRate ?? 3.99) * 100);
     const FREE_SHIPPING_THRESHOLD = Math.round((settings?.freeShippingThreshold ?? 10) * 100);
     const shippingZones = settings?.shippingZones || [];
+    const taxRules = settings?.taxRules || [];
 
     // --- Validate products ---
     const orderItems: { productId: string; name: string; price: number; quantity: number; image: string; color?: string; size?: string }[] = [];
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
     // Maps productId -> qty for global inventory, and "productId:color:size" -> qty for variant inventory
     const productIdMap: Record<string, number> = {};
     const variantMap: Record<string, number> = {};
+    let totalWeightKg = 0;
 
     for (const item of items as CartItem[]) {
       if (!item.productId || !item.quantity || item.quantity < 1) {
@@ -127,6 +130,19 @@ export async function POST(req: NextRequest) {
         ...(item.color ? { color: item.color } : {}),
         ...(item.size ? { size: item.size } : {}),
       });
+
+      // Accumulate weight for shipping calculation (Volumetric weight logic)
+      const actualWeight = product.weight || 0;
+      let dimWeight = 0;
+      if (product.dimensions?.length && product.dimensions?.width && product.dimensions?.height) {
+        // Volumetric divisor is typically 5000 for cm
+        dimWeight = (product.dimensions.length * product.dimensions.width * product.dimensions.height) / 5000;
+      }
+      const chargeableWeight = Math.max(actualWeight, dimWeight);
+      
+      if (chargeableWeight > 0) {
+        totalWeightKg += chargeableWeight * item.quantity;
+      }
     }
 
     // --- Reserve inventory (15-min hold) ---
@@ -252,18 +268,32 @@ export async function POST(req: NextRequest) {
     const shippingPence = isFirstOrder
       ? 0
       : calculateShipping({
-          country: shippingCountry,
-          subtotalPence,
-          shippingZones: shippingZones as { name: string; countries: string[]; rate: number; minOrderFree: number }[],
-          flatRatePence: STANDARD_SHIPPING_RATE,
-          freeThresholdPence: FREE_SHIPPING_THRESHOLD,
-        });
+        country: shippingCountry,
+        subtotalPence,
+        totalWeightKg: totalWeightKg > 0 ? totalWeightKg : undefined,
+        shippingZones: shippingZones as { name: string; countries: string[]; rate: number; minOrderFree: number; weightTiers: { maxWeight: number; rate: number }[] }[],
+        flatRatePence: STANDARD_SHIPPING_RATE,
+        freeThresholdPence: FREE_SHIPPING_THRESHOLD,
+      });
     const qualifiesForFreeShipping = shippingPence === 0;
 
-    // --- Tax calculation (fallback rate for Payment Intent flow) ---
-    const taxRate = settings?.taxRate ?? 0;
-    const taxableAmount = subtotalPence - discountPence;
-    const taxPence = taxRate > 0 ? Math.round(taxableAmount * (taxRate / 100)) : 0;
+    // --- Tax calculation ---
+    const useStripeTax = settings?.enableStripeTax === true;
+    let taxPence = 0;
+
+    if (!useStripeTax) {
+      // Manual tax: look up country in taxRules, fall back to flat taxRate
+      const fallbackRate = settings?.taxRate ?? 0;
+      const taxResult = calculateTax({
+        country: shippingCountry,
+        subtotalPence,
+        discountPence,
+        taxRules: taxRules as { country: string; rate: number; name: string }[],
+        fallbackRate,
+      });
+      taxPence = taxResult.taxPence;
+    }
+    // When Stripe Tax is enabled, tax is calculated by Stripe itself
 
     // --- Totals ---
     const totalPence = Math.max(0, subtotalPence - discountPence + shippingPence + taxPence);
@@ -385,6 +415,7 @@ export async function POST(req: NextRequest) {
       amount: totalPence,
       currency: "gbp",
       automatic_payment_methods: { enabled: true },
+      ...(useStripeTax ? { automatic_tax: { enabled: true } } : {}),
       metadata: {
         clerkUserId: userId,
         orderNumber,

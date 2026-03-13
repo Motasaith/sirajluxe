@@ -1,0 +1,15 @@
+import mongoose, { Schema, Document, Model } from "mongoose";
+
+export interface IStripeEvent extends Document {
+  eventId: string;
+  createdAt: Date;
+}
+
+const StripeEventSchema = new Schema<IStripeEvent>({
+  eventId: { type: String, required: true, unique: true },
+  createdAt: { type: Date, default: Date.now, expires: "30d" }, // Auto-delete after 30 days
+});
+
+export const StripeEvent: Model<IStripeEvent> =
+  mongoose.models.StripeEvent ||
+  mongoose.model<IStripeEvent>("StripeEvent", StripeEventSchema);

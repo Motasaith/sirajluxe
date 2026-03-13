@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { useUser } from "@clerk/nextjs";
+import { v4 as uuidv4 } from "uuid";
 
 export interface CartItem {
   id: string;
@@ -33,11 +34,14 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   toggleCart: () => void;
+  guestEmail: string;
+  setGuestEmail: (email: string) => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 const CART_STORAGE_KEY = "sirajluxe-cart";
+const CART_SESSION_KEY = "sirajluxe-session";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
@@ -46,6 +50,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { isSignedIn } = useUser();
   const syncTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSynced = useRef<string>("");
+  const [guestEmail, setGuestEmail] = useState("");
+  const sessionIdRef = useRef<string>("");
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -54,18 +60,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (stored) {
         setItems(JSON.parse(stored));
       }
+      
+      let sid = localStorage.getItem(CART_SESSION_KEY) || "";
+      if (!sid) {
+        sid = uuidv4();
+        localStorage.setItem(CART_SESSION_KEY, sid);
+      }
+      sessionIdRef.current = sid;
     } catch {
       // ignore
     }
     setHydrated(true);
   }, []);
 
-  // On sign-in: merge server cart with local cart
+  // On mount or sign-in: merge server cart with local cart
   useEffect(() => {
-    if (!hydrated || !isSignedIn) return;
+    if (!hydrated) return;
     (async () => {
       try {
-        const res = await fetch("/api/cart");
+        const res = await fetch("/api/cart", {
+          headers: { "x-session-id": sessionIdRef.current },
+        });
         if (!res.ok) return;
         const { items: serverItems } = await res.json();
         if (serverItems && serverItems.length > 0) {
@@ -105,18 +120,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
 
     // Debounced server sync (500ms after last change)
-    if (isSignedIn) {
-      const serialized = JSON.stringify(items);
-      if (serialized === lastSynced.current) return;
+    const serialized = JSON.stringify({ items, guestEmail });
+    if (serialized === lastSynced.current) return;
 
-      if (syncTimeout.current) clearTimeout(syncTimeout.current);
-      syncTimeout.current = setTimeout(() => {
-        lastSynced.current = serialized;
-        fetch("/api/cart", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            items: items.map((i) => ({
+    if (syncTimeout.current) clearTimeout(syncTimeout.current);
+    syncTimeout.current = setTimeout(() => {
+      lastSynced.current = serialized;
+      fetch("/api/cart", {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          "x-session-id": sessionIdRef.current 
+        },
+        body: JSON.stringify({
+          email: guestEmail,
+          items: items.map((i) => ({
               productId: i.id,
               name: i.name,
               price: i.price,
@@ -128,8 +146,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }),
         }).catch(() => {});
       }, 500);
-    }
-  }, [items, hydrated, isSignedIn]);
+  }, [items, hydrated, guestEmail]);
 
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">, quantity = 1) => {
@@ -171,10 +188,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(() => {
     setItems([]);
-    if (isSignedIn) {
-      fetch("/api/cart", { method: "DELETE" }).catch(() => {});
-    }
-  }, [isSignedIn]);
+    fetch("/api/cart", { 
+      method: "DELETE",
+      headers: { "x-session-id": sessionIdRef.current }
+    }).catch(() => {});
+  }, []);
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
@@ -193,6 +211,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         openCart: () => setIsOpen(true),
         closeCart: () => setIsOpen(false),
         toggleCart: () => setIsOpen((v) => !v),
+        guestEmail,
+        setGuestEmail,
       }}
     >
       {children}

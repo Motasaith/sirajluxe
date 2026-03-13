@@ -52,6 +52,56 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function ProductLayout({ children }: Props) {
-  return children;
+export default async function ProductLayout({ children, params }: Props) {
+  await connectDB();
+  const doc = await Product.findOne({ slug: params.slug }).lean();
+
+  if (!doc) {
+    return children;
+  }
+
+  const product = doc as unknown as IProduct;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://sirajluxe.com";
+  const image = product.images?.[0] || product.image;
+  
+  const plainDescription = typeof product.description === "string"
+    ? product.description.replace(/<[^>]*>/g, "").slice(0, 160)
+    : `Shop ${product.name} at Siraj Luxe.`;
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "image": image ? [image] : [],
+    "description": product.metaDescription || plainDescription,
+    "sku": product.sku || product._id?.toString(),
+    "brand": {
+      "@type": "Brand",
+      "name": "Siraj Luxe"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `${baseUrl}/shop/${product.slug}`,
+      "priceCurrency": "GBP",
+      "price": product.price,
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": product.inStock && product.inventory > 0 
+        ? "https://schema.org/InStock" 
+        : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Siraj Luxe"
+      }
+    }
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      {children}
+    </>
+  );
 }

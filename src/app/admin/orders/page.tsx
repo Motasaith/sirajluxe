@@ -98,18 +98,18 @@ export default function OrdersPage() {
 
   const handleBulkStatus = async () => {
     setBulkUpdating(true);
-    let count = 0;
-    for (const id of selected) {
-      try {
-        await fetch(`/api/admin/orders/${id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: bulkStatus }),
-        });
-        count++;
-      } catch { /* skip */ }
+    try {
+      const res = await fetch(`/api/admin/orders/bulk`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderIds: Array.from(selected), status: bulkStatus }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Bulk update failed");
+      toast(`Updated ${data.count} order${data.count !== 1 ? "s" : ""} to ${bulkStatus}`, "success");
+    } catch (e: unknown) {
+      toast(e instanceof Error ? e.message : "Failed to update orders", "error");
     }
-    toast(`Updated ${count} order${count !== 1 ? "s" : ""} to ${bulkStatus}`, "success");
     setSelected(new Set());
     setBulkStatusOpen(false);
     setBulkUpdating(false);

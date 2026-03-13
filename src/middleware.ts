@@ -4,8 +4,6 @@ import { setCsrfCookie, validateCsrf, CSRF_COOKIE } from "@/lib/csrf";
 
 const isProtectedRoute = createRouteMatcher([
   "/account(.*)",
-  "/orders(.*)",
-  "/checkout(.*)",
   "/admin(.*)",
   "/api/admin(.*)",
 ]);

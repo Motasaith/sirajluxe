@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe";
 import { connectDB } from "@/lib/mongodb";
-import { Order, Customer, Product, Coupon } from "@/lib/models";
+import { Order, Customer, Product, Coupon, StripeEvent } from "@/lib/models";
 import { sendOrderConfirmation, sendOrderCancelled } from "@/lib/email";
 import { releaseReservations } from "@/lib/inventory";
 import { createNotification } from "@/lib/notifications";
@@ -38,6 +38,19 @@ export async function POST(req: NextRequest) {
   }
 
   await connectDB();
+
+  // Handle idempotency: if event.id already exists, ignore
+  try {
+    await StripeEvent.create({ eventId: event.id });
+  } catch (err: unknown) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((err as any).code === 11000) {
+      console.log(`Stripe webhook event ${event.id} already processed (idempotency key)`);
+      return NextResponse.json({ received: true });
+    }
+    console.error("Failed to store StripeEvent", err);
+    return NextResponse.json({ error: "Storage error" }, { status: 500 });
+  }
 
   switch (event.type) {
     case "checkout.session.completed": {

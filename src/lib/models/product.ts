@@ -26,6 +26,7 @@ export interface IProduct extends Document {
   sku: string;
   inventory: number;
   variants: IVariant[];
+  relatedProducts: mongoose.Types.ObjectId[];
   metaTitle?: string;
   metaDescription?: string;
   weight?: number;
@@ -69,6 +70,7 @@ const ProductSchema = new Schema<IProduct>(
     sku: { type: String, default: "" },
     inventory: { type: Number, default: 0 },
     variants: { type: [VariantSchema], default: [] },
+    relatedProducts: [{ type: Schema.Types.ObjectId, ref: "Product" }],
     metaTitle: { type: String, default: "" },
     metaDescription: { type: String, default: "" },
     weight: { type: Number, min: 0 },

@@ -24,8 +24,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   try {
     await connectDB();
     const body = await req.json();
-    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants, metaTitle, metaDescription } = body;
-    const product = await Product.findByIdAndUpdate(params.id, { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants: variants || [], metaTitle, metaDescription }, {
+    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants, relatedProducts, metaTitle, metaDescription, weight, dimensions } = body;
+    const product = await Product.findByIdAndUpdate(params.id, { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants: variants || [], relatedProducts: relatedProducts || [], metaTitle, metaDescription, weight, dimensions }, {
       returnDocument: 'after',
       runValidators: true,
     }).lean();

@@ -53,8 +53,8 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     const body = await req.json();
-    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants, metaTitle, metaDescription } = body;
-    const product = await Product.create({ name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants: variants || [], metaTitle, metaDescription });
+    const { name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants, relatedProducts, metaTitle, metaDescription, weight, dimensions } = body;
+    const product = await Product.create({ name, slug, description, price, originalPrice, category, tags, inStock, featured, image, images, colors, sizes, sku, inventory, variants: variants || [], relatedProducts: relatedProducts || [], metaTitle, metaDescription, weight, dimensions });
     return NextResponse.json({ ...product.toObject(), id: product._id.toString() }, { status: 201 });
   } catch (error: unknown) {
     console.error("POST /api/admin/products error:", error instanceof Error ? error.message : "Unknown error");

@@ -6,12 +6,14 @@ import { dark } from "@clerk/themes";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { CartProvider } from "@/components/providers/cart-provider";
 import { WishlistProvider } from "@/components/providers/wishlist-provider";
+import { CompareProvider } from "@/components/providers/compare-provider";
 import { SiteContentProvider } from "@/components/providers/site-content-provider";
 import { PostHogProvider } from "@/components/providers/posthog-provider";
 import { TawkProvider } from "@/components/providers/tawk-provider";
 import { CsrfProvider } from "@/components/providers/csrf-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieConsent } from "@/components/ui/cookie-consent";
+import { CompareBar } from "@/components/ui/compare-bar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -90,6 +92,7 @@ export default function RootLayout({
             <CsrfProvider>
             <CartProvider>
               <WishlistProvider>
+              <CompareProvider>
                 <SiteContentProvider>
                 <PostHogProvider>
                   <ToastProvider>
@@ -97,8 +100,10 @@ export default function RootLayout({
                   </ToastProvider>
                   <TawkProvider />
                   <CookieConsent />
+                  <CompareBar />
                 </PostHogProvider>
                 </SiteContentProvider>
+              </CompareProvider>
               </WishlistProvider>
             </CartProvider>
             </CsrfProvider>

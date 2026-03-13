@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Save, Store, Globe, Truck, Hash, Share2, Plus, Trash2 } from "lucide-react";
+import { Loader2, Save, Store, Globe, Truck, Hash, Share2, Plus, Trash2, Receipt } from "lucide-react";
 import { toast } from "../components/toast";
 
 interface ShippingZone {
@@ -9,6 +9,13 @@ interface ShippingZone {
   countries: string[];
   rate: number;
   minOrderFree: number;
+  weightTiers: { maxWeight: number; rate: number }[];
+}
+
+interface TaxRule {
+  country: string;
+  rate: number;
+  name: string;
 }
 
 interface SettingsData {
@@ -18,6 +25,7 @@ interface SettingsData {
   currency: string;
   taxRate: number;
   enableStripeTax: boolean;
+  taxRules: TaxRule[];
   freeShippingThreshold: number;
   shippingFlatRate: number;
   lowStockThreshold: number;
@@ -38,6 +46,7 @@ const defaultSettings: SettingsData = {
   currency: "GBP",
   taxRate: 0,
   enableStripeTax: false,
+  taxRules: [],
   freeShippingThreshold: 10,
   shippingFlatRate: 4.99,
   lowStockThreshold: 5,
@@ -66,7 +75,8 @@ export default function SettingsPage() {
           shippingFlatRate: data.shippingFlatRate ?? 4.99,
           lowStockThreshold: data.lowStockThreshold ?? 5,
           orderPrefix: data.orderPrefix || "SL",
-          shippingZones: data.shippingZones || [],
+          shippingZones: data.shippingZones?.map((z: ShippingZone) => ({ ...z, weightTiers: z.weightTiers || [] })) || [],
+          taxRules: data.taxRules || [],
           socialLinks: {
             instagram: data.socialLinks?.instagram || "",
             twitter: data.socialLinks?.twitter || "",
@@ -236,6 +246,93 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Tax Rules */}
+        <section className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
+              <Receipt className="w-4 h-4 text-violet-400" />
+              Tax Rules by Country
+            </h2>
+            <button
+              type="button"
+              onClick={() => setSettings((prev) => ({
+                ...prev,
+                taxRules: [...prev.taxRules, { country: "", rate: 0, name: "" }],
+              }))}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Rule
+            </button>
+          </div>
+          <p className="text-[10px] text-gray-600 mb-3">Override the fallback tax rate for specific countries. When Stripe Tax is enabled, these are ignored.</p>
+          {settings.taxRules.length === 0 ? (
+            <p className="text-xs text-gray-600 italic">No tax rules configured. Using fallback rate above.</p>
+          ) : (
+            <div className="space-y-3">
+              {settings.taxRules.map((rule, i) => (
+                <div key={i} className="rounded-lg border border-white/[0.06] bg-white/[0.02] p-4">
+                  <div className="grid sm:grid-cols-3 gap-3 mb-3">
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-1">Country Code</label>
+                      <input
+                        type="text"
+                        value={rule.country}
+                        onChange={(e) => setSettings((prev) => {
+                          const rules = [...prev.taxRules];
+                          rules[i] = { ...rules[i], country: e.target.value.toUpperCase().slice(0, 2) };
+                          return { ...prev, taxRules: rules };
+                        })}
+                        className={inputClass}
+                        placeholder="e.g. GB"
+                        maxLength={2}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-1">Tax Rate (%)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        value={rule.rate}
+                        onChange={(e) => setSettings((prev) => {
+                          const rules = [...prev.taxRules];
+                          rules[i] = { ...rules[i], rate: parseFloat(e.target.value) || 0 };
+                          return { ...prev, taxRules: rules };
+                        })}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-gray-500 mb-1">Label</label>
+                      <input
+                        type="text"
+                        value={rule.name}
+                        onChange={(e) => setSettings((prev) => {
+                          const rules = [...prev.taxRules];
+                          rules[i] = { ...rules[i], name: e.target.value };
+                          return { ...prev, taxRules: rules };
+                        })}
+                        className={inputClass}
+                        placeholder="e.g. UK VAT"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSettings((prev) => ({ ...prev, taxRules: prev.taxRules.filter((_, j) => j !== i) }))}
+                    className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    Remove Rule
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
         {/* Shipping */}
         <section className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6">
           <h2 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
@@ -276,7 +373,7 @@ export default function SettingsPage() {
                 type="button"
                 onClick={() => setSettings((prev) => ({
                   ...prev,
-                  shippingZones: [...prev.shippingZones, { name: "New Zone", countries: [], rate: 0, minOrderFree: 0 }],
+                  shippingZones: [...prev.shippingZones, { name: "New Zone", countries: [], rate: 0, minOrderFree: 0, weightTiers: [] }],
                 }))}
                 className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs text-violet-400 border border-violet-500/30 hover:bg-violet-500/10 transition-colors"
               >
@@ -361,6 +458,80 @@ export default function SettingsPage() {
                       <Trash2 className="w-3 h-3" />
                       Remove Zone
                     </button>
+
+                    {/* Weight Tiers */}
+                    <div className="mt-3 pt-3 border-t border-white/[0.04]">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-[10px] font-medium text-gray-500">Weight Tiers <span className="text-gray-600">(optional — override flat zone rate by order weight)</span></p>
+                        <button
+                          type="button"
+                          onClick={() => setSettings((prev) => {
+                            const zones = [...prev.shippingZones];
+                            zones[i] = { ...zones[i], weightTiers: [...(zones[i].weightTiers || []), { maxWeight: 0, rate: 0 }] };
+                            return { ...prev, shippingZones: zones };
+                          })}
+                          className="text-[10px] text-violet-400 hover:text-violet-300 transition-colors"
+                        >
+                          + Add Tier
+                        </button>
+                      </div>
+                      {(zone.weightTiers || []).length === 0 ? (
+                        <p className="text-[10px] text-gray-600 italic">No weight tiers. Using flat zone rate.</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {(zone.weightTiers || []).map((tier, ti) => (
+                            <div key={ti} className="flex items-center gap-2">
+                              <div className="flex-1">
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  value={tier.maxWeight}
+                                  onChange={(e) => setSettings((prev) => {
+                                    const zones = [...prev.shippingZones];
+                                    const tiers = [...(zones[i].weightTiers || [])];
+                                    tiers[ti] = { ...tiers[ti], maxWeight: parseFloat(e.target.value) || 0 };
+                                    zones[i] = { ...zones[i], weightTiers: tiers };
+                                    return { ...prev, shippingZones: zones };
+                                  })}
+                                  className={inputClass}
+                                  placeholder="Max kg"
+                                />
+                              </div>
+                              <span className="text-[10px] text-gray-500">kg →</span>
+                              <div className="flex-1">
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={tier.rate}
+                                  onChange={(e) => setSettings((prev) => {
+                                    const zones = [...prev.shippingZones];
+                                    const tiers = [...(zones[i].weightTiers || [])];
+                                    tiers[ti] = { ...tiers[ti], rate: parseFloat(e.target.value) || 0 };
+                                    zones[i] = { ...zones[i], weightTiers: tiers };
+                                    return { ...prev, shippingZones: zones };
+                                  })}
+                                  className={inputClass}
+                                  placeholder="£ rate"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSettings((prev) => {
+                                  const zones = [...prev.shippingZones];
+                                  zones[i] = { ...zones[i], weightTiers: (zones[i].weightTiers || []).filter((_, j) => j !== ti) };
+                                  return { ...prev, shippingZones: zones };
+                                })}
+                                className="p-1 text-red-400 hover:text-red-300 transition-colors"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>

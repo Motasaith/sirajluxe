@@ -24,6 +24,7 @@ import {
   LifeBuoy,
   Gift,
   Database,
+  Send,
 } from "lucide-react";
 import { useAdminRole } from "./role-context";
 import type { AdminRole } from "@/lib/admin-auth";
@@ -49,6 +50,7 @@ const navItems = [
   { label: "Blog", href: "/admin/blog", icon: FileText, minRole: "editor" as AdminRole },
   { label: "Promotions", href: "/admin/promotions", icon: Gift, minRole: "admin" as AdminRole },
   { label: "Newsletter", href: "/admin/newsletter", icon: Mail, minRole: "editor" as AdminRole },
+  { label: "Emails", href: "/admin/emails", icon: Send, minRole: "admin" as AdminRole },
   { label: "Media", href: "/admin/media", icon: ImageIcon, minRole: "admin" as AdminRole },
   { label: "Data Export", href: "/admin/export", icon: Database, minRole: "admin" as AdminRole },
   { label: "Activity Log", href: "/admin/activity", icon: ClipboardList, minRole: "super_admin" as AdminRole },
