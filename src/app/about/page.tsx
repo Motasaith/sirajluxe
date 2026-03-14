@@ -11,35 +11,35 @@ import { useSiteContent } from "@/components/providers/site-content-provider";
 const defaultValues = [
   {
     icon: Zap,
-    title: "Innovation First",
+    title: "Quality First",
     description:
-      "We push boundaries with immersive 3D shopping experiences, AR try-ons, and AI-powered curation.",
+      "We select the highest quality garments and fabrics to ensure maximum comfort and long-lasting style.",
   },
   {
     icon: Award,
-    title: "Uncompromising Quality",
+    title: "Uncompromising Standards",
     description:
-      "Every product on our platform undergoes rigorous vetting. We partner only with brands that share our standards.",
+      "Every product on our platform undergoes rigorous quality checks. We only partner with brands that share our values.",
   },
   {
     icon: Globe,
-    title: "Global Vision",
+    title: "Global Reach",
     description:
-      "We serve customers in 120+ countries with localized experiences and carbon-neutral shipping worldwide.",
+      "We proudly offer worldwide shipping, bringing our carefully curated collections to your doorstep no matter where you are.",
   },
   {
     icon: Heart,
-    title: "Customer Obsessed",
+    title: "Customer Focused",
     description:
-      "From personalized recommendations to 24/7 concierge support, your satisfaction drives every decision.",
+      "From personalized style recommendations to dedicated customer support, your satisfaction drives everything we do.",
   },
 ];
 
 const defaultTeam = [
-  { name: "Alex Rivera", role: "CEO & Founder", initials: "AR" },
+  { name: "Alex Rivera", role: "Creative Director", initials: "AR" },
   { name: "Maya Chen", role: "Head of Design", initials: "MC" },
-  { name: "Jordan Blake", role: "CTO", initials: "JB" },
-  { name: "Priya Sharma", role: "Head of Product", initials: "PS" },
+  { name: "Jordan Blake", role: "Lead Stylist", initials: "JB" },
+  { name: "Priya Sharma", role: "Head of Operations", initials: "PS" },
 ];
 
 export default function AboutPage() {
@@ -55,10 +55,10 @@ export default function AboutPage() {
   const stats = Array.isArray(cms?.stats) && cms.stats.length > 0
     ? cms.stats
     : [
-        { value: "50K+", label: "Happy Customers" },
-        { value: "10K+", label: "Premium Products" },
-        { value: "120+", label: "Countries Served" },
-        { value: "99.9%", label: "Uptime SLA" },
+        { value: "5K+", label: "Happy Customers" },
+        { value: "500+", label: "Premium Products" },
+        { value: "50+", label: "Countries Served" },
+        { value: "24/7", label: "Customer Support" },
       ];
 
 
@@ -85,12 +85,12 @@ export default function AboutPage() {
                 {cms?.heroLabel || "Our Story"}
               </p>
               <h1 className="text-5xl md:text-6xl lg:text-8xl font-display font-bold text-heading leading-[1.05] mb-8">
-                {cms?.heroHeading || "We're building the"}{" "}
-                <span className="neon-text">future</span> of how people shop
-                online.
-              </h1>
-              <p className="text-xl text-body leading-relaxed max-w-2xl">
-                {cms?.heroBody || "Founded in 2025, Siraj Luxe was born from a simple belief: online shopping should be as exciting as discovering a product in person. We combine cutting-edge 3D technology with world-class design to create experiences that delight."}
+                  {cms?.heroHeading || "Discover your next"}{" "}
+                  <span className="neon-text">favorite</span> wardrobe staple
+                  with us.
+                </h1>
+                <p className="text-xl text-body leading-relaxed max-w-2xl">
+                  {cms?.heroBody || "Founded with a passion for fashion, Siraj Luxe was born from a simple belief: finding high-quality, elegant clothing should be effortless. We curate premium collections to ensure every piece you wear is a statement of style and comfort."}
               </p>
             </motion.div>
           </div>
@@ -212,10 +212,10 @@ export default function AboutPage() {
               viewport={{ once: true }}
             >
               <h2 className="text-4xl md:text-5xl font-display font-bold text-heading mb-6">
-                {cms?.ctaHeading || "Want to join the"} <span className="neon-text">journey</span>?
-              </h2>
-              <p className="text-lg text-body max-w-xl mx-auto mb-10">
-                {cms?.ctaBody || "We're always looking for passionate people to join our team and help reshape the future of commerce."}
+                  {cms?.ctaHeading || "Want to join the"} <span className="neon-text">family</span>?
+                </h2>
+                <p className="text-lg text-body max-w-xl mx-auto mb-10">
+                  {cms?.ctaBody || "We're always looking for passionate people to join our team of stylists and style enthusiasts."}
               </p>
               <button className="magnetic-btn px-8 py-4">
                 <span className="flex items-center gap-2 text-base">

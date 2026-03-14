@@ -234,14 +234,14 @@ const SECTION_GROUPS: GroupConfig[] = [
         description: "Company story, stats, values, and team",
         fields: [
           { key: "heroLabel", label: "Hero Label", type: "text", placeholder: "Our Story" },
-          { key: "heroHeading", label: "Hero Heading", type: "textarea", placeholder: "We're building the future of how people shop online." },
-          { key: "heroBody", label: "Hero Body", type: "textarea", placeholder: "Founded in 2025, Siraj Luxe was born from a simple belief..." },
+            { key: "heroHeading", label: "Hero Heading", type: "textarea", placeholder: "Discover your next favorite wardrobe staple with us." },
+            { key: "heroBody", label: "Hero Body", type: "textarea", placeholder: "Founded in 2024, Siraj Luxe was born from a simple belief..." },
           {
             key: "stats",
             label: "Stats",
             type: "items",
             itemFields: [
-              { key: "value", label: "Value", type: "text", placeholder: "50K+" },
+                { key: "value", label: "Value", type: "text", placeholder: "5K+" },
               { key: "label", label: "Label", type: "text", placeholder: "Happy Customers" },
             ],
           },
@@ -250,7 +250,7 @@ const SECTION_GROUPS: GroupConfig[] = [
             label: "Our Values",
             type: "items",
             itemFields: [
-              { key: "title", label: "Title", type: "text", placeholder: "Innovation First" },
+                { key: "title", label: "Title", type: "text", placeholder: "Quality First" },
               { key: "description", label: "Description", type: "textarea", placeholder: "We constantly push the boundaries..." },
             ],
           },
@@ -264,7 +264,7 @@ const SECTION_GROUPS: GroupConfig[] = [
               { key: "initials", label: "Initials", type: "text", placeholder: "AR" },
             ],
           },
-          { key: "ctaHeading", label: "CTA Heading", type: "text", placeholder: "Want to join the journey?" },
+            { key: "ctaHeading", label: "CTA Heading", type: "text", placeholder: "Want to join the family?" },
           { key: "ctaBody", label: "CTA Body", type: "textarea", placeholder: "We're always looking for talented people..." },
           { key: "ctaButtonText", label: "CTA Button Text", type: "text", placeholder: "View Open Roles" },
           { key: "ctaButtonLink", label: "CTA Button Link", type: "url", placeholder: "/careers" },
