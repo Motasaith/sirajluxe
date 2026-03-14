@@ -64,13 +64,13 @@ function ProductCard({
 
   return (
     <motion.div
-      className="product-card group relative"
+      className="product-card group relative h-full flex flex-col"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ delay: index * 0.08, duration: 0.6 }}
     >
-      <div className="glass-card overflow-hidden">
+      <div className="glass-card overflow-hidden h-full flex flex-col">
         {/* Image Container */}
         <Link href={`/shop/${product.slug}`}>
           <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden cursor-pointer">
@@ -125,7 +125,7 @@ function ProductCard({
         </Link>
 
         {/* Content */}
-        <div className="p-5">
+        <div className="p-5 flex flex-col flex-grow">
           {/* Category */}
           <p className="text-xs font-medium tracking-wider uppercase text-subtle-fg mb-2">
             {product.category}
@@ -179,7 +179,7 @@ function ProductCard({
           )}
 
           {/* Price & CTA */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-auto pt-4">
             <div className="flex items-center gap-2">
               <span className="text-xl font-bold text-heading">
                 £{product.price}

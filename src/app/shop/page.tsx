@@ -597,13 +597,13 @@ function ShopContent() {
               {products.map((product, i) => (
                 <motion.div
                   key={product.id}
-                  className={`group ${viewMode === "list" ? "glass-card overflow-hidden flex" : ""}`}
+                  className={`group h-full flex flex-col ${viewMode === "list" ? "glass-card overflow-hidden flex-row border" : ""}`}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05, duration: 0.5 }}
                 >
                   {viewMode === "grid" ? (
-                    <div className="glass-card overflow-hidden">
+                    <div className="glass-card overflow-hidden h-full flex flex-col">
                       <Link href={`/shop/${product.slug}`}>
                         <div className="relative aspect-square bg-gradient-to-br from-surface to-background overflow-hidden cursor-pointer">
                           {product.image ? (
@@ -667,7 +667,7 @@ function ShopContent() {
                           </div>
                         </div>
                       </Link>
-                      <div className="p-5">
+                      <div className="p-5 flex flex-col flex-grow">
                         <p className="text-xs font-medium tracking-wider uppercase text-subtle-fg mb-2">
                           {product.category}
                         </p>
@@ -698,7 +698,7 @@ function ShopContent() {
                           </span>
                         </div>
                         )}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between mt-auto pt-4">
                           <div className="flex items-center gap-2">
                             <span className="text-xl font-bold text-heading">
                               £{product.price}
