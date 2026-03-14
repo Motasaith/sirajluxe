@@ -19,9 +19,9 @@ function CategoryCardImage({ categoryName }: { categoryName: string }) {
         const res = await fetch(url);
         const data = await res.json();
         if (!mounted) return;
-        if (data.products && data.products.length > 0) {
+        if (data.docs && data.docs.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const productImages = data.products
+          const productImages = data.docs
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((p: any) => p.image || (p.images && p.images[0]))
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,8 +65,36 @@ function CategoryCardImage({ categoryName }: { categoryName: string }) {
   );
 }
 
+const GRADIENTS = [
+  "from-violet-600/20 to-purple-900/20",
+  "from-blue-600/20 to-indigo-900/20",
+  "from-pink-600/20 to-rose-900/20",
+  "from-emerald-600/20 to-teal-900/20",
+  "from-amber-600/20 to-orange-900/20",
+  "from-cyan-600/20 to-sky-900/20",
+];
+
 export function CategoriesSection() {
   const { data: cms, enabled } = useSiteContent("homepage.categories");
+  const [activeCategories, setActiveCategories] = useState(categories);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.docs && data.docs.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setActiveCategories(data.docs.map((doc: any, i: number) => ({
+            id: doc.id,
+            name: doc.name,
+            description: doc.description || "Explore collection",
+            productCount: doc.productCount || 0,
+            gradient: GRADIENTS[i % GRADIENTS.length],
+          })));
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   if (!enabled) return null;
 
@@ -97,7 +125,7 @@ export function CategoriesSection() {
 
         {/* Bento Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-          {categories.map((category, i) => {
+          {activeCategories.map((category, i) => {
             // First 2 items are large (span 2 on lg), rest are normal
             const isLarge = i < 2;
 
