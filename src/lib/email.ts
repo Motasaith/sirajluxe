@@ -1,15 +1,15 @@
 import nodemailer from "nodemailer";
 
 // ──────────────────────────────────────────────
-// Brevo SMTP transporter
+// Brevo/Resend SMTP transporter
 // ──────────────────────────────────────────────
 const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
+  host: process.env.SMTP_HOST || "smtp.resend.com",
+  port: Number(process.env.SMTP_PORT) || 465,
+  secure: true,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: "resend",
+    pass: process.env.RESEND_API_KEY || process.env.SMTP_PASS,
   },
 });
 

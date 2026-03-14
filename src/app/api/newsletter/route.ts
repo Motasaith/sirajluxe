@@ -36,31 +36,29 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Optionally sync to Brevo if API key is set
-    const BREVO_API_KEY = process.env.BREVO_API_KEY;
-    if (BREVO_API_KEY) {
+    // Optionally sync to Resend Audience if configured
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
+    if (RESEND_API_KEY && RESEND_AUDIENCE_ID) {
       try {
-        const res = await fetch("https://api.brevo.com/v3/contacts", {
+        const res = await fetch(`https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts`, {
           method: "POST",
           headers: {
-            "api-key": BREVO_API_KEY,
+            "Authorization": `Bearer ${RESEND_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             email,
-            listIds: [parseInt(process.env.BREVO_LIST_ID || "2")],
-            updateEnabled: true,
+            unsubscribed: false,
           }),
         });
 
         if (!res.ok && res.status !== 204) {
           const data = await res.json().catch(() => ({}));
-          if (data.code !== "duplicate_parameter") {
-            console.error("Brevo API error:", typeof data === "object" ? JSON.stringify(data).slice(0, 200) : "Unknown");
-          }
+          console.error("Resend API error:", typeof data === "object" ? JSON.stringify(data).slice(0, 200) : "Unknown");
         }
-      } catch (brevoErr) {
-        console.error("Brevo sync failed:", brevoErr instanceof Error ? brevoErr.message : "Unknown");
+      } catch (resendErr) {
+        console.error("Resend sync failed:", resendErr instanceof Error ? resendErr.message : "Unknown");
         // Don't fail the request — local save succeeded
       }
     }

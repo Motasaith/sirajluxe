@@ -6,7 +6,7 @@ import { Subscriber } from "@/lib/models/subscriber";
 /**
  * GET /api/newsletter/unsubscribe?email=...
  * GDPR-compliant one-click unsubscribe.
- * Marks the subscriber as unsubscribed in local DB and removes from Brevo.
+ * Marks the subscriber as unsubscribed in local DB and removes from Resend Audience.
  */
 export async function GET(req: NextRequest) {
   const ip = getIP(req);
@@ -33,30 +33,30 @@ export async function GET(req: NextRequest) {
       { status: "unsubscribed", unsubscribedAt: new Date() }
     );
 
-    // Also remove from Brevo if API key is set
-    const BREVO_API_KEY = process.env.BREVO_API_KEY;
-    const listId = parseInt(process.env.BREVO_LIST_ID || "2");
+    // Also remove/unsubscribe from Resend if API key & Audience ID are set
+    const RESEND_API_KEY = process.env.RESEND_API_KEY;
+    const RESEND_AUDIENCE_ID = process.env.RESEND_AUDIENCE_ID;
 
-    if (BREVO_API_KEY) {
+    if (RESEND_API_KEY && RESEND_AUDIENCE_ID) {
       try {
         const res = await fetch(
-          `https://api.brevo.com/v3/contacts/lists/${listId}/contacts/remove`,
+          `https://api.resend.com/audiences/${RESEND_AUDIENCE_ID}/contacts/${email}`,
           {
-            method: "POST",
+            method: "PATCH",
             headers: {
-              "api-key": BREVO_API_KEY,
+              "Authorization": `Bearer ${RESEND_API_KEY}`,
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ emails: [email] }),
+            body: JSON.stringify({ unsubscribed: true }),
           }
         );
 
         if (!res.ok && res.status !== 404) {
           const data = await res.json().catch(() => ({}));
-          console.error("Brevo unsubscribe error:", typeof data === "object" ? JSON.stringify(data).slice(0, 200) : "Unknown");
+          console.error("Resend unsubscribe error:", typeof data === "object" ? JSON.stringify(data).slice(0, 200) : "Unknown");
         }
-      } catch (brevoErr) {
-        console.error("Brevo unsubscribe sync failed:", brevoErr instanceof Error ? brevoErr.message : "Unknown");
+      } catch (resendErr) {
+        console.error("Resend unsubscribe sync failed:", resendErr instanceof Error ? resendErr.message : "Unknown");
       }
     }
 

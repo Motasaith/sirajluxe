@@ -38,7 +38,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://client.crisp.chat",
               "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://img.clerk.com https://image.crisp.chat https://client.crisp.chat https://*.tawk.to",
               "font-src 'self' data: https://client.crisp.chat",
-              "connect-src 'self' https://api.clerk.com https://*.clerk.com https://*.clerk.accounts.dev https://*.stripe.com https://client.crisp.chat wss://client.relay.crisp.chat https://api.brevo.com https://us.i.posthog.com https://*.posthog.com https://*.tawk.to wss://*.tawk.to",
+              "connect-src 'self' https://api.clerk.com https://*.clerk.com https://*.clerk.accounts.dev https://*.stripe.com https://client.crisp.chat wss://client.relay.crisp.chat https://api.resend.com https://us.i.posthog.com https://*.posthog.com https://*.tawk.to wss://*.tawk.to",
               "frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://game.crisp.chat https://challenges.cloudflare.com https://*.tawk.to",
               "worker-src 'self' blob:",
             ].join("; "),

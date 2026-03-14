@@ -11,7 +11,7 @@ A full-featured Next.js 14 e-commerce platform for UK premium goods, built with 
 | Database | MongoDB Atlas (Mongoose 9) |
 | Auth | Clerk |
 | Payments | Stripe (GBP) |
-| Email | Brevo SMTP (nodemailer) |
+| Email | Resend SMTP (nodemailer) |
 | Media | Vercel Blob |
 | Animations | Framer Motion |
 | Analytics | PostHog |
@@ -55,9 +55,9 @@ CLERK_WEBHOOK_SECRET=      # Clerk webhook signing secret
 ### Recommended
 
 ```env
-SMTP_HOST=                 # Brevo SMTP host (smtp-relay.brevo.com)
-SMTP_USER=                 # Brevo SMTP login
-SMTP_PASS=                 # Brevo SMTP password
+SMTP_HOST=                 # Resend SMTP host (smtp-relay.Resend.com)
+SMTP_USER=                 # Resend SMTP login
+SMTP_PASS=                 # Resend SMTP password
 ADMIN_EMAIL=               # Admin email for contact form notifications
 NEXT_PUBLIC_SITE_URL=      # Production URL (e.g. https://sirajluxe.com)
 NEXT_PUBLIC_CRISP_WEBSITE_ID=  # Crisp live chat website ID
