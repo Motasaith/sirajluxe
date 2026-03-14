@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
-import { categories } from "@/lib/data";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 
@@ -76,7 +75,8 @@ const GRADIENTS = [
 
 export function CategoriesSection() {
   const { data: cms, enabled } = useSiteContent("homepage.categories");
-  const [activeCategories, setActiveCategories] = useState(categories);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [activeCategories, setActiveCategories] = useState<any[]>([]);
 
   useEffect(() => {
     fetch("/api/categories")

@@ -54,11 +54,13 @@ export default function EditProductPage() {
 
   // Fetch existing categories
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/categories")
       .then((r) => r.json())
       .then((data) => {
-        const cats = [...new Set(data.docs?.map((p: { category: string }) => p.category).filter(Boolean))] as string[];
-        setCategories(cats);
+        if (data.docs) {
+          const cats = data.docs.map((c: { name: string }) => c.name);
+          setCategories(cats);
+        }
       })
       .catch(() => { });
   }, []);
@@ -267,12 +269,17 @@ export default function EditProductPage() {
 
               <div>
                 <label className={labelClass}>Category *</label>
-                <input type="text" required list="category-suggestions" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass} />
-                <datalist id="category-suggestions">
+                <select 
+                  required 
+                  value={form.category} 
+                  onChange={(e) => setForm({ ...form, category: e.target.value })} 
+                  className={inputClass}
+                >
+                  <option value="" disabled>Select a category...</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat} />
+                    <option key={cat} value={cat}>{cat}</option>
                   ))}
-                </datalist>
+                </select>
               </div>
 
               <div>

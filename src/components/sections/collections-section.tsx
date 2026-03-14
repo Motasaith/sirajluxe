@@ -3,13 +3,36 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
 import { useSiteContent } from "@/components/providers/site-content-provider";
-import { featuredCollections } from "@/lib/data";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export function CollectionsSection() {
-  const { data: cms, enabled } = useSiteContent("homepage.collections");
+  const { data: cms } = useSiteContent("homepage.collections");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [activeCollections, setActiveCollections] = useState<any[]>([]);
 
-  if (!enabled) return null;
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.docs && data.docs.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setActiveCollections(data.docs.slice(0, 3).map((doc: any, i: number) => ({
+            id: doc.id || doc._id,
+            title: doc.name,
+            subtitle: "Category",
+            description: doc.description || "Explore our carefully curated selection.",
+            productCount: doc.productCount || 0,
+            gradient: [
+              "from-violet-900 via-purple-900 to-indigo-950",
+              "from-gray-900 via-zinc-800 to-neutral-950",
+              "from-emerald-900 via-teal-900 to-cyan-950",
+            ][i % 3]
+          })));
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <section className="relative section-padding overflow-hidden">
@@ -52,7 +75,7 @@ export function CollectionsSection() {
 
         {/* Collections Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {featuredCollections.map((collection, i) => (
+          {activeCollections.map((collection, i) => (
             <Link key={collection.id} href={`/shop?category=${encodeURIComponent(collection.title)}`}>
             <motion.div
               className="collection-card group relative rounded-3xl overflow-hidden min-h-[400px] lg:min-h-[500px] cursor-pointer"

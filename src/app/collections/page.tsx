@@ -4,11 +4,38 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { PageTransitionProvider } from "@/components/providers/page-transition-provider";
-import { featuredCollections } from "@/lib/data";
 import { ArrowRight, Clock, Sparkles } from "lucide-react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export default function CollectionsPage() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [collections, setCollections] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.docs && data.docs.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          setCollections(data.docs.map((doc: any, i: number) => ({
+            id: doc.id || doc._id,
+            title: doc.name,
+            subtitle: "Category",
+            description: doc.description || "Explore our carefully curated selection.",
+            productCount: doc.productCount || 0,
+            gradient: [
+              "from-violet-900 via-purple-900 to-indigo-950",
+              "from-gray-900 via-zinc-800 to-neutral-950",
+              "from-emerald-900 via-teal-900 to-cyan-950",
+              "from-pink-900 via-rose-900 to-red-950"
+            ][i % 4]
+          })));
+        }
+      })
+      .catch(console.error);
+  }, []);
+
   return (
     <PageTransitionProvider>
       <Header />
@@ -38,7 +65,7 @@ export default function CollectionsPage() {
 
           {/* Collections Grid */}
           <div className="grid gap-8">
-            {featuredCollections.map((collection, i) => (
+            {collections.map((collection, i) => (
               <motion.div
                 key={collection.id}
                 className="group relative rounded-3xl overflow-hidden min-h-[400px] lg:min-h-[500px] cursor-pointer"

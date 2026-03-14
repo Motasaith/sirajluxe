@@ -48,15 +48,21 @@ export default function NewProductPage() {
     },
   });
 
-  // Fetch existing categories for suggestions
+  // Fetch existing categories from categories API
   useEffect(() => {
-    fetch("/api/products")
+    fetch("/api/categories")
       .then((r) => r.json())
       .then((data) => {
-        const cats = [...new Set(data.docs?.map((p: { category: string }) => p.category).filter(Boolean))] as string[];
-        setCategories(cats);
+        if (data.docs) {
+          const cats = data.docs.map((c: { name: string }) => c.name);
+          setCategories(cats);
+          if (cats.length > 0 && !form.category) {
+            setForm(prev => ({ ...prev, category: cats[0] }));
+          }
+        }
       })
       .catch(() => { });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Upload a single image, returns URL or null
@@ -69,6 +75,7 @@ export default function NewProductPage() {
     const data = await res.json();
     if (!res.ok) return null;
     return data.url as string;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Handle main image upload via Vercel Blob
@@ -119,6 +126,7 @@ export default function NewProductPage() {
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") setDragActive(true);
     else if (e.type === "dragleave") setDragActive(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -144,6 +152,7 @@ export default function NewProductPage() {
     e.stopPropagation();
     if (e.type === "dragenter" || e.type === "dragover") setGalleryDragActive(true);
     else if (e.type === "dragleave") setGalleryDragActive(false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleGalleryFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -235,13 +244,18 @@ export default function NewProductPage() {
 
               <div>
                 <label className={labelClass}>Category *</label>
-                <input type="text" required list="category-suggestions" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputClass} placeholder="e.g. Footwear, Watches, Audio" />
-                <datalist id="category-suggestions">
+                <select 
+                  required 
+                  value={form.category} 
+                  onChange={(e) => setForm({ ...form, category: e.target.value })} 
+                  className={inputClass}
+                >
+                  <option value="" disabled>Select a category...</option>
                   {categories.map((cat) => (
-                    <option key={cat} value={cat} />
+                    <option key={cat} value={cat}>{cat}</option>
                   ))}
-                </datalist>
-                <p className="text-[11px] text-gray-600 mt-1">Type to search existing or enter new</p>
+                </select>
+                <p className="text-[11px] text-gray-600 mt-1">Please select from available categories</p>
               </div>
 
               <div>
