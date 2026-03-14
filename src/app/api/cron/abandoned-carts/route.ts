@@ -6,10 +6,10 @@ import { sendAbandonedCartEmail } from "@/lib/email";
 // Vercel Cron: runs every hour to send abandoned cart emails
 // Protected by CRON_SECRET to prevent unauthorized access
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
+  const requestSecret = req.headers.get("x-cron-secret");
   const cronSecret = process.env.CRON_SECRET;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || !requestSecret || requestSecret !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

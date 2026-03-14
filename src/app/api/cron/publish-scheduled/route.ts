@@ -5,8 +5,10 @@ import { BlogPost } from "@/lib/models";
 // GET /api/cron/publish-scheduled
 // Called by Vercel Cron every 5 minutes to publish posts whose scheduledAt has passed.
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const requestSecret = req.headers.get("x-cron-secret");
+  const cronSecret = process.env.CRON_SECRET;
+
+  if (!cronSecret || !requestSecret || requestSecret !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
