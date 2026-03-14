@@ -53,7 +53,7 @@ function CategoryCardImage({ categoryName }: { categoryName: string }) {
       <motion.img
         key={currentIndex}
         initial={{ opacity: 0, scale: 1.05 }}
-        animate={{ opacity: 0.5, scale: 1 }}
+        animate={{ opacity: 0.85, scale: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 1.5 }}
         src={images[currentIndex]}
@@ -145,17 +145,19 @@ export function CategoriesSection() {
                 }`}
                 whileHover={{ scale: 0.99 }}
               >
-                <CategoryCardImage categoryName={category.name} />
-
-                {/* Gradient Background */}
+                {/* Gradient Background (Fallback / Tint layer) */}
                 <div
-                  className={`absolute inset-0 bg-gradient-to-br ${category.gradient}`}
+                  className={`absolute inset-0 bg-gradient-to-br ${category.gradient} opacity-50`}
                 />
 
-                {/* Glass overlay */}
-                <div className="absolute inset-0 glass-card !rounded-3xl !border-[var(--border)]">
-                  {/* Noise texture */}
-                  <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('data:image/svg+xml,%3Csvg+viewBox=%220+0+256+256%22+xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter+id=%22noise%22%3E%3CfeTurbulence+type=%22fractalNoise%22+baseFrequency=%220.9%22+numOctaves=%224%22+stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect+width=%22100%25%22+height=%22100%25%22+filter=%22url(%23noise)%22+opacity=%220.5%22/%3E%3C/svg%3E')]" />
+                <CategoryCardImage categoryName={category.name} />
+
+                {/* Dark Vignette Overlay for Text Readability */}
+                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none" />
+
+                {/* Noise texture and Border */}
+                <div className="absolute inset-0 rounded-3xl border border-[var(--border)] pointer-events-none">
+                  <div className="absolute inset-0 opacity-[0.15] mix-blend-overlay bg-[url('data:image/svg+xml,%3Csvg+viewBox=%220+0+256+256%22+xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter+id=%22noise%22%3E%3CfeTurbulence+type=%22fractalNoise%22+baseFrequency=%220.9%22+numOctaves=%224%22+stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect+width=%22100%25%22+height=%22100%25%22+filter=%22url(%23noise)%22+opacity=%220.5%22/%3E%3C/svg%3E')]" style={{ borderRadius: 'inherit' }} />
                 </div>
 
                 {/* Content */}
