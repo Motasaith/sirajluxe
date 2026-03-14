@@ -158,8 +158,8 @@ const SECTION_GROUPS: GroupConfig[] = [
         description: "Call-to-action banner at the bottom of homepage",
         fields: [
           { key: "badge", label: "Badge Text", type: "text", placeholder: "Join the movement" },
-          { key: "heading", label: "Heading", type: "text", placeholder: "Ready to experience the future of shopping?" },
-          { key: "body", label: "Body Text", type: "textarea", placeholder: "Join 50,000+ customers who have already made the switch..." },
+          { key: "heading", label: "Heading", type: "text", placeholder: "Ready to elevate your wardrobe today?" },
+          { key: "body", label: "Body Text", type: "textarea", placeholder: "Join our growing community of style enthusiasts..." },
           { key: "primaryText", label: "Primary Button Text", type: "text", placeholder: "Start Shopping" },
           { key: "primaryLink", label: "Primary Button Link", type: "url", placeholder: "/shop" },
           { key: "secondaryText", label: "Secondary Button Text", type: "text", placeholder: "Learn More" },

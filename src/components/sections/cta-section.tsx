@@ -46,12 +46,12 @@ export function CTASection() {
             </motion.div>
 
             <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-bold text-white max-w-4xl mx-auto leading-[1.1] mb-8">
-              {cms?.heading || "Ready to experience the"}{" "}
-              <span className="neon-text">future</span> of shopping?
+              {cms?.heading || "Ready to elevate your"}{" "}
+              <span className="neon-text">wardrobe</span> today?
             </h2>
 
             <p className="text-lg text-body max-w-2xl mx-auto mb-12 leading-relaxed">
-              {cms?.body || "Join 50,000+ customers who have already made the switch to immersive commerce. Your next favorite product is waiting."}
+              {cms?.body || "Join our growing community of style enthusiasts. Your next favorite look is waiting."}
             </p>
 
             <div className="flex flex-wrap items-center justify-center gap-4">

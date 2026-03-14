@@ -18,13 +18,13 @@ const defaultBrands = [
 
 const defaultTestimonials = [
   {
-    text: "The most immersive shopping experience I've ever had. The 3D product viewer makes all the difference.",
+    text: "The most seamless shopping experience I've ever had. The quality of the products is truly unmatched.",
     author: "Sarah Chen",
     role: "Creative Director",
     avatar: "SC",
   },
   {
-    text: "Siraj Luxe doesn't sell products — they sell experiences. Every detail is meticulously crafted.",
+    text: "Siraj Luxe doesn't just sell, they deliver excellence. Every detail is meticulously crafted.",
     author: "Marcus Webb",
     role: "Tech Journalist",
     avatar: "MW",
