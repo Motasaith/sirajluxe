@@ -58,7 +58,7 @@ function CategoryCardImage({ categoryName }: { categoryName: string }) {
         transition={{ duration: 1.5 }}
         src={images[currentIndex]}
         alt={`${categoryName} product`}
-        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay"
+        className="absolute inset-0 w-full h-full object-cover"
       />
     </AnimatePresence>
   );
