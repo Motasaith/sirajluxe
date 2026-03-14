@@ -33,7 +33,16 @@ export function CsrfProvider({ children }: { children: React.ReactNode }) {
     ): Promise<Response> {
       const method = (init?.method || "GET").toUpperCase();
 
-      if (MUTATION_METHODS.has(method)) {
+      const urlString = typeof input === 'string' 
+        ? input 
+        : input instanceof URL 
+          ? input.href 
+          : (input as Request).url;
+          
+      const isSameOrigin = urlString.startsWith('/') || urlString.startsWith(window.location.origin);
+      const isApiRoute = urlString.includes('/api/');
+
+      if (MUTATION_METHODS.has(method) && isSameOrigin && isApiRoute) {
         const headers = new Headers(init?.headers);
         const token = getCsrfToken();
         if (token && !headers.has(CSRF_HEADER)) {
