@@ -13,7 +13,6 @@ import { CartDrawer } from "@/components/ui/cart-drawer";
 const CategoriesSection = dynamic(() => import("@/components/sections/categories-section").then((mod) => mod.CategoriesSection), { ssr: false });
 const ProductsSection = dynamic(() => import("@/components/sections/products-section").then((mod) => mod.ProductsSection), { ssr: false });
 const ShowcaseSection = dynamic(() => import("@/components/sections/showcase-section").then((mod) => mod.ShowcaseSection), { ssr: false });
-const CollectionsSection = dynamic(() => import("@/components/sections/collections-section").then((mod) => mod.CollectionsSection), { ssr: false });
 const TestimonialsSection = dynamic(() => import("@/components/sections/testimonials-section").then((mod) => mod.TestimonialsSection), { ssr: false });
 const CTASection = dynamic(() => import("@/components/sections/cta-section").then((mod) => mod.CTASection), { ssr: false });
 
@@ -60,8 +59,6 @@ export default function HomeContent() {
           <ProductsSection />
           <div className="section-divider" />
           <ShowcaseSection />
-          <div className="section-divider" />
-          <CollectionsSection />
           <div className="section-divider" />
           <TestimonialsSection />
           <div className="section-divider" />
