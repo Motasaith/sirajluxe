@@ -39,6 +39,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     }
 
     orders.forEach(order => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const item = order.items.find((i: any) => i.productId.toString() === id);
         if (item) {
             totalRevenue += item.price * item.quantity;
@@ -82,7 +83,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         revenueByMonth,
       }
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to fetch product analytics:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }

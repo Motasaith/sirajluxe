@@ -39,8 +39,8 @@ export default function ProductAnalyticsPage() {
         
         if (!res.ok) throw new Error(json.error || "Failed to load analytics");
         setData(json);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err));
       } finally {
         setLoading(false);
       }

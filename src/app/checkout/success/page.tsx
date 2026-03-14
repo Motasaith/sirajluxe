@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ChevronRight, Package, ArrowRight } from "lucide-react";
+import { CheckCircle2, Package, ArrowRight } from "lucide-react";
 import connectDB from "@/lib/mongodb";
 import { Order } from "@/lib/models";
 import { notFound } from "next/navigation";
@@ -45,12 +45,12 @@ export default async function CheckoutSuccessPage({
             </div>
             <div>
               <h3 className="font-semibold text-heading">Order Status</h3>
-              <p className="text-sm text-[var(--dim)] mt-1">We've received your order and are preparing it for shipment.</p>
+              <p className="text-sm text-[var(--dim)] mt-1">We&apos;ve received your order and are preparing it for shipment.</p>
             </div>
           </div>
 
           <div className="pt-2 text-sm text-[var(--muted)]">
-            We've sent a confirmation email to <strong className="text-[var(--body)]">{order.customerEmail}</strong> with your order details.
+            We&apos;ve sent a confirmation email to <strong className="text-[var(--body)]">{order.customerEmail}</strong> with your order details.
           </div>
         </div>
 

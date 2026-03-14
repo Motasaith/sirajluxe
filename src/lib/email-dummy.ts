@@ -21,6 +21,7 @@ const dummyShippingAddress = {
   country: "United Kingdom",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getEmailDummyData(type: string): any {
   switch (type) {
     case "orderConfirmation":

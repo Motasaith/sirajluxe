@@ -48,10 +48,10 @@ export default function AdminEmailsPage() {
         description: `Successfully dispatched to ${testEmail}`,
         variant: "success",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         title: "Send Failed",
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: "error",
       });
     } finally {

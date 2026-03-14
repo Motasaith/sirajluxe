@@ -167,7 +167,7 @@ export default function OrderDetailPage() {
       .then((data) => setOrder(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [id, isSignedIn, isLoaded]);
+  }, [id, isSignedIn, isLoaded, guestEmail]);
 
   const formatCurrency = (n: number) =>
     new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }).format(n);

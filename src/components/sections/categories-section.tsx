@@ -20,8 +20,11 @@ function CategoryCardImage({ categoryName }: { categoryName: string }) {
         const data = await res.json();
         if (!mounted) return;
         if (data.products && data.products.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const productImages = data.products
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .map((p: any) => p.image || (p.images && p.images[0]))
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .filter((img: any) => typeof img === "string" && img.length > 0);
           if (productImages.length > 0) {
             setImages(productImages);
