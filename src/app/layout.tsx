@@ -14,6 +14,7 @@ import { CsrfProvider } from "@/components/providers/csrf-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { CookieConsent } from "@/components/ui/cookie-consent";
 import { CompareBar } from "@/components/ui/compare-bar";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -101,6 +102,7 @@ export default function RootLayout({
                   <TawkProvider />
                   <CookieConsent />
                   <CompareBar />
+                  <Analytics />
                 </PostHogProvider>
                 </SiteContentProvider>
               </CompareProvider>
