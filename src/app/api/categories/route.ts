@@ -17,14 +17,14 @@ export async function GET() {
     ]);
     
     const countMap = countsAggr.reduce((acc: Record<string, number>, curr: { _id: string; count: number }) => {
-      if (curr._id) acc[curr._id] = curr.count;
+      if (curr._id) acc[curr._id.toLowerCase()] = curr.count;
       return acc;
     }, {});
 
     const enrichedDocs = docs.map(doc => ({
       ...doc,
       id: doc._id.toString(),
-      productCount: countMap[doc.name] || 0
+      productCount: countMap[doc.name.toLowerCase()] || 0
     }));
 
     return NextResponse.json({ docs: enrichedDocs });

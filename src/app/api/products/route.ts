@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const filter: any = {};
-    if (category) filter.category = category;
+    if (category) filter.category = { $regex: new RegExp(`^${escapeRegex(category)}$`, 'i') };
     if (featured === "true") filter.featured = true;
     if (slug) filter.slug = slug;
     if (search) filter.name = { $regex: escapeRegex(search), $options: "i" };
