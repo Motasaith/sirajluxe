@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/mongodb";
 import { Category, Product } from "@/lib/models";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/categories — public generic categories list
 export async function GET() {
   try {

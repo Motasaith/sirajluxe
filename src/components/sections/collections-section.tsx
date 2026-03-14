@@ -17,7 +17,7 @@ export function CollectionsSection() {
       .then((data) => {
         if (data.docs && data.docs.length > 0) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          setActiveCollections(data.docs.slice(0, 3).map((doc: any, i: number) => ({
+          setActiveCollections(data.docs.slice(0, 6).map((doc: any, i: number) => ({
             id: doc.id || doc._id,
             title: doc.name,
             subtitle: "Category",
@@ -27,7 +27,10 @@ export function CollectionsSection() {
               "from-violet-900 via-purple-900 to-indigo-950",
               "from-gray-900 via-zinc-800 to-neutral-950",
               "from-emerald-900 via-teal-900 to-cyan-950",
-            ][i % 3]
+              "from-amber-900 via-orange-900 to-yellow-950",
+              "from-rose-900 via-pink-900 to-red-950",
+              "from-blue-900 via-sky-900 to-cyan-950",
+            ][i % 6]
           })));
         }
       })
