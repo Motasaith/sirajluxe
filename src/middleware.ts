@@ -13,6 +13,7 @@ const isProtectedRoute = createRouteMatcher([
 const isBypassRoute = createRouteMatcher([
   "/api/webhooks(.*)",
   "/api/cron(.*)",
+  "/api/auth(.*)",
 ]);
 
 const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
