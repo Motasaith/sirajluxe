@@ -17,23 +17,23 @@ export function ShowcaseSection() {
     : [
         {
           number: "01",
-          title: "3D Product Exploration",
-          description: "Rotate, zoom, and interact with products in full 3D before you buy. No more guessing.",
+          title: "Curated Collections",
+          description: "Browse hand-picked selections of premium footwear, watches, and apparel sourced for quality.",
         },
         {
           number: "02",
-          title: "AI-Powered Curation",
-          description: "Our algorithms learn your style and surface products that match your unique aesthetic.",
+          title: "Secure Checkout",
+          description: "Shop with confidence using our encrypted and industry-standard payment gateways.",
         },
         {
           number: "03",
-          title: "Instant AR Try-On",
-          description: "See how products look on you or in your space using cutting-edge augmented reality.",
+          title: "Premium Support",
+          description: "Our dedicated team is here to assist you with any questions about sizing or specifications.",
         },
         {
           number: "04",
-          title: "Global Express Delivery",
-          description: "From checkout to doorstep in 24-48 hours. Premium packaging, carbon-neutral shipping.",
+          title: "Fast UK Delivery",
+          description: "Get your items delivered quickly and safely directly to your doorstep anywhere in the UK.",
         },
       ];
 
@@ -46,14 +46,14 @@ export function ShowcaseSection() {
           animate={{ x: ["10%", "-10%"] }}
           transition={{ duration: 30, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
         >
-          FUTURE OF COMMERCE • IMMERSIVE SHOPPING • NEXT LEVEL •
+          PREMIUM APPAREL • QUALITY FOOTWEAR • EXCLUSIVE AUDIO •
         </motion.div>
         <motion.div
           className="whitespace-nowrap text-[12vw] font-display font-black text-heading select-none"
           animate={{ x: ["-10%", "10%"] }}
           transition={{ duration: 30, ease: "linear", repeat: Infinity, repeatType: "reverse" }}
         >
-          OBSIDIAN STORE • PREMIUM DESIGN • INNOVATION •
+          SIRAJ LUXE • DESIGNER WATCHES • FAST SHIPPING •
         </motion.div>
       </div>
 
@@ -77,8 +77,8 @@ export function ShowcaseSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
             >
-              {cms?.heading || "Shopping should feel like an"}{" "}
-              <span className="neon-text">experience</span>, not a transaction.
+              {cms?.heading || "Elevate your daily"}{" "}
+              <span className="neon-text">style</span> with premium essentials.
             </motion.h2>
             <motion.p
               className="text-lg text-body leading-relaxed mb-8"
@@ -87,7 +87,7 @@ export function ShowcaseSection() {
               viewport={{ once: true }}
               transition={{ delay: 0.2 }}
             >
-              {cms?.body || "We bridge the gap between digital and physical shopping by creating immersive product stories. Every scroll, every click, every interaction is designed to delight."}
+              {cms?.body || "Discover a curated selection of high-quality apparel, footwear, watches, and audio gear designed to compliment your lifestyle. We bring you the best brands with a seamless shopping experience."}
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
