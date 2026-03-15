@@ -350,7 +350,7 @@ export default function OrderDetailPage() {
                           className="w-16 h-16 rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-neon-violet/10 to-neon-purple/5 flex items-center justify-center text-sm font-bold text-neon-violet flex-shrink-0">
+                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-neon-violet/10 to-blue-500/5 flex items-center justify-center text-sm font-bold text-neon-violet flex-shrink-0">
                           {item.name.charAt(0)}
                         </div>
                       )}
@@ -572,7 +572,7 @@ export default function OrderDetailPage() {
                         <button
                           onClick={handleReturnSubmit}
                           disabled={!returnReason || submittingReturn}
-                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50 flex items-center gap-2"
+                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-violet to-blue-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50 flex items-center gap-2"
                         >
                           {submittingReturn ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
                           Submit Request

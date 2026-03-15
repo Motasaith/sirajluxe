@@ -100,7 +100,7 @@ export default function AdminDashboard() {
   };
 
   const statCards = [
-    { label: "Total Products", value: stats?.totalProducts || 0, icon: Package, color: "from-violet-500/20 to-violet-600/5 border-violet-500/20", trend: null },
+    { label: "Total Products", value: stats?.totalProducts || 0, icon: Package, color: "from-blue-500/20 to-violet-600/5 border-violet-500/20", trend: null },
     { label: "Total Orders", value: stats?.totalOrders || 0, icon: ShoppingCart, color: "from-blue-500/20 to-blue-600/5 border-blue-500/20", trend: trends?.ordersTrend },
     { label: "Customers", value: stats?.totalCustomers || 0, icon: Users, color: "from-emerald-500/20 to-emerald-600/5 border-emerald-500/20", trend: null },
     { label: "Revenue", value: `£${(stats?.totalRevenue || 0).toLocaleString()}`, icon: DollarSign, color: "from-amber-500/20 to-amber-600/5 border-amber-500/20", trend: trends?.revenueTrend },

@@ -130,7 +130,7 @@ function PaymentForm({
         <button
           type="submit"
           disabled={paying || !stripe || !elements}
-          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white font-semibold hover:shadow-lg hover:shadow-neon-violet/25 focus:outline-none focus:ring-2 focus:ring-neon-violet/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base"
+          className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-neon-violet to-blue-500 text-white font-semibold hover:shadow-lg hover:shadow-neon-violet/25 focus:outline-none focus:ring-2 focus:ring-neon-violet/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base"
         >
           {paying ? (
             <>
@@ -381,7 +381,7 @@ export default function CheckoutPage() {
         </p>
         <Link
           href="/shop"
-          className="px-6 py-3 bg-gradient-to-r from-neon-violet to-neon-purple text-white rounded-xl font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all"
+          className="px-6 py-3 bg-gradient-to-r from-neon-violet to-blue-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all"
         >
           Browse Products
         </Link>
@@ -687,7 +687,7 @@ export default function CheckoutPage() {
                 <button
                   onClick={handleProceedToPayment}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white font-semibold hover:shadow-lg hover:shadow-neon-violet/25 focus:outline-none focus:ring-2 focus:ring-neon-violet/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl bg-gradient-to-r from-neon-violet to-blue-500 text-white font-semibold hover:shadow-lg hover:shadow-neon-violet/25 focus:outline-none focus:ring-2 focus:ring-neon-violet/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-base"
                 >
                   {loading ? (
                     <>
@@ -710,7 +710,7 @@ export default function CheckoutPage() {
                   appearance: resolvedTheme === "light" ? {
                     theme: "stripe",
                     variables: {
-                      colorPrimary: "#8b5cf6",
+                      colorPrimary: "#2563eb",
                       colorBackground: "#ffffff",
                       colorText: "#1a1a1f",
                       colorTextSecondary: "#5f616e",
@@ -745,7 +745,7 @@ export default function CheckoutPage() {
                   } : {
                     theme: "night",
                     variables: {
-                      colorPrimary: "#8b5cf6",
+                      colorPrimary: "#2563eb",
                       colorBackground: "#0a0a0f",
                       colorText: "#e1e2e6",
                       colorTextSecondary: "#71717a",

@@ -116,7 +116,7 @@ export function TestimonialsSection() {
 
               {/* Author */}
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-violet to-blue-500 flex items-center justify-center text-white text-xs font-bold">
                   {testimonial.avatar}
                 </div>
                 <div>

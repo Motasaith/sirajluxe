@@ -63,7 +63,7 @@ export default async function CheckoutSuccessPage({
           </Link>
           <Link
             href={`/orders/${order._id}?guest_email=${encodeURIComponent(order.customerEmail)}`}
-            className="flex-1 px-6 py-3 rounded-xl bg-neon-violet text-white font-medium hover:bg-neon-purple shadow-[0_0_20px_rgba(139,92,246,0.25)] transition-all duration-200 flex items-center justify-center gap-2"
+            className="flex-1 px-6 py-3 rounded-xl bg-neon-violet text-white font-medium hover:bg-blue-500 shadow-[0_0_20px_rgba(139,92,246,0.25)] transition-all duration-200 flex items-center justify-center gap-2"
           >
             View Order <ArrowRight className="w-4 h-4" />
           </Link>

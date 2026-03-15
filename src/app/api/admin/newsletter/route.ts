@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       const results = await Promise.allSettled(
         batch.map((sub) => {
           const unsubLink = `${siteUrl}/api/newsletter/unsubscribe?email=${encodeURIComponent(sub.email)}`;
-          const footer = `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #333;font-size:12px;color:#888;text-align:center;"><a href="${unsubLink}" style="color:#8b5cf6;">Unsubscribe</a> | <a href="${siteUrl}" style="color:#8b5cf6;">Visit Store</a></div>`;
+          const footer = `<div style="margin-top:32px;padding-top:16px;border-top:1px solid #333;font-size:12px;color:#888;text-align:center;"><a href="${unsubLink}" style="color:#2563eb;">Unsubscribe</a> | <a href="${siteUrl}" style="color:#2563eb;">Visit Store</a></div>`;
 
           return transporter.sendMail({
             from: `"${fromName}" <${fromEmail}>`,
@@ -147,7 +147,7 @@ function wrapEmailTemplate(subject: string, body: string): string {
 <body style="margin:0;padding:0;background-color:#0a0a0f;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <div style="max-width:600px;margin:0 auto;padding:40px 24px;">
     <div style="text-align:center;margin-bottom:32px;">
-      <div style="display:inline-block;width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);line-height:48px;text-align:center;">
+      <div style="display:inline-block;width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#2563eb,#6d28d9);line-height:48px;text-align:center;">
         <span style="color:#fff;font-size:20px;font-weight:800;">SL</span>
       </div>
     </div>

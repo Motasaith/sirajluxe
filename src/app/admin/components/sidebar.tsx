@@ -88,7 +88,7 @@ export function AdminSidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-white/[0.06] flex items-center justify-between">
         <Link href="/admin" className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <Settings className="w-4 h-4 text-white" />
           </div>
           <div>

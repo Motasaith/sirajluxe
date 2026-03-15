@@ -82,7 +82,7 @@ export function PromoBanner() {
         animate={{ height: "auto", opacity: 1 }}
         exit={{ height: 0, opacity: 0 }}
         transition={{ duration: 0.3 }}
-        className="bg-gradient-to-r from-violet-600/90 via-purple-600/90 to-fuchsia-600/90 backdrop-blur-md border-b border-white/10"
+        className="bg-gradient-to-r from-blue-600/90 via-blue-600/90 to-blue-600/90 backdrop-blur-md border-b border-white/10"
       >
         <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 relative">
           {/* Navigation arrows for multiple coupons */}

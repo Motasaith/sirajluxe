@@ -74,7 +74,7 @@ export default function ProductAnalyticsPage() {
     { label: "Total Revenue", value: `£${analytics.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, icon: DollarSign, color: "from-emerald-500/20 to-emerald-600/5 text-emerald-400 border-emerald-500/20" },
     { label: "Units Sold", value: analytics.totalUnitsSold, icon: Package, color: "from-blue-500/20 to-blue-600/5 text-blue-400 border-blue-500/20" },
     { label: "Orders Included", value: analytics.totalOrders, icon: ShoppingCart, color: "from-amber-500/20 to-amber-600/5 text-amber-400 border-amber-500/20" },
-    { label: "Conversion Trend", value: "Available soon", icon: TrendingUp, color: "from-violet-500/20 to-violet-600/5 text-violet-400 border-violet-500/20" },
+    { label: "Conversion Trend", value: "Available soon", icon: TrendingUp, color: "from-blue-500/20 to-violet-600/5 text-violet-400 border-violet-500/20" },
   ];
 
   return (

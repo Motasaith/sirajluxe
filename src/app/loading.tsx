@@ -20,7 +20,7 @@ export default function Loading() {
             <path d="M37 19v18.5h7" stroke="white" strokeWidth="3" strokeLinecap="round" fill="none" />
             <defs>
               <linearGradient id="ld-bg" x1="0" y1="0" x2="64" y2="64">
-                <stop stopColor="#8b5cf6" /><stop offset="1" stopColor="#6d28d9" />
+                <stop stopColor="#2563eb" /><stop offset="1" stopColor="#6d28d9" />
               </linearGradient>
             </defs>
           </svg>

@@ -65,8 +65,8 @@ function CategoryCardImage({ categoryName }: { categoryName: string }) {
 }
 
 const GRADIENTS = [
-  "from-violet-600/20 to-purple-900/20",
-  "from-blue-600/20 to-indigo-900/20",
+  "from-blue-600/20 to-purple-900/20",
+  "from-blue-600/20 to-blue-900/20",
   "from-pink-600/20 to-rose-900/20",
   "from-emerald-600/20 to-teal-900/20",
   "from-amber-600/20 to-orange-900/20",

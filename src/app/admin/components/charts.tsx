@@ -24,7 +24,7 @@ export function RevenueChart({ data }: { data: { month: string; revenue: number;
             </span>
             <div className="w-full relative group">
               <div
-                className="w-full rounded-t-lg bg-gradient-to-t from-violet-600 to-violet-400 transition-all duration-500 hover:from-violet-500 hover:to-violet-300 min-h-[4px]"
+                className="w-full rounded-t-lg bg-gradient-to-t from-blue-600 to-violet-400 transition-all duration-500 hover:from-blue-500 hover:to-violet-300 min-h-[4px]"
                 style={{ height: `${Math.max(height, 2)}%`, maxHeight: "180px" }}
               />
               {/* Tooltip */}
@@ -116,7 +116,7 @@ export function TopProducts({ data }: { data: { name: string; revenue: number; u
             <p className="text-sm text-white truncate">{p.name}</p>
             <div className="mt-1 h-1.5 rounded-full bg-white/5 overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-600 to-violet-400 transition-all duration-500"
+                className="h-full rounded-full bg-gradient-to-r from-blue-600 to-violet-400 transition-all duration-500"
                 style={{ width: `${(p.revenue / maxRevenue) * 100}%` }}
               />
             </div>

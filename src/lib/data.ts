@@ -38,7 +38,7 @@ export const products: Product[] = [
     inStock: true,
     featured: true,
     image: "/products/sneaker.jpg",
-    colors: ["#050505", "#8b5cf6", "#f5f5f5"],
+    colors: ["#050505", "#2563eb", "#f5f5f5"],
   },
   {
     id: "2",
@@ -53,7 +53,7 @@ export const products: Product[] = [
     inStock: true,
     featured: true,
     image: "/products/watch.jpg",
-    colors: ["#1a1a1f", "#c4b5a0", "#8b5cf6"],
+    colors: ["#1a1a1f", "#c4b5a0", "#2563eb"],
   },
   {
     id: "3",
@@ -125,7 +125,7 @@ export const products: Product[] = [
     inStock: true,
     featured: false,
     image: "/products/mouse.jpg",
-    colors: ["#050505", "#8b5cf6"],
+    colors: ["#050505", "#2563eb"],
   },
   {
     id: "8",
@@ -139,7 +139,7 @@ export const products: Product[] = [
     inStock: true,
     featured: false,
     image: "/products/keyboard.jpg",
-    colors: ["#050505", "#34353c", "#8b5cf6"],
+    colors: ["#050505", "#34353c", "#2563eb"],
   },
 ];
 
@@ -150,7 +150,7 @@ export const categories: Category[] = [
     description: "Performance meets luxury",
     productCount: 24,
     image: "/categories/footwear.jpg",
-    gradient: "from-violet-600/20 to-purple-900/20",
+    gradient: "from-blue-600/20 to-purple-900/20",
   },
   {
     id: "watches",
@@ -158,7 +158,7 @@ export const categories: Category[] = [
     description: "Precision craftsmanship",
     productCount: 18,
     image: "/categories/watches.jpg",
-    gradient: "from-blue-600/20 to-indigo-900/20",
+    gradient: "from-blue-600/20 to-blue-900/20",
   },
   {
     id: "audio",
@@ -201,7 +201,7 @@ export const featuredCollections = [
     subtitle: "Limited Release",
     description: "An exclusive collection crafted for those who thrive after dark. Each piece tells a story of nocturnal elegance.",
     productCount: 12,
-    gradient: "from-violet-900 via-purple-900 to-indigo-950",
+    gradient: "from-blue-900 via-blue-900 to-blue-950",
   },
   {
     id: "carbon-series",

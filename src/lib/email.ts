@@ -51,8 +51,8 @@ function baseTemplate(title: string, body: string) {
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td>
-                  <div style="display:inline-block;width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);text-align:center;line-height:36px;color:#fff;font-weight:bold;font-size:16px;margin-right:12px;vertical-align:middle;">S</div>
-                  <span style="font-size:20px;font-weight:700;color:#e1e2e6;vertical-align:middle;letter-spacing:0.5px;">SIRAJ <span style="color:#8b5cf6;">LUXE</span></span>
+                  <div style="display:inline-block;width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1d4ed8);text-align:center;line-height:36px;color:#fff;font-weight:bold;font-size:16px;margin-right:12px;vertical-align:middle;">S</div>
+                  <span style="font-size:20px;font-weight:700;color:#e1e2e6;vertical-align:middle;letter-spacing:0.5px;">SIRAJ <span style="color:#2563eb;">LUXE</span></span>
                 </td>
               </tr>
             </table>
@@ -151,7 +151,7 @@ export function renderOrderConfirmation({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Order Confirmed ✓</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${escapeHtml(customerName) || "there"}, thanks for shopping with us! Your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been received and is being processed.
+      Hi ${escapeHtml(customerName) || "there"}, thanks for shopping with us! Your order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong> has been received and is being processed.
     </p>
 
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
@@ -170,7 +170,7 @@ export function renderOrderConfirmation({
       </tr>
       <tr>
         <td style="padding:6px 0;font-size:14px;color:#9090a0;">Shipping</td>
-        <td style="padding:6px 0;font-size:14px;color:#c4c4d0;text-align:right;">${shipping === 0 ? '<span style="color:#8b5cf6;">FREE</span>' : currency(shipping)}</td>
+        <td style="padding:6px 0;font-size:14px;color:#c4c4d0;text-align:right;">${shipping === 0 ? '<span style="color:#2563eb;">FREE</span>' : currency(shipping)}</td>
       </tr>
       <tr>
         <td style="padding:10px 0 0;font-size:18px;font-weight:700;color:#e1e2e6;border-top:2px solid #1e1e2e;">Total</td>
@@ -181,11 +181,11 @@ export function renderOrderConfirmation({
     ${addressHtml}
 
     <div style="margin-top:28px;padding:20px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;">
-      <p style="margin:0 0 16px;font-size:13px;color:#8b5cf6;font-weight:700;text-transform:uppercase;letter-spacing:1px;">What Happens Next</p>
+      <p style="margin:0 0 16px;font-size:13px;color:#2563eb;font-weight:700;text-transform:uppercase;letter-spacing:1px;">What Happens Next</p>
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="padding:8px 12px 8px 0;vertical-align:top;width:24px;">
-            <div style="width:22px;height:22px;border-radius:50%;background:#8b5cf620;text-align:center;line-height:22px;color:#8b5cf6;font-size:11px;font-weight:700;">1</div>
+            <div style="width:22px;height:22px;border-radius:50%;background:#2563eb20;text-align:center;line-height:22px;color:#2563eb;font-size:11px;font-weight:700;">1</div>
           </td>
           <td style="padding:8px 0;">
             <p style="margin:0;color:#c4c4d0;font-size:13px;"><strong>Processing</strong> — We're preparing your items (1–2 business days)</p>
@@ -209,12 +209,12 @@ export function renderOrderConfirmation({
         </tr>
       </table>
       <p style="margin:12px 0 0;font-size:12px;color:#6b6b80;line-height:1.5;">
-        💡 You can check your order status anytime from your <a href="${SITE_URL}/orders" style="color:#8b5cf6;text-decoration:underline;">Orders page</a>. Your tracking number will appear there once assigned.
+        💡 You can check your order status anytime from your <a href="${SITE_URL}/orders" style="color:#2563eb;text-decoration:underline;">Orders page</a>. Your tracking number will appear there once assigned.
       </p>
     </div>
 
     <div style="margin-top:24px;text-align:center;">
-      <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View Your Orders</a>
+      <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View Your Orders</a>
     </div>
   `;
 
@@ -256,14 +256,14 @@ export function renderOrderShipped({
       <p style="margin:0;font-size:18px;font-weight:700;color:#e1e2e6;letter-spacing:0.5px;">${escapeHtml(trackingNumber)}</p>
     </div>
     <p style="margin:0 0 16px;font-size:14px;color:#9090a0;line-height:1.6;">
-      Please track your parcel on <strong style="color:#e1e2e6;">${carrierName}</strong>${trackingUrl ? `: <a href="${encodeURI(trackingUrl)}" style="color:#8b5cf6;text-decoration:underline;">${escapeHtml(trackingUrl)}</a>` : ""}
+      Please track your parcel on <strong style="color:#e1e2e6;">${carrierName}</strong>${trackingUrl ? `: <a href="${encodeURI(trackingUrl)}" style="color:#2563eb;text-decoration:underline;">${escapeHtml(trackingUrl)}</a>` : ""}
     </p>`;
   }
 
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Your Order is On Its Way! 📦</h1>
     <p style="margin:0 0 16px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${escapeHtml(customerName) || "there"}, great news — your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been dispatched and is on its way to you.
+      Hi ${escapeHtml(customerName) || "there"}, great news — your order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong> has been dispatched and is on its way to you.
     </p>
     ${trackingHtml}
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
@@ -273,7 +273,7 @@ export function renderOrderShipped({
       </p>
     </div>
     <div style="text-align:center;">
-      <a href="${trackingUrl || `${SITE_URL}/orders`}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Track Your Order</a>
+      <a href="${trackingUrl || `${SITE_URL}/orders`}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Track Your Order</a>
     </div>
   `;
 
@@ -310,18 +310,18 @@ export function renderTrackingUpdate({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Tracking Update 🚚</h1>
     <p style="margin:0 0 16px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${escapeHtml(customerName) || "there"}, a tracking number has been added to your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong>.
+      Hi ${escapeHtml(customerName) || "there"}, a tracking number has been added to your order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong>.
     </p>
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:16px;">
       <p style="margin:0 0 8px;font-size:12px;color:#6b6b80;font-weight:600;text-transform:uppercase;letter-spacing:1px;">Your Tracking ID</p>
       <p style="margin:0;font-size:18px;font-weight:700;color:#e1e2e6;letter-spacing:0.5px;">${escapeHtml(trackingNumber)}</p>
     </div>
     <p style="margin:0 0 24px;font-size:14px;color:#9090a0;line-height:1.6;">
-      Please track your parcel on <strong style="color:#e1e2e6;">${carrierName}</strong>${trackingUrl ? `: <a href="${encodeURI(trackingUrl)}" style="color:#8b5cf6;text-decoration:underline;">${escapeHtml(trackingUrl)}</a>` : ""}.<br/>
+      Please track your parcel on <strong style="color:#e1e2e6;">${carrierName}</strong>${trackingUrl ? `: <a href="${encodeURI(trackingUrl)}" style="color:#2563eb;text-decoration:underline;">${escapeHtml(trackingUrl)}</a>` : ""}.<br/>
       Estimated delivery is <strong style="color:#c4c4d0;">3–5 business days</strong>.
     </p>
     <div style="text-align:center;">
-      <a href="${trackingUrl || `${SITE_URL}/orders`}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Track on ${carrierName}</a>
+      <a href="${trackingUrl || `${SITE_URL}/orders`}" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Track on ${carrierName}</a>
     </div>
   `;
 
@@ -350,16 +350,16 @@ export function renderOrderDelivered({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Order Delivered ✨</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${escapeHtml(customerName) || "there"}, your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been delivered. We hope you love your new items!
+      Hi ${escapeHtml(customerName) || "there"}, your order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong> has been delivered. We hope you love your new items!
     </p>
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
       <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
         Not happy with your order? No worries — you have <strong style="color:#c4c4d0;">30 days</strong> to return any items.
-        See our <a href="${SITE_URL}/returns" style="color:#8b5cf6;text-decoration:underline;">Returns Policy</a>.
+        See our <a href="${SITE_URL}/returns" style="color:#2563eb;text-decoration:underline;">Returns Policy</a>.
       </p>
     </div>
     <div style="text-align:center;">
-      <a href="${SITE_URL}/shop" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Shop Again</a>
+      <a href="${SITE_URL}/shop" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Shop Again</a>
     </div>
   `;
 
@@ -388,13 +388,13 @@ export function renderWelcomeEmail({
     <p style="margin:0 0 16px;font-size:15px;color:#9090a0;line-height:1.6;">
       Hi ${escapeHtml(customerName) || "there"}, welcome aboard! We're thrilled to have you.
     </p>
-    <div style="padding:20px;background:linear-gradient(135deg,#8b5cf620,#7c3aed10);border-radius:10px;border:1px solid #8b5cf630;margin-bottom:24px;text-align:center;">
-      <p style="margin:0 0 4px;font-size:13px;color:#8b5cf6;font-weight:600;text-transform:uppercase;letter-spacing:1px;">New Customer Offer</p>
-      <p style="margin:0;font-size:20px;font-weight:700;color:#e1e2e6;">Spend £10+ and get <span style="color:#8b5cf6;">FREE shipping</span></p>
+    <div style="padding:20px;background:linear-gradient(135deg,#2563eb20,#1d4ed810);border-radius:10px;border:1px solid #2563eb30;margin-bottom:24px;text-align:center;">
+      <p style="margin:0 0 4px;font-size:13px;color:#2563eb;font-weight:600;text-transform:uppercase;letter-spacing:1px;">New Customer Offer</p>
+      <p style="margin:0;font-size:20px;font-weight:700;color:#e1e2e6;">Spend £10+ and get <span style="color:#2563eb;">FREE shipping</span></p>
       <p style="margin:4px 0 0;font-size:12px;color:#6b6b80;">Applied automatically at checkout on your first order</p>
     </div>
     <div style="text-align:center;">
-      <a href="${SITE_URL}/shop" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Start Shopping</a>
+      <a href="${SITE_URL}/shop" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Start Shopping</a>
     </div>
   `;
 
@@ -425,18 +425,18 @@ export function renderOrderCancelled({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Order Cancelled &amp; Refunded</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${escapeHtml(customerName) || "there"}, your order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been cancelled and a refund of <strong style="color:#e1e2e6;">${currency(total)}</strong> has been initiated.
+      Hi ${escapeHtml(customerName) || "there"}, your order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong> has been cancelled and a refund of <strong style="color:#e1e2e6;">${currency(total)}</strong> has been initiated.
     </p>
 
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
       <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
         💳 Your refund will typically appear within <strong style="color:#c4c4d0;">5–10 business days</strong> depending on your bank or card issuer.<br/><br/>
-        If you have any questions about your refund, please don&rsquo;t hesitate to <a href="${SITE_URL}/contact" style="color:#8b5cf6;text-decoration:underline;">contact us</a>.
+        If you have any questions about your refund, please don&rsquo;t hesitate to <a href="${SITE_URL}/contact" style="color:#2563eb;text-decoration:underline;">contact us</a>.
       </p>
     </div>
 
     <div style="text-align:center;">
-      <a href="${SITE_URL}/shop" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Continue Shopping</a>
+      <a href="${SITE_URL}/shop" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Continue Shopping</a>
     </div>
   `;
 
@@ -471,7 +471,7 @@ export function renderReturnRequest({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Request Received</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      A customer has requested a return for order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong>.
+      A customer has requested a return for order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong>.
     </p>
 
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
@@ -484,7 +484,7 @@ export function renderReturnRequest({
     </div>
 
     <div style="text-align:center;">
-      <a href="${SITE_URL}/admin/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View in Admin</a>
+      <a href="${SITE_URL}/admin/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View in Admin</a>
     </div>
   `;
 
@@ -543,7 +543,7 @@ export function renderReturnApproved({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Approved ✓</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${escapeHtml(customerName) || "there"}, great news — your return request for order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been approved.
+      Hi ${escapeHtml(customerName) || "there"}, great news — your return request for order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong> has been approved.
     </p>
 
     ${returnDetailsHtml}
@@ -556,7 +556,7 @@ export function renderReturnApproved({
     </div>
 
     <div style="text-align:center;">
-      <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View Your Orders</a>
+      <a href="${SITE_URL}/orders" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">View Your Orders</a>
     </div>
   `;
 
@@ -585,18 +585,18 @@ export function renderReturnDenied({
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:700;color:#e1e2e6;">Return Request Update</h1>
     <p style="margin:0 0 24px;font-size:15px;color:#9090a0;line-height:1.6;">
-      Hi ${escapeHtml(customerName) || "there"}, unfortunately your return request for order <strong style="color:#8b5cf6;">${escapeHtml(orderNumber)}</strong> has been declined.
+      Hi ${escapeHtml(customerName) || "there"}, unfortunately your return request for order <strong style="color:#2563eb;">${escapeHtml(orderNumber)}</strong> has been declined.
     </p>
 
     <div style="padding:16px;background-color:#0a0a0f;border-radius:10px;border:1px solid #1e1e2e;margin-bottom:24px;">
       <p style="margin:0;font-size:14px;color:#9090a0;line-height:1.6;">
-        This may be because the return request didn&rsquo;t meet our <a href="${SITE_URL}/returns" style="color:#8b5cf6;text-decoration:underline;">return policy</a> requirements.<br/><br/>
-        If you believe this was an error, please <a href="${SITE_URL}/contact" style="color:#8b5cf6;text-decoration:underline;">contact our support team</a> and we&rsquo;ll be happy to help.
+        This may be because the return request didn&rsquo;t meet our <a href="${SITE_URL}/returns" style="color:#2563eb;text-decoration:underline;">return policy</a> requirements.<br/><br/>
+        If you believe this was an error, please <a href="${SITE_URL}/contact" style="color:#2563eb;text-decoration:underline;">contact our support team</a> and we&rsquo;ll be happy to help.
       </p>
     </div>
 
     <div style="text-align:center;">
-      <a href="${SITE_URL}/contact" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Contact Support</a>
+      <a href="${SITE_URL}/contact" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Contact Support</a>
     </div>
   `;
 
@@ -656,13 +656,13 @@ export function renderAbandonedCartEmail({
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>
           <td style="font-size:14px;color:#a0a0b0;">Cart Total</td>
-          <td style="text-align:right;font-size:18px;font-weight:700;color:#8b5cf6;">£${total.toFixed(2)}</td>
+          <td style="text-align:right;font-size:18px;font-weight:700;color:#2563eb;">£${total.toFixed(2)}</td>
         </tr>
       </table>
     </div>
 
     <div style="text-align:center;margin-bottom:16px;">
-      <a href="${SITE_URL}/checkout" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:50px;">Complete Your Order</a>
+      <a href="${SITE_URL}/checkout" style="display:inline-block;padding:14px 40px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:15px;font-weight:600;text-decoration:none;border-radius:50px;">Complete Your Order</a>
     </div>
     <p style="margin:0;font-size:12px;color:#4a4a5a;text-align:center;">Your items may sell out — don't miss them!</p>
   `;
@@ -703,7 +703,7 @@ export function renderAdminMessage({
       Reply to this email to get in touch with our support team.
     </p>
     <div style="text-align:center;">
-      <a href="${SITE_URL}/contact" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Contact Us</a>
+      <a href="${SITE_URL}/contact" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Contact Us</a>
     </div>
   `;
 
@@ -742,7 +742,7 @@ export function renderLowStockAlert({
         <span style="color:${p.inventory === 0 ? "#f87171" : "#fbbf24"};font-weight:700;font-size:14px;">${p.inventory === 0 ? "OUT" : p.inventory}</span>
       </td>
       <td style="padding:10px 0;border-bottom:1px solid #1e1e2e;text-align:right;">
-        <a href="${SITE_URL}/admin/products" style="color:#8b5cf6;font-size:13px;text-decoration:underline;">Edit</a>
+        <a href="${SITE_URL}/admin/products" style="color:#2563eb;font-size:13px;text-decoration:underline;">Edit</a>
       </td>
     </tr>`
     )
@@ -762,7 +762,7 @@ export function renderLowStockAlert({
       ${rows}
     </table>
     <div style="text-align:center;">
-      <a href="${SITE_URL}/admin/products" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Manage Products</a>
+      <a href="${SITE_URL}/admin/products" style="display:inline-block;padding:14px 32px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;font-size:14px;font-weight:600;text-decoration:none;border-radius:50px;">Manage Products</a>
     </div>
   `;
 

@@ -188,7 +188,7 @@ export default function AboutPage() {
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                 >
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-neon-violet to-neon-purple flex items-center justify-center mx-auto mb-6 group-hover:shadow-neon transition-shadow duration-300">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-neon-violet to-blue-500 flex items-center justify-center mx-auto mb-6 group-hover:shadow-neon transition-shadow duration-300">
                     <span className="text-xl font-bold text-white">
                       {member.initials}
                     </span>

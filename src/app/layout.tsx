@@ -72,13 +72,13 @@ export default function RootLayout({
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
       appearance={{
-        baseTheme: dark,
+        baseTheme: undefined,
         variables: {
-          colorPrimary: "#8b5cf6",
-          colorBackground: "#0a0a0f",
-          colorText: "#e1e2e6",
-          colorInputBackground: "#1a1a1f",
-          colorInputText: "#e1e2e6",
+          colorPrimary: "#2563eb",
+          colorBackground: "#ffffff",
+          colorText: "#1a1a1f",
+          colorInputBackground: "#f0f0f2",
+          colorInputText: "#1a1a1f",
           borderRadius: "0.75rem",
         },
       }}
@@ -87,7 +87,7 @@ export default function RootLayout({
         <body className={`${inter.variable} font-sans antialiased`}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="dark"
+            defaultTheme="light"
             enableSystem={false}
           >
             <CsrfProvider>

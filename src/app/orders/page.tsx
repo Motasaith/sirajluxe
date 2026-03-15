@@ -299,7 +299,7 @@ export default function OrdersPage() {
                             key={j}
                             className="flex items-center gap-4 p-3 rounded-xl bg-[var(--overlay)]"
                           >
-                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-neon-violet/10 to-neon-purple/5 flex items-center justify-center text-sm font-bold text-neon-violet flex-shrink-0">
+                            <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-neon-violet/10 to-blue-500/5 flex items-center justify-center text-sm font-bold text-neon-violet flex-shrink-0">
                               {item.name.charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">

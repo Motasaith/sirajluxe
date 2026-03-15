@@ -24,8 +24,8 @@ export function LogoMark({
     >
       <defs>
         <linearGradient id="sl-bg" x1="0" y1="0" x2="64" y2="64">
-          <stop stopColor="#8b5cf6" />
-          <stop offset="0.5" stopColor="#7c3aed" />
+          <stop stopColor="#2563eb" />
+          <stop offset="0.5" stopColor="#1d4ed8" />
           <stop offset="1" stopColor="#6d28d9" />
         </linearGradient>
         <linearGradient id="sl-shine" x1="12" y1="4" x2="52" y2="28">

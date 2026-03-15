@@ -50,7 +50,7 @@ export default function AccountPage() {
                 appearance={{
                   baseTheme: dark,
                   variables: {
-                    colorPrimary: "#8b5cf6",
+                    colorPrimary: "#2563eb",
                     colorBackground: "#0a0a0f",
                     colorText: "#e1e2e6",
                     colorInputBackground: "#1a1a1f",

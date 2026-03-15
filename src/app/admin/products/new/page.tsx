@@ -405,7 +405,7 @@ export default function NewProductPage() {
             <div className="rounded-xl border border-white/[0.06] bg-[#0a0a0f] p-6 space-y-5">
               <div>
                 <label className={labelClass}>Colors (comma separated)</label>
-                <input type="text" value={form.colors} onChange={(e) => setForm({ ...form, colors: e.target.value })} className={inputClass} placeholder="#000, #fff, #8b5cf6" />
+                <input type="text" value={form.colors} onChange={(e) => setForm({ ...form, colors: e.target.value })} className={inputClass} placeholder="#000, #fff, #2563eb" />
               </div>
               <div>
                 <label className={labelClass}>Sizes (comma separated)</label>

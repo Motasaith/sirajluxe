@@ -114,8 +114,8 @@ export function ShowcaseSection() {
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               {/* Morphing blob */}
-              <div className="absolute inset-0 bg-gradient-to-br from-neon-violet via-neon-purple to-neon-blue animate-morph opacity-30 blur-xl" />
-              <div className="absolute inset-4 bg-gradient-to-br from-neon-violet via-neon-purple to-neon-blue animate-morph opacity-50 blur-md" />
+              <div className="absolute inset-0 bg-gradient-to-br from-neon-violet via-blue-500 to-neon-blue animate-morph opacity-30 blur-xl" />
+              <div className="absolute inset-4 bg-gradient-to-br from-neon-violet via-blue-500 to-neon-blue animate-morph opacity-50 blur-md" />
               <div className="absolute inset-8 glass-heavy rounded-[inherit] animate-morph flex items-center justify-center">
                 <div className="text-center">
                   <p className="text-6xl font-display font-black neon-text">∞</p>

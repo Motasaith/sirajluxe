@@ -153,7 +153,7 @@ export default function InvoicePage() {
         {/* Header */}
         <div className="flex justify-between items-start mb-10">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight" style={{ color: "#8b5cf6" }}>
+            <h1 className="text-3xl font-bold tracking-tight" style={{ color: "#2563eb" }}>
               SIRAJ LUXE
             </h1>
             <p className="text-sm text-gray-500 mt-1">UK Premium E-Commerce</p>

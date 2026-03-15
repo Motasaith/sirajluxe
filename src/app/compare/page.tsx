@@ -148,7 +148,7 @@ export default function ComparePage() {
               <p className="text-[var(--muted)] text-sm mb-6">Add products from the shop page using the compare button.</p>
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-neon-violet text-white font-medium hover:bg-neon-purple transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-neon-violet text-white font-medium hover:bg-blue-500 transition-colors"
               >
                 Browse Products
               </Link>

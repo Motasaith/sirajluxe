@@ -552,7 +552,7 @@ export default function ProductDetailPage() {
                       </>
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-48 h-48 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-3xl" />
+                        <div className="w-48 h-48 rounded-full bg-gradient-to-br from-neon-violet/20 to-blue-500/10 blur-3xl" />
                         <span className="absolute text-[10rem] font-display font-bold text-heading/5">
                           {product.name.charAt(0)}
                         </span>
@@ -1416,7 +1416,7 @@ export default function ProductDetailPage() {
                           <button
                             onClick={handleAskQuestion}
                             disabled={questionSubmitting || questionText.trim().length < 5}
-                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-violet to-neon-purple text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50 flex items-center gap-2"
+                            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-neon-violet to-blue-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50 flex items-center gap-2"
                           >
                             {questionSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
                             Submit Question

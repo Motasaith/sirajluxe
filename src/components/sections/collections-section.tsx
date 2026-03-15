@@ -24,7 +24,7 @@ export function CollectionsSection() {
             description: doc.description || "Explore our carefully curated selection.",
             productCount: doc.productCount || 0,
             gradient: [
-              "from-violet-900 via-purple-900 to-indigo-950",
+              "from-blue-900 via-blue-900 to-blue-950",
               "from-gray-900 via-zinc-800 to-neutral-950",
               "from-emerald-900 via-teal-900 to-cyan-950",
               "from-amber-900 via-orange-900 to-yellow-950",

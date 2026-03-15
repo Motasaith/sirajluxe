@@ -33,11 +33,11 @@ const config: Config = {
           950: "#050505",
         },
         neon: {
-          violet: "#8b5cf6",
-          purple: "#a855f7",
-          blue: "#6366f1",
-          glow: "#c084fc",
-          pink: "#d946ef",
+          violet: "#2563eb",
+          purple: "#3b82f6",
+          blue: "#1d4ed8",
+          glow: "#60a5fa",
+          pink: "#2563eb",
         },
         glass: {
           light: "rgba(255, 255, 255, 0.05)",
@@ -54,12 +54,12 @@ const config: Config = {
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "neon-glow": "linear-gradient(135deg, #8b5cf6, #a855f7, #6366f1)",
+        "neon-glow": "linear-gradient(135deg, #2563eb, #3b82f6, #1d4ed8)",
         "glass-gradient": "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))",
       },
       boxShadow: {
-        neon: "0 0 20px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.1)",
-        "neon-strong": "0 0 30px rgba(139, 92, 246, 0.5), 0 0 80px rgba(139, 92, 246, 0.2)",
+        neon: "0 0 20px rgba(37, 99, 235, 0.3), 0 0 60px rgba(37, 99, 235, 0.1)",
+        "neon-strong": "0 0 30px rgba(37, 99, 235, 0.5), 0 0 80px rgba(37, 99, 235, 0.2)",
         glass: "0 8px 32px rgba(0, 0, 0, 0.3)",
         "glass-lg": "0 16px 64px rgba(0, 0, 0, 0.4)",
         "inner-glow": "inset 0 1px 1px rgba(255, 255, 255, 0.05)",
@@ -78,8 +78,8 @@ const config: Config = {
           "50%": { transform: "translateY(-20px)" },
         },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 20px rgba(139, 92, 246, 0.3)" },
-          "50%": { boxShadow: "0 0 40px rgba(139, 92, 246, 0.6)" },
+          "0%, 100%": { boxShadow: "0 0 20px rgba(37, 99, 235, 0.3)" },
+          "50%": { boxShadow: "0 0 40px rgba(37, 99, 235, 0.6)" },
         },
         "slide-up": {
           "0%": { transform: "translateY(30px)", opacity: "0" },

@@ -213,7 +213,7 @@ export default function MyReviewsPage() {
           </p>
           <Link
             href="/sign-in"
-            className="px-6 py-3 bg-gradient-to-r from-neon-violet to-neon-purple text-white rounded-xl font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all"
+            className="px-6 py-3 bg-gradient-to-r from-neon-violet to-blue-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all"
           >
             Sign In
           </Link>
@@ -279,7 +279,7 @@ export default function MyReviewsPage() {
               </p>
               <Link
                 href="/shop"
-                className="px-6 py-3 bg-gradient-to-r from-neon-violet to-neon-purple text-white rounded-xl font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all"
+                className="px-6 py-3 bg-gradient-to-r from-neon-violet to-blue-500 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all"
               >
                 Browse Products
               </Link>
@@ -409,7 +409,7 @@ export default function MyReviewsPage() {
                           <button
                             onClick={saveEdit}
                             disabled={saving || !editTitle.trim() || !editComment.trim()}
-                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-neon-violet to-neon-purple text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50"
+                            className="px-4 py-2 rounded-lg bg-gradient-to-r from-neon-violet to-blue-500 text-white text-sm font-medium hover:shadow-lg hover:shadow-neon-violet/25 transition-all disabled:opacity-50"
                           >
                             {saving ? (
                               <Loader2 className="w-4 h-4 animate-spin" />

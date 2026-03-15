@@ -103,7 +103,7 @@ export function HeroSection() {
             <motion.div {...fadeUp(0.9)} className="flex items-center gap-6 mt-8">
               {/* Avatars */}
               <div className="flex -space-x-2">
-                {["#8b5cf6", "#ec4899", "#f59e0b", "#10b981"].map(
+                {["#2563eb", "#ec4899", "#f59e0b", "#10b981"].map(
                   (bg, i) => (
                     <div
                       key={i}
@@ -145,7 +145,7 @@ export function HeroSection() {
           <motion.div {...fadeRight(0.5)} className="relative flex items-center justify-center lg:justify-end">
             <div className="relative w-full max-w-md lg:max-w-lg">
               {/* Decorative glow behind product */}
-              <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/20 via-neon-purple/10 to-transparent rounded-[2rem] blur-3xl scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-br from-neon-violet/20 via-blue-500/10 to-transparent rounded-[2rem] blur-3xl scale-110" />
 
               {/* Main product card */}
               <motion.div
@@ -154,21 +154,15 @@ export function HeroSection() {
                 transition={{ duration: 0.4 }}
               >
                 {/* Product image area */}
-                <div className="relative aspect-[4/5] rounded-[1.75rem] bg-gradient-to-br from-neon-violet/10 via-[var(--overlay)] to-neon-purple/5 overflow-hidden flex items-center justify-center">
+                <div className="relative aspect-[4/5] rounded-[1.75rem] bg-gradient-to-br from-neon-violet/10 via-[var(--overlay)] to-blue-500/5 overflow-hidden flex items-center justify-center">
                   {/* Abstract product visual */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="relative">
-                      <motion.div
-                        animate={{ y: [-8, 8, -8] }}
-                        transition={{
-                          duration: 4,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }}
-                      >
-                        <ShoppingBag className="w-32 h-32 md:w-40 md:h-40 text-neon-violet/20" strokeWidth={0.8} />
-                      </motion.div>
-                    </div>
+                  <div className="absolute inset-0 w-full h-full">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src="/appliances.png" 
+                      alt="Premium Appliances"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
 
                   {/* Floating mini badges on image */}
@@ -182,7 +176,7 @@ export function HeroSection() {
                     }}
                   >
                     <span className="text-[10px] font-semibold text-neon-violet uppercase tracking-wider">
-                      New Arrival
+                      Home Essentials
                     </span>
                   </motion.div>
 
@@ -197,7 +191,7 @@ export function HeroSection() {
                   >
                     <span className="text-[10px] font-semibold text-heading flex items-center gap-1">
                       <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      4.9
+                      4.9 / 5
                     </span>
                   </motion.div>
 
@@ -212,16 +206,14 @@ export function HeroSection() {
                     }}
                   >
                     <span className="text-[11px] font-bold tracking-wide">
-                      30% OFF
+                      Bundle & Save
                     </span>
                   </motion.div>
 
                   {/* Price on image */}
                   <div className="absolute bottom-4 right-4 glass px-4 py-2 rounded-2xl">
-                    <span className="text-lg font-bold text-heading">£249</span>
-                    <span className="text-xs text-muted-fg line-through ml-2">
-                      £349
-                    </span>
+                    <span className="text-sm font-medium text-muted-fg mr-2">From</span>
+                    <span className="text-lg font-bold text-heading">£89</span>
                   </div>
                 </div>
               </motion.div>

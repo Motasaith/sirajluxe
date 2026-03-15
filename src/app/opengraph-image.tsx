@@ -26,7 +26,7 @@ export default async function OGImage() {
             width: 80,
             height: 80,
             borderRadius: 20,
-            background: "linear-gradient(135deg, #8b5cf6, #7c3aed, #6d28d9)",
+            background: "linear-gradient(135deg, #2563eb, #1d4ed8, #6d28d9)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -104,7 +104,7 @@ export default async function OGImage() {
             left: 0,
             right: 0,
             height: 6,
-            background: "linear-gradient(90deg, #8b5cf6, #ec4899, #8b5cf6)",
+            background: "linear-gradient(90deg, #2563eb, #ec4899, #2563eb)",
           }}
         />
       </div>

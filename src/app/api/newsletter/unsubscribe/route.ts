@@ -90,7 +90,7 @@ function unsubPage(message: string, success: boolean) {
     .icon svg { width: 2rem; height: 2rem; color: ${color}; }
     h1 { font-size: 1.5rem; margin: 0 0 0.75rem; }
     p { color: #9ca3af; line-height: 1.6; margin: 0 0 1.5rem; }
-    a { display: inline-block; padding: 0.75rem 1.5rem; background: #8b5cf6; color: white; border-radius: 0.75rem; text-decoration: none; font-weight: 500; }
+    a { display: inline-block; padding: 0.75rem 1.5rem; background: #2563eb; color: white; border-radius: 0.75rem; text-decoration: none; font-weight: 500; }
     a:hover { opacity: 0.9; }
   </style>
 </head>

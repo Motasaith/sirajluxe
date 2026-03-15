@@ -83,8 +83,8 @@ export function Preloader({ onComplete }: { onComplete: () => void }) {
                   x2="64"
                   y2="64"
                 >
-                  <stop stopColor="#8b5cf6" />
-                  <stop offset="0.5" stopColor="#7c3aed" />
+                  <stop stopColor="#2563eb" />
+                  <stop offset="0.5" stopColor="#1d4ed8" />
                   <stop offset="1" stopColor="#6d28d9" />
                 </linearGradient>
               </defs>

@@ -47,7 +47,7 @@ export function CompareBar() {
 
           <Link
             href="/compare"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neon-violet text-white font-medium text-sm hover:bg-neon-purple transition-colors flex-shrink-0 shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-neon-violet text-white font-medium text-sm hover:bg-blue-500 transition-colors flex-shrink-0 shadow-[0_0_15px_rgba(139,92,246,0.3)]"
           >
             Compare <ArrowRight className="w-3.5 h-3.5" />
           </Link>

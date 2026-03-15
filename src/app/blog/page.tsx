@@ -133,7 +133,7 @@ export default function BlogPage() {
                       />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-neon-violet/20 to-neon-purple/10 blur-2xl" />
+                        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-neon-violet/20 to-blue-500/10 blur-2xl" />
                         <span className="absolute text-4xl font-display font-bold text-heading/10">
                           {post.title.charAt(0)}
                         </span>
