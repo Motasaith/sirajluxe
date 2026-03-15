@@ -45,7 +45,7 @@ export function CTASection() {
               </span>
             </motion.div>
 
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-bold text-white max-w-4xl mx-auto leading-[1.1] mb-8">
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-display font-bold text-heading max-w-4xl mx-auto leading-[1.1] mb-8">
               {cms?.heading || "Ready to elevate your"}{" "}
               <span className="neon-text">wardrobe</span> today?
             </h2>
@@ -62,7 +62,7 @@ export function CTASection() {
                 </span>
               </Link>
 
-              <Link href="/about" className="group flex items-center gap-2 px-8 py-4 rounded-full border border-[var(--border-strong)] text-white hover:bg-[var(--hover)] transition-all duration-300">
+              <Link href="/about" className="group flex items-center gap-2 px-8 py-4 rounded-full border border-[var(--border-strong)] text-heading hover:bg-[var(--hover)] transition-all duration-300">
                 <span className="text-sm font-medium">{cms?.secondaryText || "Learn More"}</span>
               </Link>
             </div>
