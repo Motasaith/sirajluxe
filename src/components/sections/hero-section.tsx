@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import {
   ArrowRight,
   ChevronDown,
-  ShoppingBag,
   Star,
   Truck,
   Shield,
