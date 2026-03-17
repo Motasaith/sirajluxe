@@ -87,6 +87,10 @@ function PaymentForm({
         <PaymentElement
           options={{
             layout: "tabs",
+            wallets: {
+              applePay: "auto",
+              googlePay: "auto",
+            },
           }}
         />
       </div>
